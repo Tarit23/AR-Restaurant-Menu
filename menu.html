@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu — AR Menu Platform</title>
+  <meta name="description" content="Browse our menu and view dishes in augmented reality." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    :root {
+      --primary:       #6366f1;
+      --primary-dark:  #4f46e5;
+      --primary-light: #818cf8;
+      --accent:        #06b6d4;
+      --success:       #10b981;
+      --danger:        #ef4444;
+      --warning:       #f59e0b;
+      --bg:            #09090f;
+      --bg-card:       #111118;
+      --bg-elevated:   #18181f;
+      --border:        rgba(255,255,255,0.08);
+      --text:          #f1f5f9;
+      --text-sec:      #94a3b8;
+      --text-muted:    #475569;
+      --radius-lg:     16px;
+      --radius-xl:     22px;
+      --font:          'Inter', sans-serif;
+      --font-display:  'Plus Jakarta Sans', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      position: sticky; top: 0;
+      background: rgba(9,9,15,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      z-index: 50;
+    }
+
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .header-brand {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .brand-icon {
+      width: 42px; height: 42px;
+      background: linear-gradient(135deg,#6366f1,#06b6d4);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+    }
+    .brand-name {
+      font-family: var(--font-display);
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--text);
+    }
+    .brand-sub {
+      font-size: .7rem;
+      color: var(--text-muted);
+    }
+
+    .header-badge {
+      display: flex; align-items: center; gap: 6px;
+      padding: 6px 14px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-size: .75rem;
+      font-weight: 600;
+      color: var(--text-sec);
+    }
+
+    /* ── HERO ── */
+    .hero {
+      max-width: 1100px; margin: 0 auto;
+      padding: 52px 24px 32px;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px;
+      background: rgba(99,102,241,.12);
+      border: 1px solid rgba(99,102,241,.25);
+      border-radius: 99px;
+      font-size: .75rem; font-weight: 700;
+      color: var(--primary-light);
+      letter-spacing: .08em; text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 5vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    .hero-subtitle {
+      font-size: .95rem;
+      color: var(--text-sec);
+      max-width: 480px; margin: 0 auto 32px;
+      line-height: 1.7;
+    }
+
+    /* ── CATEGORY PILLS ── */
+    .category-bar {
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 24px 24px;
+      display: flex; gap: 8px; overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .category-bar::-webkit-scrollbar { display: none; }
+
+    .cat-pill {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text-sec);
+      padding: 8px 18px;
+      border-radius: 99px;
+      font-size: .8rem; font-weight: 600;
+      white-space: nowrap; cursor: pointer;
+      transition: all .2s;
+      font-family: inherit;
+    }
+    .cat-pill:hover, .cat-pill.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* ── MENU GRID ── */
+    .menu-section {
+      max-width: 1100px; margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    /* ── DISH CARD ── */
+    .dish-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s, border-color .3s;
+      animation: fadeIn .4s ease both;
+    }
+    .dish-card:hover {
+      transform: translateY(-5px);
+      border-color: rgba(99,102,241,.3);
+      box-shadow: 0 16px 48px rgba(0,0,0,.5);
+    }
+
+    .dish-img-wrap { position: relative; }
+    .dish-img {
+      width: 100%; height: 200px;
+      object-fit: cover;
+      background: var(--bg-elevated);
+    }
+    .dish-img-placeholder {
+      width: 100%; height: 200px;
+      background: var(--bg-elevated);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3.5rem; color: var(--text-muted);
+    }
+
+    .dish-ar-badge {
+      position: absolute; top: 12px; right: 12px;
+      background: rgba(99,102,241,.9);
+      backdrop-filter: blur(8px);
+      color: #fff;
+      font-size: .65rem; font-weight: 800;
+      padding: 4px 10px; border-radius: 99px;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+
+    .dish-unavail-overlay {
+      position: absolute; inset: 0;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(2px);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .dish-unavail-label {
+      background: rgba(239,68,68,.9);
+      color: #fff;
+      font-size: .7rem; font-weight: 800;
+      padding: 6px 16px; border-radius: 99px;
+      letter-spacing: .08em; text-transform: uppercase;
+    }
+
+    .dish-body { padding: 18px; }
+
+    .dish-name {
+      font-family: var(--font-display);
+      font-size: 1rem; font-weight: 700;
+      color: var(--text); margin-bottom: 6px;
+    }
+
+    .dish-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px;
+      border-top: 1px solid var(--border);
+    }
+
+    .dish-price {
+      font-family: var(--font-display);
+      font-size: 1.15rem; font-weight: 800;
+      color: var(--primary-light);
+    }
+
+    .btn-ar {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 8px 16px;
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      color: #fff;
+      border: none; border-radius: 10px;
+      font-size: .8rem; font-weight: 700;
+      cursor: pointer; font-family: inherit;
+      transition: all .2s;
+      box-shadow: 0 0 16px rgba(99,102,241,.35);
+    }
+    .btn-ar:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 24px rgba(99,102,241,.6);
+    }
+    .btn-ar.disabled {
+      background: var(--bg-elevated);
+      color: var(--text-muted);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* ── SKELETON ── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-card) 50%, var(--bg-elevated) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+      border-radius: 12px;
+    }
+    @keyframes shimmer { 0%{background-position:-200% 0} 100%{background-position:200% 0} }
+
+    /* ── SUBSCRIPTION EXPIRED ── */
+    .sub-expired-banner {
+      max-width: 1100px; margin: 0 auto 24px;
+      padding: 0 24px;
+    }
+
+    .sub-expired-inner {
+      background: rgba(239,68,68,.1);
+      border: 1px solid rgba(239,68,68,.25);
+      border-radius: var(--radius-lg);
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: .875rem;
+      color: var(--danger);
+    }
+
+    .sub-expired-inner a {
+      color: var(--danger); text-decoration: underline; margin-left: auto; white-space: nowrap;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 80px 24px;
+      grid-column: 1 / -1;
+    }
+    .empty-icon { font-size: 3.5rem; opacity: .3; margin-bottom: 16px; }
+    .empty-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+    .empty-text  { font-size: .875rem; color: var(--text-muted); }
+
+    /* ── FOOTER ── */
+    .public-footer {
+      text-align: center;
+      padding: 24px;
+      border-top: 1px solid var(--border);
+      font-size: .75rem;
+      color: var(--text-muted);
+    }
+
+    @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+    @media (max-width: 640px) {
+      .menu-grid { grid-template-columns: 1fr; }
+      .hero { padding: 36px 16px 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="header">
+    <div class="header-inner">
+      <div class="header-brand">
+        <div class="brand-icon">🍽️</div>
+        <div>
+          <div class="brand-name" id="restaurantName">Loading…</div>
+          <div class="brand-sub">Digital Menu</div>
+        </div>
+      </div>
+      <div class="header-badge" id="itemCount">
+        <span>🍽️</span><span>Loading menu…</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Expired Banner (hidden by default) -->
+  <div class="sub-expired-banner" id="expiredBanner" style="display:none; margin-top:16px;">
+    <div class="sub-expired-inner">
+      <span>⚠</span>
+      <span>AR features are currently unavailable. The restaurant's subscription has expired.</span>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-badge">✦ AR-Powered Menu</div>
+    <h1 class="hero-title" id="heroTitle">Explore Our Menu</h1>
+    <p class="hero-subtitle">Tap "View in AR" to see any dish in your real-world environment — right from your phone camera.</p>
+  </div>
+
+  <!-- Category pills -->
+  <div class="category-bar" id="categoryBar"></div>
+
+  <!-- Menu Grid -->
+  <div class="menu-section">
+    <div class="menu-grid" id="menuGrid">
+      <div class="skeleton" style="height:340px;"></div>
+      <div class="skeleton" style="height:340px;"></div>
+      <div class="skeleton" style="height:340px;"></div>
+      <div class="skeleton" style="height:340px;"></div>
+    </div>
+  </div>
+
+  <footer class="public-footer">
+    Powered by <strong>AR Menu Platform</strong> · Augmented Reality dining experience
+  </footer>
+
+  <script type="module">
+    import { supabase } from './js/supabase-config.js';
+    import { APP_CONFIG } from './js/supabase-config.js';
+
+    const params       = new URLSearchParams(window.location.search);
+    const restaurantId = params.get('restaurant');
+
+    if (!restaurantId) {
+      document.getElementById('heroTitle').textContent = 'Restaurant not found';
+      document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-title">No restaurant specified</div><div class="empty-text">Please scan the QR code provided by the restaurant.</div></div>`;
+    } else {
+      await loadMenu(restaurantId);
+    }
+
+    async function loadMenu(id) {
+      try {
+        // Fetch restaurant
+        const { data: restaurant, error: rErr } = await supabase
+          .from('restaurants')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (rErr || !restaurant) {
+          document.getElementById('heroTitle').textContent = 'Restaurant not found';
+          document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-icon">🏪</div><div class="empty-title">Restaurant not found</div><div class="empty-text">This QR code may be invalid or expired.</div></div>`;
+          return;
+        }
+
+        // Update page meta
+        document.title = `${restaurant.name} — Menu`;
+        document.getElementById('restaurantName').textContent = restaurant.name;
+        document.getElementById('heroTitle').textContent = `${restaurant.name}'s Menu`;
+
+        const arEnabled = restaurant.subscription_status === 'active';
+        if (!arEnabled) {
+          document.getElementById('expiredBanner').style.display = 'block';
+        }
+
+        // Fetch items (only available ones for public view)
+        const { data: items, error: mErr } = await supabase
+          .from('menu_items')
+          .select('*')
+          .eq('restaurant_id', id)
+          .order('name');
+
+        if (mErr) throw mErr;
+
+        const availableItems = items.filter(i => i.is_available);
+        document.getElementById('itemCount').innerHTML = `<span>🍽️</span><span>${availableItems.length} dishes</span>`;
+
+        if (!items.length) {
+          document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-icon">🍽️</div><div class="empty-title">Menu coming soon</div><div class="empty-text">This restaurant hasn't added any dishes yet.</div></div>`;
+          document.getElementById('categoryBar').style.display = 'none';
+          return;
+        }
+
+        // Category pills (simplified — All + Available)
+        document.getElementById('categoryBar').innerHTML = `
+          <button class="cat-pill active" onclick="filterItems('all', this)">All (${items.length})</button>
+          <button class="cat-pill" onclick="filterItems('available', this)">Available (${availableItems.length})</button>
+          ${items.some(i => i.model_url) ? `<button class="cat-pill" onclick="filterItems('ar', this)">AR Dishes 🧊</button>` : ''}
+        `;
+
+        window._allItems   = items;
+        window._arEnabled  = arEnabled;
+        window._restaurantId = id;
+
+        renderItems(items, arEnabled);
+
+      } catch (err) {
+        document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-title">Error loading menu</div><div class="empty-text">${err.message}</div></div>`;
+      }
+    }
+
+    function renderItems(items, arEnabled) {
+      const grid = document.getElementById('menuGrid');
+      if (!items.length) {
+        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🍽️</div><div class="empty-title">No dishes found</div></div>`;
+        return;
+      }
+
+      grid.innerHTML = items.map((item, i) => {
+        const arUrl = `./ar.html?restaurant=${item.restaurant_id}&dish=${item.id}`;
+        const arBtnEnabled = arEnabled && item.model_url;
+
+        return `
+          <div class="dish-card" style="animation-delay:${i * 0.04}s;">
+            <div class="dish-img-wrap">
+              ${item.image_url
+                ? `<img class="dish-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />`
+                : `<div class="dish-img-placeholder">🍽️</div>`
+              }
+              ${item.model_url ? `<div class="dish-ar-badge">AR</div>` : ''}
+              ${!item.is_available ? `
+                <div class="dish-unavail-overlay">
+                  <div class="dish-unavail-label">Unavailable</div>
+                </div>` : ''
+              }
+            </div>
+            <div class="dish-body">
+              <div class="dish-name">${item.name}</div>
+            </div>
+            <div class="dish-footer">
+              <div class="dish-price">₹${item.price?.toLocaleString('en-IN')}</div>
+              ${item.model_url
+                ? arBtnEnabled
+                  ? `<a class="btn-ar" href="${arUrl}" title="View in AR">🧊 View in AR</a>`
+                  : `<button class="btn-ar disabled" title="Subscription expired — AR unavailable" disabled>🚫 AR Unavailable</button>`
+                : `<span style="font-size:.75rem;color:var(--text-muted);">No AR model</span>`
+              }
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.filterItems = (filter, btn) => {
+      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+
+      let filtered = window._allItems;
+      if (filter === 'available') filtered = filtered.filter(i => i.is_available);
+      if (filter === 'ar')        filtered = filtered.filter(i => i.model_url);
+      renderItems(filtered, window._arEnabled);
+    };
+  </script>
+</body>
+</html>

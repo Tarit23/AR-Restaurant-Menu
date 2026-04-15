@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>View in AR — AR Menu Platform</title>
+  <meta name="description" content="View this dish in augmented reality using your phone camera." />
+
+  <!-- model-viewer by Google -->
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --accent: #06b6d4;
+      --bg: #09090f;
+      --bg-card: #111118;
+      --bg-elevated: #18181f;
+      --border: rgba(255,255,255,0.08);
+      --text: #f1f5f9;
+      --text-sec: #94a3b8;
+      --text-muted: #475569;
+      --danger: #ef4444;
+      --success: #10b981;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── TOP BAR ── */
+    .ar-topbar {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 60px;
+      background: rgba(9,9,15,0.85);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 20px;
+      gap: 14px;
+      z-index: 100;
+    }
+
+    .back-btn {
+      width: 36px; height: 36px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none;
+      color: var(--text-sec);
+      font-size: 1rem;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+    .back-btn:hover { border-color: var(--primary); color: var(--primary); }
+
+    .topbar-info { flex: 1; min-width: 0; }
+    .topbar-dish-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700; font-size: .95rem;
+      color: var(--text);
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .topbar-rest-name { font-size: .72rem; color: var(--text-muted); }
+
+    .topbar-price {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800; font-size: 1rem;
+      color: #818cf8;
+      flex-shrink: 0;
+    }
+
+    /* ── MODEL VIEWER ── */
+    .viewer-wrapper {
+      flex: 1;
+      padding-top: 60px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    model-viewer {
+      width: 100%; flex: 1;
+      min-height: calc(100vh - 60px - 180px);
+      background: var(--bg);
+      --poster-color: transparent;
+    }
+
+    /* Custom AR button */
+    .ar-launch-btn {
+      position: absolute;
+      bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: linear-gradient(135deg, #6366f1, #06b6d4);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 14px 32px;
+      font-size: 1rem; font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 0 28px rgba(99,102,241,.45);
+      transition: transform .2s, box-shadow .2s;
+      white-space: nowrap;
+    }
+    .ar-launch-btn:hover {
+      transform: translateX(-50%) scale(1.04);
+      box-shadow: 0 0 48px rgba(99,102,241,.7);
+    }
+
+    /* ── INFO PANEL ── */
+    .info-panel {
+      background: var(--bg-card);
+      border-top: 1px solid var(--border);
+      padding: 20px 24px 32px;
+    }
+
+    .info-panel-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.2rem; font-weight: 800;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    .info-panel-meta {
+      display: flex; gap: 10px; flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    .info-chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-size: .75rem; font-weight: 600;
+      color: var(--text-sec);
+    }
+
+    .info-tips {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .tip-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+    .tip-icon { font-size: 1.4rem; margin-bottom: 6px; }
+    .tip-text { font-size: .7rem; color: var(--text-muted); line-height: 1.4; }
+
+    /* ── LOADING STATE ── */
+    #loadingState {
+      position: fixed; inset: 0;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 20px;
+      z-index: 200;
+    }
+    .loading-ring {
+      width: 56px; height: 56px;
+      border: 3px solid var(--bg-elevated);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+    }
+    @keyframes spin { to{ transform:rotate(360deg); } }
+
+    #loadingState p { color: var(--text-sec); font-size: .9rem; }
+
+    /* ── ERROR STATE ── */
+    #errorState {
+      display: none;
+      flex: 1; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 60px 24px; text-align: center;
+    }
+    #errorState .icon { font-size: 3rem; margin-bottom: 16px; opacity: .5; }
+    #errorState h2 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.25rem; font-weight:800; margin-bottom:8px; }
+    #errorState p { color:var(--text-muted); font-size:.875rem; margin-bottom:24px; }
+    #errorState a {
+      display:inline-flex; align-items:center; gap:8px;
+      padding:12px 24px; background:var(--primary); color:#fff;
+      border-radius:12px; font-weight:700; font-size:.875rem; text-decoration:none;
+    }
+
+    /* No AR fallback tooltip */
+    .no-ar-note {
+      position: absolute;
+      bottom: 70px; left: 50%; transform: translateX(-50%);
+      background: rgba(245,158,11,.15);
+      border: 1px solid rgba(245,158,11,.3);
+      color: #f59e0b;
+      font-size: .75rem; font-weight: 600;
+      padding: 8px 16px; border-radius: 99px;
+      white-space: nowrap;
+      display: none;
+    }
+
+    @media (max-width: 480px) {
+      .info-tips { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Loading -->
+  <div id="loadingState">
+    <div class="loading-ring"></div>
+    <p>Loading 3D model…</p>
+  </div>
+
+  <!-- Top Bar -->
+  <header class="ar-topbar" style="display:none;" id="arTopbar">
+    <a class="back-btn" id="backBtn" href="#" title="Go back">←</a>
+    <div class="topbar-info">
+      <div class="topbar-dish-name" id="dishNameTop">Dish</div>
+      <div class="topbar-rest-name" id="restNameTop">Restaurant</div>
+    </div>
+    <div class="topbar-price" id="dishPriceTop">₹0</div>
+  </header>
+
+  <!-- Error State -->
+  <div id="errorState" style="display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; padding:80px 24px; text-align:center;">
+    <div class="icon">⚠️</div>
+    <h2 id="errorTitle">Model Not Found</h2>
+    <p id="errorDesc">This dish doesn't have an AR model attached.</p>
+    <a id="errorBackLink" href="#">← Back to Menu</a>
+  </div>
+
+  <!-- Viewer -->
+  <div class="viewer-wrapper" id="viewerWrapper" style="display:none;">
+    <div style="position:relative; flex:1; display:flex; flex-direction:column;">
+      <model-viewer
+        id="modelViewer"
+        src=""
+        ar
+        ar-modes="webxr scene-viewer quick-look"
+        ar-scale="auto"
+        camera-controls
+        auto-rotate
+        auto-rotate-delay="500"
+        rotation-per-second="30deg"
+        shadow-intensity="1"
+        environment-image="neutral"
+        exposure="1"
+        min-camera-orbit="auto auto auto"
+        max-camera-orbit="auto auto auto"
+        style="flex:1; min-height:280px;">
+        <!-- Custom AR button slot -->
+        <button class="ar-launch-btn" slot="ar-button">🧊 View in AR</button>
+        <div class="no-ar-note" slot="ar-failure">AR not supported on this device</div>
+      </model-viewer>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="info-panel">
+      <div class="info-panel-title" id="dishNamePanel">Dish</div>
+      <div class="info-panel-meta">
+        <div class="info-chip">₹<span id="dishPricePanel">0</span></div>
+        <div class="info-chip">🧊 3D Model</div>
+        <div class="info-chip" id="arModeChip">📱 WebXR / ARCore</div>
+      </div>
+      <div class="info-tips">
+        <div class="tip-card">
+          <div class="tip-icon">☀️</div>
+          <div class="tip-text">Aim at a well-lit flat surface</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">📐</div>
+          <div class="tip-text">Move phone slowly to detect surface</div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-icon">👆</div>
+          <div class="tip-text">Tap "View in AR" to place in room</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './js/supabase-config.js';
+
+    const params       = new URLSearchParams(window.location.search);
+    const restaurantId = params.get('restaurant');
+    const dishId       = params.get('dish');
+
+    const menuUrl = `./menu.html?restaurant=${restaurantId}`;
+
+    // Set back links
+    document.getElementById('backBtn').href = menuUrl;
+    document.getElementById('errorBackLink').href = menuUrl;
+
+    if (!restaurantId || !dishId) {
+      showError('Invalid URL', 'Missing restaurant or dish parameter.', menuUrl);
+    } else {
+      await loadARView(restaurantId, dishId);
+    }
+
+    async function loadARView(restaurantId, dishId) {
+      try {
+        // Fetch dish + restaurant
+        const { data: item, error: mErr } = await supabase
+          .from('menu_items')
+          .select('*, restaurants(name, subscription_status)')
+          .eq('id', dishId)
+          .eq('restaurant_id', restaurantId)
+          .single();
+
+        if (mErr || !item) {
+          showError('Dish Not Found', 'This dish could not be found.', menuUrl);
+          return;
+        }
+
+        if (!item.model_url) {
+          showError('No AR Model', 'This dish does not have a 3D model for AR viewing.', menuUrl);
+          return;
+        }
+
+        // Check subscription
+        const arEnabled = item.restaurants?.subscription_status === 'active';
+        if (!arEnabled) {
+          showError(
+            'AR Unavailable',
+            'This restaurant\'s AR subscription has expired. Please contact the restaurant owner.',
+            menuUrl
+          );
+          return;
+        }
+
+        // Populate UI
+        const name  = item.name;
+        const price = `₹${item.price?.toLocaleString('en-IN')}`;
+        const rest  = item.restaurants?.name || 'Restaurant';
+
+        document.getElementById('dishNameTop').textContent    = name;
+        document.getElementById('restNameTop').textContent    = rest;
+        document.getElementById('dishPriceTop').textContent   = price;
+        document.getElementById('dishNamePanel').textContent  = name;
+        document.getElementById('dishPricePanel').textContent = item.price?.toLocaleString('en-IN');
+        document.title = `${name} in AR`;
+
+        // Load model
+        const viewer = document.getElementById('modelViewer');
+        viewer.src = item.model_url;
+
+        // Detect platform for chip
+        const isIOS     = /iPad|iPhone|iPod/.test(navigator.userAgent);
+        const isAndroid = /Android/.test(navigator.userAgent);
+        const chip = document.getElementById('arModeChip');
+        if (isIOS)     chip.textContent = '📱 Quick Look (iOS)';
+        if (isAndroid) chip.textContent = '📱 Scene Viewer (Android)';
+
+        // Show UI when model loads
+        viewer.addEventListener('load', () => {
+          document.getElementById('loadingState').style.display = 'none';
+          document.getElementById('arTopbar').style.display = 'flex';
+          document.getElementById('viewerWrapper').style.display = 'flex';
+        });
+
+        // Timeout fallback if model doesn't load
+        setTimeout(() => {
+          if (document.getElementById('loadingState').style.display !== 'none') {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('arTopbar').style.display = 'flex';
+            document.getElementById('viewerWrapper').style.display = 'flex';
+          }
+        }, 8000);
+
+      } catch (err) {
+        showError('Error', err.message, menuUrl);
+      }
+    }
+
+    function showError(title, desc, backUrl) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('errorTitle').textContent = title;
+      document.getElementById('errorDesc').textContent  = desc;
+      document.getElementById('errorBackLink').href     = backUrl;
+      document.getElementById('errorState').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>

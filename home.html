@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AR Menu Platform — AR-Powered Digital Menus for Restaurants</title>
+  <meta name="description" content="Transform your restaurant with augmented reality menus. Let customers see dishes in 3D before ordering — no app required." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6366f1; --primary-dark: #4f46e5; --primary-light: #818cf8;
+      --accent: #06b6d4; --success: #10b981; --warning: #f59e0b;
+      --bg: #08080e; --bg-card: #100f1a; --bg-elevated: #17162a;
+      --border: rgba(255,255,255,0.07);
+      --text: #f1f5f9; --text-sec: #94a3b8; --text-muted: #475569;
+      --gradient: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+      --font: 'Inter', sans-serif; --font-display: 'Plus Jakarta Sans', sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: var(--font); background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+    a { text-decoration: none; color: inherit; }
+    img { display: block; max-width: 100%; }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      height: 64px;
+      background: rgba(8,8,14,0.8);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 max(40px, calc((100vw - 1200px)/2));
+      gap: 32px; z-index: 100;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 10px;
+      font-family: var(--font-display); font-weight: 800; font-size: 1rem;
+      margin-right: auto;
+    }
+    .nav-brand-icon {
+      width: 36px; height: 36px;
+      background: var(--gradient);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      box-shadow: 0 0 16px rgba(99,102,241,.4);
+    }
+    .nav-links { display: flex; gap: 28px; }
+    .nav-link { font-size: .875rem; font-weight: 500; color: var(--text-sec); transition: color .2s; }
+    .nav-link:hover { color: var(--text); }
+    .nav-cta {
+      padding: 8px 20px;
+      background: var(--primary);
+      border-radius: 8px;
+      font-size: .875rem; font-weight: 700;
+      color: #fff;
+      box-shadow: 0 0 16px rgba(99,102,241,.3);
+      transition: all .2s;
+    }
+    .nav-cta:hover { background: var(--primary-dark); box-shadow: 0 0 24px rgba(99,102,241,.5); }
+    @media(max-width:768px){ .nav-links { display:none; } nav { padding:0 20px; } }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 24px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Animated gradient radial blobs */
+    .hero::before {
+      content: '';
+      position: absolute;
+      width: 800px; height: 800px;
+      background: radial-gradient(ellipse, rgba(99,102,241,.2) 0%, transparent 65%);
+      top: -200px; left: 50%; transform: translateX(-50%);
+      pointer-events: none;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      width: 500px; height: 500px;
+      background: radial-gradient(ellipse, rgba(6,182,212,.12) 0%, transparent 65%);
+      bottom: -100px; right: 10%;
+      pointer-events: none;
+    }
+
+    .hero-inner { position: relative; z-index: 1; max-width: 820px; margin: 0 auto; }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 6px 16px;
+      background: rgba(99,102,241,.1);
+      border: 1px solid rgba(99,102,241,.25);
+      border-radius: 99px;
+      font-size: .75rem; font-weight: 700;
+      color: var(--primary-light);
+      letter-spacing: .1em; text-transform: uppercase;
+      margin-bottom: 28px;
+      animation: fadeIn .6s ease both;
+    }
+    .badge-dot { width:6px; height:6px; background:var(--primary-light); border-radius:50%; animation: pulse 2s ease infinite; }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.2rem, 6vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: -.02em;
+      margin-bottom: 24px;
+      animation: fadeIn .6s .1s ease both;
+    }
+    .hero-title .gradient-text {
+      background: var(--gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    }
+
+    .hero-subtitle {
+      font-size: clamp(1rem, 2.5vw, 1.2rem);
+      color: var(--text-sec);
+      max-width: 560px; margin: 0 auto 48px;
+      line-height: 1.7;
+      animation: fadeIn .6s .2s ease both;
+    }
+
+    .hero-cta {
+      display: flex; gap: 14px; justify-content: center; flex-wrap: wrap;
+      animation: fadeIn .6s .3s ease both;
+    }
+
+    .btn-hero-primary {
+      padding: 14px 32px;
+      background: var(--primary);
+      color: #fff; border-radius: 14px;
+      font-weight: 700; font-size: 1rem;
+      box-shadow: 0 0 32px rgba(99,102,241,.4);
+      transition: all .25s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-hero-primary:hover { background: var(--primary-dark); transform: translateY(-2px); box-shadow: 0 0 48px rgba(99,102,241,.6); }
+
+    .btn-hero-secondary {
+      padding: 14px 32px;
+      background: rgba(255,255,255,.05);
+      border: 1px solid var(--border);
+      color: var(--text); border-radius: 14px;
+      font-weight: 600; font-size: 1rem;
+      transition: all .25s;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-hero-secondary:hover { background: rgba(255,255,255,.08); border-color: rgba(99,102,241,.3); transform: translateY(-2px); }
+
+    /* ── STATS STRIP ── */
+    .stats-strip {
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 36px 24px;
+      display: flex; justify-content: center; gap: 80px; flex-wrap: wrap;
+    }
+    .stat-item { text-align: center; }
+    .stat-number {
+      font-family: var(--font-display);
+      font-size: 2rem; font-weight: 900;
+      background: var(--gradient);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      display: block; margin-bottom: 4px;
+    }
+    .stat-label-small { font-size: .8rem; color: var(--text-muted); font-weight: 500; }
+
+    /* ── SECTIONS ── */
+    .section { padding: 96px 24px; }
+    .section-inner { max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .14em; color: var(--primary-light);
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem,4vw,2.4rem);
+      font-weight: 800; line-height: 1.2;
+      margin-bottom: 16px;
+    }
+    .section-sub { font-size: 1.05rem; color: var(--text-sec); max-width: 540px; line-height: 1.7; margin-bottom: 56px; }
+
+    /* ── FEATURES GRID ── */
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 20px;
+    }
+    @media(max-width:900px){ .features-grid { grid-template-columns:1fr 1fr; } }
+    @media(max-width:600px){ .features-grid { grid-template-columns:1fr; } }
+
+    .feature-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      transition: all .3s cubic-bezier(.16,1,.3,1);
+    }
+    .feature-card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,.25); box-shadow: 0 16px 48px rgba(0,0,0,.4); }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; margin-bottom: 18px;
+    }
+    .fi-purple { background: rgba(99,102,241,.15); }
+    .fi-cyan   { background: rgba(6,182,212,.15); }
+    .fi-green  { background: rgba(16,185,129,.15); }
+    .fi-amber  { background: rgba(245,158,11,.15); }
+    .fi-pink   { background: rgba(236,72,153,.15); }
+    .fi-blue   { background: rgba(59,130,246,.15); }
+
+    .feature-title { font-family:var(--font-display); font-size:1rem; font-weight:700; margin-bottom:8px; }
+    .feature-desc  { font-size:.875rem; color:var(--text-sec); line-height:1.6; }
+
+    /* ── HOW IT WORKS ── */
+    .how-grid {
+      display: grid; grid-template-columns: repeat(4,1fr); gap: 16px;
+    }
+    @media(max-width:900px){ .how-grid { grid-template-columns:1fr 1fr; } }
+    @media(max-width:500px){ .how-grid { grid-template-columns:1fr; } }
+
+    .how-step {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px 24px;
+      position: relative; text-align: center;
+    }
+    .how-step-num {
+      width: 40px; height: 40px;
+      background: var(--gradient);
+      border-radius: 50%;
+      font-weight: 900; font-size: .9rem; color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+    }
+    .how-step-icon { font-size: 2rem; margin-bottom: 12px; }
+    .how-step-title { font-family:var(--font-display); font-size:.95rem; font-weight:700; margin-bottom:8px; }
+    .how-step-desc  { font-size:.8rem; color:var(--text-sec); line-height:1.6; }
+
+    /* ── PRICING ── */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 20px;
+    }
+    @media(max-width:900px){ .pricing-grid { grid-template-columns:1fr; max-width:420px; margin:0 auto; } }
+
+    .price-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 36px 28px;
+      text-align: center;
+      position: relative;
+      transition: all .3s cubic-bezier(.16,1,.3,1);
+    }
+    .price-card:hover { transform: translateY(-4px); border-color: rgba(99,102,241,.3); }
+    .price-card.popular {
+      border-color: var(--primary);
+      background: linear-gradient(180deg, rgba(99,102,241,.08) 0%, var(--bg-card) 100%);
+    }
+    .popular-tag {
+      position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+      background: var(--gradient);
+      color: #fff; font-size: .7rem; font-weight: 800;
+      padding: 4px 16px; border-radius: 99px;
+      text-transform: uppercase; letter-spacing: .08em;
+    }
+    .price-plan { font-size: .8rem; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; color: var(--text-muted); margin-bottom: 10px; }
+    .price-amount {
+      font-family: var(--font-display);
+      font-size: 2.8rem; font-weight: 900; line-height: 1;
+      margin-bottom: 6px;
+    }
+    .price-period { font-size: .85rem; color: var(--text-muted); margin-bottom: 24px; }
+    .price-features { list-style: none; text-align: left; margin-bottom: 32px; display: flex; flex-direction: column; gap: 10px; }
+    .price-features li { font-size: .875rem; color: var(--text-sec); display: flex; gap: 10px; align-items: center; }
+    .price-features li span:first-child { color: var(--success); font-size: .8rem; }
+    .price-btn {
+      width: 100%; padding: 13px;
+      border-radius: 12px; border: none;
+      font-family: inherit; font-size: .9rem; font-weight: 700;
+      cursor: pointer; transition: all .2s;
+    }
+    .price-btn-secondary {
+      background: var(--bg-elevated); color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .price-btn-secondary:hover { border-color: var(--primary); }
+    .price-btn-primary {
+      background: var(--gradient); color: #fff;
+      box-shadow: 0 0 24px rgba(99,102,241,.35);
+    }
+    .price-btn-primary:hover { opacity: .9; transform: translateY(-1px); }
+
+    /* ── AR DEMO MOCKUP ── */
+    .ar-demo {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 40px;
+      display: flex; align-items: center; gap: 48px;
+      flex-wrap: wrap;
+    }
+    .ar-demo-text { flex: 1; min-width: 280px; }
+    .ar-demo-visual {
+      flex: 1; min-width: 280px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .phone-mockup {
+      background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1a 100%);
+      border: 2px solid rgba(99,102,241,.3);
+      border-radius: 40px;
+      width: 260px; height: 400px;
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 12px;
+      box-shadow: 0 0 60px rgba(99,102,241,.2), 0 24px 48px rgba(0,0,0,.5);
+      overflow: hidden;
+    }
+    .phone-notch {
+      position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+      width: 60px; height: 6px; background: rgba(255,255,255,.1); border-radius: 99px;
+    }
+    .phone-ar-view {
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(6,182,212,.08) 0%, rgba(99,102,241,.12) 100%);
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;
+    }
+    .ar-grid-lines {
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(99,102,241,.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(99,102,241,.1) 1px, transparent 1px);
+      background-size: 30px 30px;
+      animation: gridMove 4s linear infinite;
+    }
+    @keyframes gridMove { 0%{background-position:0 0} 100%{background-position:30px 30px} }
+    .ar-dish-emoji { font-size: 4rem; z-index: 1; animation: float3d 3s ease-in-out infinite; filter: drop-shadow(0 0 20px rgba(99,102,241,.6)); }
+    @keyframes float3d { 0%,100%{transform:translateY(0) scale(1)} 50%{transform:translateY(-12px) scale(1.05)} }
+    .ar-label-chip {
+      z-index: 1;
+      background: rgba(99,102,241,.8); backdrop-filter: blur(8px);
+      color: #fff; padding: 6px 14px; border-radius: 99px;
+      font-size: .7rem; font-weight: 700;
+      animation: pulse 2s ease infinite;
+    }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+    .ar-scan-ring {
+      position: absolute;
+      width: 140px; height: 140px;
+      border: 2px solid rgba(99,102,241,.4);
+      border-radius: 50%;
+      animation: scanPulse 2s ease-in-out infinite;
+    }
+    .ar-scan-ring-2 {
+      width: 190px; height: 190px;
+      border-color: rgba(6,182,212,.2);
+      animation-delay: .5s;
+    }
+    @keyframes scanPulse { 0%,100%{transform:scale(1); opacity:.8} 50%{transform:scale(1.1); opacity:.3} }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      background: linear-gradient(135deg, rgba(99,102,241,.15) 0%, rgba(6,182,212,.08) 100%);
+      border: 1px solid rgba(99,102,241,.2);
+      border-radius: 28px;
+      padding: 72px 40px;
+      text-align: center;
+      margin: 0 24px;
+      position: relative; overflow: hidden;
+    }
+    .cta-section::before {
+      content: ''; position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(99,102,241,.15) 0%, transparent 60%);
+      top: -100px; left: 50%; transform: translateX(-50%);
+      pointer-events: none;
+    }
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem,4vw,2.4rem);
+      font-weight: 900; margin-bottom: 16px; position: relative;
+    }
+    .cta-sub { font-size:1rem; color:var(--text-sec); max-width:440px; margin:0 auto 36px; line-height:1.7; position:relative; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 24px;
+      display: flex; justify-content: space-between; align-items: center;
+      flex-wrap: wrap; gap: 16px;
+      max-width: 1100px; margin: 0 auto;
+    }
+    .footer-brand { display: flex; align-items: center; gap: 10px; font-family:var(--font-display); font-weight:800; font-size:.9rem; }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-link { font-size:.8rem; color:var(--text-muted); transition:color .2s; }
+    .footer-link:hover { color:var(--text); }
+
+    @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation -->
+  <nav>
+    <div class="nav-brand">
+      <div class="nav-brand-icon">🍽️</div>
+      AR Menu Platform
+    </div>
+    <div class="nav-links">
+      <a class="nav-link" href="#features">Features</a>
+      <a class="nav-link" href="#how-it-works">How It Works</a>
+      <a class="nav-link" href="#pricing">Pricing</a>
+    </div>
+    <a class="nav-cta" href="login.html">Login →</a>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        Powered by WebXR · No App Required
+      </div>
+      <h1 class="hero-title">
+        Restaurant Menus<br />
+        <span class="gradient-text">in Augmented Reality</span>
+      </h1>
+      <p class="hero-subtitle">
+        Let customers point their phone at the table and see your dishes come to life in 3D — right in their real environment. Zero app downloads. Pure magic.
+      </p>
+      <div class="hero-cta">
+        <a class="btn-hero-primary" href="login.html">
+          🚀 Get Started Free
+        </a>
+        <a class="btn-hero-secondary" href="#how-it-works">
+          ▶ See How It Works
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Strip -->
+  <div class="stats-strip">
+    <div class="stat-item">
+      <span class="stat-number">3D</span>
+      <span class="stat-label-small">Markerless AR</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">0</span>
+      <span class="stat-label-small">App Downloads Needed</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">iOS & Android</span>
+      <span class="stat-label-small">Cross-Platform AR</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-number">30s</span>
+      <span class="stat-label-small">QR to AR Experience</span>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="section" id="features">
+    <div class="section-inner">
+      <div class="section-label">Everything You Need</div>
+      <h2 class="section-title">A Complete Restaurant<br />Menu Platform</h2>
+      <p class="section-sub">From AR viewing to subscription management — everything built in, nothing to bolt on.</p>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon fi-purple">🧊</div>
+          <div class="feature-title">Markerless AR</div>
+          <div class="feature-desc">Customers see dishes in their real environment using WebXR. Works on Android via Scene Viewer and iOS via Quick Look.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-cyan">⬛</div>
+          <div class="feature-title">Instant QR Codes</div>
+          <div class="feature-desc">Auto-generated QR for every restaurant. Print it on table cards, standees, or digital displays. One scan — full menu.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-green">💳</div>
+          <div class="feature-title">Razorpay Subscriptions</div>
+          <div class="feature-desc">Built-in subscription billing with autopay. Monthly plans, webhook-driven status updates, payment history dashboard.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-amber">🏪</div>
+          <div class="feature-title">Multi-Restaurant</div>
+          <div class="feature-desc">Manage unlimited restaurants from a single super-admin dashboard. Each restaurant gets their own isolated environment.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-pink">📁</div>
+          <div class="feature-title">Cloud Asset Storage</div>
+          <div class="feature-desc">Upload dish images and .glb 3D models directly to Supabase Storage. CDN-delivered globally for fast AR load times.</div>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon fi-blue">🔐</div>
+          <div class="feature-title">Role-Based Access</div>
+          <div class="feature-desc">Super admin controls everything. Restaurant owners manage their own menu. Row-level security enforced at the database level.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- AR Demo Visual -->
+  <section class="section" style="padding-top:0;">
+    <div class="section-inner">
+      <div class="ar-demo">
+        <div class="ar-demo-text">
+          <div class="section-label">AR Experience</div>
+          <h2 class="section-title" style="margin-bottom:16px;">Customers See Dishes<br />Before They Order</h2>
+          <p style="color:var(--text-sec); line-height:1.7; margin-bottom:28px;">
+            Using Google's model-viewer with WebXR, customers can place a life-size 3D model of any dish on their table — no marker, no app. Just scan the QR and tap "View in AR".
+          </p>
+          <div style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; gap:12px; align-items:center; font-size:.875rem; color:var(--text-sec);">
+              <span style="color:var(--success);">✓</span> Works on all modern Android & iOS devices
+            </div>
+            <div style="display:flex; gap:12px; align-items:center; font-size:.875rem; color:var(--text-sec);">
+              <span style="color:var(--success);">✓</span> Supports .glb / .gltf 3D model formats
+            </div>
+            <div style="display:flex; gap:12px; align-items:center; font-size:.875rem; color:var(--text-sec);">
+              <span style="color:var(--success);">✓</span> Auto-disabled if subscription expires
+            </div>
+          </div>
+        </div>
+        <div class="ar-demo-visual">
+          <div class="phone-mockup">
+            <div class="phone-notch"></div>
+            <div class="phone-ar-view">
+              <div class="ar-grid-lines"></div>
+              <div class="ar-scan-ring"></div>
+              <div class="ar-scan-ring ar-scan-ring-2"></div>
+              <div class="ar-dish-emoji">🍔</div>
+              <div class="ar-label-chip">🧊 Viewing in AR</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="section" id="how-it-works" style="background: rgba(255,255,255,.015); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+    <div class="section-inner">
+      <div class="section-label">Simple Setup</div>
+      <h2 class="section-title">Up and Running<br />in Minutes</h2>
+      <p class="section-sub">From account creation to customers scanning AR menus — the whole flow takes under 15 minutes.</p>
+
+      <div class="how-grid">
+        <div class="how-step">
+          <div class="how-step-num">1</div>
+          <div class="how-step-icon">🏪</div>
+          <div class="how-step-title">Add Restaurant</div>
+          <div class="how-step-desc">Super admin creates the restaurant profile and owner login credentials in seconds.</div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">2</div>
+          <div class="how-step-icon">📋</div>
+          <div class="how-step-title">Upload Menu</div>
+          <div class="how-step-desc">Add dishes with photos and optional .glb 3D models. Drag & drop upload straight to cloud storage.</div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">3</div>
+          <div class="how-step-icon">⬛</div>
+          <div class="how-step-title">Get QR Code</div>
+          <div class="how-step-desc">Auto-generated QR links directly to the public menu. Download and print — it's ready instantly.</div>
+        </div>
+        <div class="how-step">
+          <div class="how-step-num">4</div>
+          <div class="how-step-icon">🧊</div>
+          <div class="how-step-title">Customers View in AR</div>
+          <div class="how-step-desc">Scan → Browse menu → Tap "View in AR" → Dish appears at real scale on the table. No app download.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section class="section" id="pricing">
+    <div class="section-inner">
+      <div class="section-label">Transparent Pricing</div>
+      <h2 class="section-title">One Plan Per Restaurant,<br />Billed Monthly</h2>
+      <p class="section-sub">All plans include AR viewing, QR codes, and Supabase storage. Upgrade anytime.</p>
+
+      <div class="pricing-grid">
+        <div class="price-card">
+          <div class="price-plan">Basic</div>
+          <div class="price-amount">₹999</div>
+          <div class="price-period">per restaurant / month</div>
+          <ul class="price-features">
+            <li><span>✓</span> Up to 20 menu items</li>
+            <li><span>✓</span> AR viewing (WebXR)</li>
+            <li><span>✓</span> QR code generation</li>
+            <li><span>✓</span> Basic support</li>
+          </ul>
+          <a href="login.html"><button class="price-btn price-btn-secondary">Get Started</button></a>
+        </div>
+
+        <div class="price-card popular">
+          <div class="popular-tag">Most Popular</div>
+          <div class="price-plan">Professional</div>
+          <div class="price-amount">₹2,499</div>
+          <div class="price-period">per restaurant / month</div>
+          <ul class="price-features">
+            <li><span>✓</span> Unlimited menu items</li>
+            <li><span>✓</span> AR viewing (WebXR)</li>
+            <li><span>✓</span> QR code generation</li>
+            <li><span>✓</span> Analytics dashboard</li>
+            <li><span>✓</span> Priority support</li>
+          </ul>
+          <a href="login.html"><button class="price-btn price-btn-primary">Get Started</button></a>
+        </div>
+
+        <div class="price-card">
+          <div class="price-plan">Enterprise</div>
+          <div class="price-amount">₹4,999</div>
+          <div class="price-period">per restaurant / month</div>
+          <ul class="price-features">
+            <li><span>✓</span> Everything in Pro</li>
+            <li><span>✓</span> Custom domain</li>
+            <li><span>✓</span> White-label option</li>
+            <li><span>✓</span> Dedicated manager</li>
+            <li><span>✓</span> API access</li>
+          </ul>
+          <a href="login.html"><button class="price-btn price-btn-secondary">Get Started</button></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <div style="max-width:1100px; margin:0 auto; padding:0 0 80px;">
+    <div class="cta-section">
+      <h2 class="cta-title">Ready to Revolutionize<br />Your Restaurant Menu?</h2>
+      <p class="cta-sub">Join the future of dining. Set up AR menus in under 15 minutes. No technical expertise needed.</p>
+      <a class="btn-hero-primary" href="login.html">🚀 Start for Free →</a>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-brand">
+      <div class="nav-brand-icon" style="width:28px;height:28px;font-size:.85rem;">🍽️</div>
+      AR Menu Platform
+    </div>
+    <div class="footer-links">
+      <a class="footer-link" href="login.html">Login</a>
+      <a class="footer-link" href="README.md">Docs</a>
+      <a class="footer-link" href="mailto:support@armenu.app">Support</a>
+    </div>
+    <span style="font-size:.75rem; color:var(--text-muted);">© 2026 AR Menu Platform</span>
+  </footer>
+
+</body>
+</html>

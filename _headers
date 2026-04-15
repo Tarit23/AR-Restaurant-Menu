@@ -1,0 +1,16 @@
+# Vercel / Netlify deployment headers
+# For Netlify: rename this file to _headers
+
+/ar.html
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp
+
+/*.html
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+
+/js/*
+  Cache-Control: public, max-age=3600
+
+/css/*
+  Cache-Control: public, max-age=3600

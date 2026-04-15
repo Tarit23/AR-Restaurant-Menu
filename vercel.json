@@ -1,0 +1,46 @@
+{
+  "rewrites": [
+    { "source": "/menu",          "destination": "/menu.html" },
+    { "source": "/ar",            "destination": "/ar.html" },
+    { "source": "/login",         "destination": "/login.html" },
+    { "source": "/home",          "destination": "/home.html" },
+    { "source": "/admin",         "destination": "/admin/index.html" },
+    { "source": "/admin/restaurants", "destination": "/admin/restaurants.html" },
+    { "source": "/admin/menu",    "destination": "/admin/menu.html" },
+    { "source": "/admin/qr",      "destination": "/admin/qr.html" },
+    { "source": "/admin/payments","destination": "/admin/payments.html" },
+    { "source": "/restaurant",    "destination": "/restaurant/index.html" },
+    { "source": "/restaurant/menu",         "destination": "/restaurant/menu.html" },
+    { "source": "/restaurant/subscription", "destination": "/restaurant/subscription.html" },
+    { "source": "/restaurant/qr",           "destination": "/restaurant/qr.html" }
+  ],
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options",  "value": "nosniff" },
+        { "key": "X-Frame-Options",         "value": "SAMEORIGIN" },
+        { "key": "X-XSS-Protection",        "value": "1; mode=block" },
+        { "key": "Referrer-Policy",         "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy",      "value": "camera=*, xr-spatial-tracking=*" }
+      ]
+    },
+    {
+      "source": "/ar(.*)",
+      "headers": [
+        { "key": "Cross-Origin-Opener-Policy",   "value": "same-origin" },
+        { "key": "Cross-Origin-Embedder-Policy", "value": "require-corp" }
+      ]
+    },
+    {
+      "source": "/js/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }]
+    },
+    {
+      "source": "/css/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }]
+    }
+  ]
+}

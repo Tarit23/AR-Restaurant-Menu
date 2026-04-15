@@ -1,0 +1,160 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>QR Generator â€” AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />`n  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="dashboard-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">ðŸ½ï¸</div>
+      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub">SUPER ADMIN</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-item" href="index.html"><span class="nav-icon">âŠž</span> Dashboard</a>
+      <div class="sidebar-section-label">Management</div>
+      <a class="nav-item" href="restaurants.html"><span class="nav-icon">ðŸª</span> Restaurants</a>
+      <a class="nav-item" href="menu.html"><span class="nav-icon">ðŸ“‹</span> Menu Management</a>
+      <a class="nav-item active" href="qr.html"><span class="nav-icon">â¬›</span> QR Generator</a>
+      <div class="sidebar-section-label">Billing</div>
+      <a class="nav-item" href="payments.html"><span class="nav-icon">ðŸ’³</span> Payments</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUserBtn">
+        <div class="user-avatar" id="avatarInitial">A</div>
+        <div><div class="user-name" id="adminName">Admin</div><div class="user-role">Super Admin</div></div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:.8rem;">â»</span>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">â˜°</button>
+      <div class="topbar-breadcrumb">
+        <span>Admin</span><span>/</span><span class="current">QR Generator</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in">
+        <div class="page-header-text">
+          <h1>QR Code Generator</h1>
+          <p>Generate and download QR codes for each restaurant's public menu</p>
+        </div>
+      </div>
+
+      <!-- QR Grid -->
+      <div id="qrGrid" class="qr-grid animate-in animate-in-delay-1">
+        <div class="skeleton" style="height:320px; border-radius:var(--radius-xl);"></div>
+        <div class="skeleton" style="height:320px; border-radius:var(--radius-xl);"></div>
+        <div class="skeleton" style="height:320px; border-radius:var(--radius-xl);"></div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+  .qr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: var(--space-6);
+  }
+
+  .qr-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    text-align: center;
+    transition: var(--transition-slow);
+    animation: fadeIn 0.4s ease both;
+  }
+  .qr-card:hover { transform: translateY(-3px); border-color: rgba(99,102,241,.3); box-shadow: var(--shadow-md); }
+
+  .qr-code-img {
+    width: 180px; height: 180px;
+    border-radius: var(--radius-lg);
+    margin: var(--space-4) auto;
+    border: 2px solid var(--border);
+    background: #fff;
+    padding: 8px;
+  }
+
+  .qr-rest-name { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .qr-url { font-size: 0.7rem; color: var(--text-muted); word-break: break-all; margin-bottom: var(--space-4); }
+
+  .qr-actions { display: flex; gap: var(--space-2); justify-content: center; }
+  </style>
+
+  <script type="module">
+    import { supabase } from '../js/supabase-config.js';
+    import { restaurantsAPI } from '../js/api.js';
+    import { showToast, generateQRUrl, getStatusBadge } from '../js/utils.js';
+    import { APP_CONFIG } from '../js/supabase-config.js';
+
+    // Auth guard
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = '../login.html'; }
+    else {
+      const { data: p } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+      if (p?.role !== 'super_admin') window.location.href = '../login.html';
+      document.getElementById('adminName').textContent = p.email.split('@')[0];
+      document.getElementById('avatarInitial').textContent = p.email[0].toUpperCase();
+    }
+
+    // Sidebar
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    });
+    document.getElementById('sidebarUserBtn').addEventListener('click', async () => {
+      if (confirm('Sign out?')) { await supabase.auth.signOut(); window.location.href = '../login.html'; }
+    });
+
+    async function loadQRCodes() {
+      const grid = document.getElementById('qrGrid');
+      try {
+        const restaurants = await restaurantsAPI.getAll();
+
+        if (!restaurants.length) {
+          grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">â¬›</div><div class="empty-state-title">No restaurants</div><div class="empty-state-text">Add restaurants first to generate QR codes.</div></div>`;
+          return;
+        }
+
+        grid.innerHTML = restaurants.map((r, i) => {
+          const menuUrl = `${APP_CONFIG.domain}/menu.html?restaurant=${r.id}`;
+          const qrUrl   = generateQRUrl(menuUrl, 180);
+          return `
+            <div class="qr-card" style="animation-delay:${i * 0.05}s;">
+              <div class="qr-rest-name">${r.name}</div>
+              ${getStatusBadge(r.subscription_status || 'pending')}
+              <img class="qr-code-img" src="${qrUrl}" alt="QR for ${r.name}" loading="lazy" id="qr-${r.id}" />
+              <div class="qr-url">${menuUrl}</div>
+              <div class="qr-actions">
+                <button class="btn btn-secondary btn-sm" onclick="copyUrl('${menuUrl}')">ðŸ“‹ Copy URL</button>
+                <a class="btn btn-primary btn-sm" href="${qrUrl}" download="qr-${r.name.replace(/ /g,'-')}.png" target="_blank">â¬‡ Download</a>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    }
+
+    window.copyUrl = (url) => {
+      navigator.clipboard.writeText(url).then(() => showToast('URL copied!', 'success'));
+    };
+
+    loadQRCodes();
+  </script>
+</body>
+</html>

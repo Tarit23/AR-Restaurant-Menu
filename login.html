@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign In — AR Menu Platform</title>
+  <meta name="description" content="Sign in to AR Menu Platform — the AI-powered restaurant menu management system with augmented reality." />
+  <link rel="stylesheet" href="css/main.css" />
+  <link rel="stylesheet" href="css/login.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="login-body">
+
+  <div class="login-bg">
+    <div class="login-orb orb-1"></div>
+    <div class="login-orb orb-2"></div>
+    <div class="login-orb orb-3"></div>
+  </div>
+
+  <div class="login-wrapper">
+    <!-- Left Panel -->
+    <div class="login-left">
+      <div class="login-brand">
+        <div class="login-brand-icon">🍽️</div>
+        <div>
+          <div class="login-brand-name">AR Menu Platform</div>
+          <div class="login-brand-tagline">Next-gen restaurant experiences</div>
+        </div>
+      </div>
+
+      <div class="login-hero">
+        <h1 class="login-headline">Menus in<br /><span class="gradient-text">Augmented Reality</span></h1>
+        <p class="login-subtext">Let your customers see dishes in 3D before they order. Powered by WebXR, zero app required.</p>
+      </div>
+
+      <div class="login-features">
+        <div class="login-feature">
+          <span class="feature-icon">✦</span>
+          <span>Markerless AR — works on any modern phone</span>
+        </div>
+        <div class="login-feature">
+          <span class="feature-icon">✦</span>
+          <span>Instant QR code for every restaurant</span>
+        </div>
+        <div class="login-feature">
+          <span class="feature-icon">✦</span>
+          <span>Subscription-based with autopay billing</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel — Login Card -->
+    <div class="login-right">
+      <div class="login-card">
+        <div class="login-card-header">
+          <h2>Welcome back</h2>
+          <p>Sign in to your dashboard</p>
+        </div>
+
+        <form id="loginForm" class="login-form" novalidate>
+          <div id="loginError" class="alert-banner alert-error hidden">
+            <span class="alert-icon">⚠</span>
+            <span id="loginErrorText">Invalid credentials. Please try again.</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="email">Email address</label>
+            <input
+              type="email"
+              id="email"
+              class="form-control"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <div class="password-wrapper">
+              <input
+                type="password"
+                id="password"
+                class="form-control"
+                placeholder="Enter your password"
+                autocomplete="current-password"
+                required
+              />
+              <button type="button" class="password-toggle" id="togglePassword" aria-label="Toggle password">👁</button>
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full btn-lg" id="loginBtn">
+            <span>Sign In</span>
+          </button>
+        </form>
+
+        <div class="login-card-footer">
+          <p>Need help? <a href="mailto:support@armenu.app">Contact Support</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { supabase } from './js/supabase-config.js';
+    import { showToast } from './js/utils.js';
+
+    const form = document.getElementById('loginForm');
+    const loginBtn = document.getElementById('loginBtn');
+    const errorBanner = document.getElementById('loginError');
+    const errorText = document.getElementById('loginErrorText');
+    const togglePassword = document.getElementById('togglePassword');
+    const passwordInput = document.getElementById('password');
+
+    // Check if already logged in
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
+      if (session) {
+        const { data: profile } = await supabase.from('users').select('role').eq('id', session.user.id).single();
+        if (profile?.role === 'super_admin') {
+          window.location.href = '/admin/index.html';
+        } else {
+          window.location.href = '/restaurant/index.html';
+        }
+      }
+    });
+
+    // Toggle password visibility
+    togglePassword.addEventListener('click', () => {
+      const isPassword = passwordInput.type === 'password';
+      passwordInput.type = isPassword ? 'text' : 'password';
+      togglePassword.textContent = isPassword ? '🙈' : '👁';
+    });
+
+    // Form submit
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      if (!email || !password) {
+        showError('Please fill in all fields.');
+        return;
+      }
+
+      loginBtn.classList.add('loading');
+      loginBtn.querySelector('span').textContent = 'Signing in…';
+      errorBanner.classList.add('hidden');
+
+      try {
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+
+        // Fetch role
+        const { data: profile, error: profileError } = await supabase
+          .from('users')
+          .select('role')
+          .eq('id', data.user.id)
+          .single();
+
+        if (profileError || !profile) throw new Error('Could not load user profile.');
+
+        showToast('Welcome back! Redirecting…', 'success');
+        setTimeout(() => {
+          if (profile.role === 'super_admin') {
+            window.location.href = '/admin/index.html';
+          } else {
+            window.location.href = '/restaurant/index.html';
+          }
+        }, 800);
+      } catch (err) {
+        showError(err.message || 'Sign in failed. Please try again.');
+      } finally {
+        loginBtn.classList.remove('loading');
+        loginBtn.querySelector('span').textContent = 'Sign In';
+      }
+    });
+
+    function showError(msg) {
+      errorText.textContent = msg;
+      errorBanner.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Setup Wizard — AR Menu Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary:#6366f1; --bg:#09090f; --bg-card:#111118; --bg-elevated:#18181f;
+      --border:rgba(255,255,255,0.08); --text:#f1f5f9; --text-sec:#94a3b8;
+      --text-muted:#475569; --success:#10b981; --warning:#f59e0b; --danger:#ef4444;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:40px 20px;}
+    .container{max-width:700px;margin:0 auto;}
+    h1{font-family:'Plus Jakarta Sans',sans-serif;font-size:2rem;font-weight:800;margin-bottom:8px;
+      background:linear-gradient(135deg,#6366f1,#06b6d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .subtitle{color:var(--text-sec);font-size:.95rem;margin-bottom:40px;line-height:1.6;}
+    .step{background:var(--bg-card);border:1px solid var(--border);border-radius:16px;padding:28px;margin-bottom:20px;}
+    .step-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;
+      border-radius:50%;background:linear-gradient(135deg,#6366f1,#06b6d4);color:#fff;font-weight:800;font-size:.8rem;margin-right:10px;}
+    .step-title{font-size:1rem;font-weight:700;color:var(--text);display:flex;align-items:center;margin-bottom:16px;}
+    .form-group{margin-bottom:16px;}
+    label{display:block;font-size:.75rem;font-weight:700;color:var(--text-sec);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+    input,select{width:100%;background:var(--bg-elevated);border:1px solid var(--border);color:var(--text);
+      padding:10px 14px;border-radius:8px;font-size:.9rem;font-family:inherit;outline:none;}
+    input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(99,102,241,.2);}
+    input::placeholder{color:var(--text-muted);}
+    .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;background:var(--primary);
+      color:#fff;border:none;border-radius:10px;font-size:.9rem;font-weight:700;cursor:pointer;
+      font-family:inherit;transition:all .2s;margin-top:8px;}
+    .btn:hover{opacity:.9;transform:translateY(-1px);}
+    .btn-full{width:100%;justify-content:center;}
+    .btn-success{background:#10b981;}
+    .code-block{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;
+      padding:14px;font-family:monospace;font-size:.8rem;color:#818cf8;overflow-x:auto;white-space:pre;}
+    .info-box{background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.2);border-radius:10px;
+      padding:14px;font-size:.875rem;color:#93c5fd;margin-bottom:16px;line-height:1.6;}
+    .success-box{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:10px;
+      padding:14px;font-size:.875rem;color:#6ee7b7;margin-top:16px;display:none;}
+    .progress{display:flex;gap:8px;margin-bottom:32px;}
+    .prog-step{height:4px;flex:1;background:var(--bg-elevated);border-radius:99px;transition:background .3s;}
+    .prog-step.done{background:var(--primary);}
+    .link{color:#818cf8;cursor:pointer;text-decoration:underline;}
+    a{color:#818cf8;}
+    .copy-btn{background:var(--bg-elevated);border:1px solid var(--border);color:var(--text-sec);
+      padding:4px 10px;border-radius:6px;font-size:.7rem;cursor:pointer;font-family:inherit;float:right;margin-top:-2px;}
+    .copy-btn:hover{color:var(--text);border-color:var(--primary);}
+    .status-check{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg-elevated);
+      border-radius:8px;font-size:.85rem;margin-bottom:8px;}
+    .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .dot-ok{background:var(--success);} .dot-warn{background:var(--warning);} .dot-err{background:var(--danger);}
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🍽️ AR Menu Setup Wizard</h1>
+  <p class="subtitle">Enter your credentials below. This page auto-generates the configured <code>js/supabase-config.js</code> file for you — just copy and replace.</p>
+
+  <div class="progress" id="progress">
+    <div class="prog-step done" id="p1"></div>
+    <div class="prog-step" id="p2"></div>
+    <div class="prog-step" id="p3"></div>
+    <div class="prog-step" id="p4"></div>
+  </div>
+
+  <!-- STEP 1: Supabase -->
+  <div class="step">
+    <div class="step-title"><span class="step-num">1</span> Supabase Credentials</div>
+    <div class="info-box">
+      Go to <a href="https://supabase.com/dashboard/org/ujecuijeychusljwxdkf" target="_blank">your Supabase org</a> → click your project → <strong>Settings → API</strong>. Copy the values from there.
+    </div>
+    <div class="form-group">
+      <label>Project URL</label>
+      <input type="text" id="supabaseUrl" placeholder="https://xxxxxxxxxx.supabase.co" oninput="updatePreview()" />
+    </div>
+    <div class="form-group">
+      <label>Anon Public Key</label>
+      <input type="text" id="anonKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." oninput="updatePreview()" />
+    </div>
+    <div class="form-group">
+      <label>Service Role Key (kept server-side only)</label>
+      <input type="text" id="serviceKey" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." oninput="updatePreview()" />
+    </div>
+  </div>
+
+  <!-- STEP 2: Razorpay -->
+  <div class="step">
+    <div class="step-title"><span class="step-num">2</span> Razorpay Credentials</div>
+    <div class="info-box">
+      Go to <a href="https://dashboard.razorpay.com/app/keys" target="_blank">Razorpay Dashboard → Settings → API Keys</a>. Use <strong>test mode</strong> keys for now (start with <code>rzp_test_</code>).
+    </div>
+    <div class="form-group">
+      <label>Razorpay Key ID</label>
+      <input type="text" id="rzpKeyId" placeholder="rzp_test_xxxxxxxxxxxxxxxx" oninput="updatePreview()" />
+    </div>
+    <div class="form-group">
+      <label>Razorpay Key Secret (for webhook only, never in frontend)</label>
+      <input type="text" id="rzpSecret" placeholder="xxxxxxxxxxxxxxxxxxxxxxxx" oninput="updatePreview()" />
+    </div>
+  </div>
+
+  <!-- STEP 3: Domain -->
+  <div class="step">
+    <div class="step-title"><span class="step-num">3</span> App Domain</div>
+    <div class="form-group">
+      <label>Your Domain / Vercel URL</label>
+      <input type="text" id="appDomain" value="http://localhost:3000" placeholder="https://your-app.vercel.app" oninput="updatePreview()" />
+      <small style="color:var(--text-muted);font-size:.75rem;">Use http://localhost:3000 for local testing. Update after Vercel deploy.</small>
+    </div>
+    <div class="form-group">
+      <label>Admin Email</label>
+      <input type="email" id="adminEmail" placeholder="admin@yourdomain.com" oninput="updatePreview()" />
+    </div>
+  </div>
+
+  <!-- STEP 4: Generated Config -->
+  <div class="step">
+    <div class="step-title"><span class="step-num">4</span> Generated Config File</div>
+    <p style="font-size:.875rem;color:var(--text-sec);margin-bottom:16px;">
+      Copy everything below and replace the contents of <code>js/supabase-config.js</code>
+    </p>
+    <button class="copy-btn" onclick="copyConfig()">Copy All</button>
+    <div class="code-block" id="configPreview">// Fill in the fields above to generate your config</div>
+    <div class="success-box" id="copySuccess">✓ Copied to clipboard!</div>
+
+    <button class="btn btn-success btn-full" style="margin-top:20px;" onclick="downloadConfig()">⬇ Download supabase-config.js</button>
+  </div>
+
+  <!-- STEP 5: SQL Setup -->
+  <div class="step">
+    <div class="step-title"><span class="step-num">5</span> Run Database Schema</div>
+    <div class="info-box">
+      Open <a href="https://supabase.com/dashboard/org/ujecuijeychusljwxdkf" target="_blank">Supabase</a> → your project → <strong>SQL Editor</strong> → paste and run the file below.
+    </div>
+    <div style="display:flex;gap:10px;">
+      <a href="/supabase/schema.sql" target="_blank" class="btn">📄 View schema.sql</a>
+      <button class="btn" style="background:var(--bg-elevated);border:1px solid var(--border);" onclick="openSQL()">
+        Open SQL Editor →
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 6: Create Super Admin -->
+  <div class="step">
+    <div class="step-title"><span class="step-num">6</span> Create Super Admin User</div>
+    <div class="info-box">After running the schema, create your admin user:</div>
+    <ol style="font-size:.875rem;color:var(--text-sec);line-height:2;padding-left:20px;">
+      <li>Go to Supabase Dashboard → <strong>Authentication → Users</strong></li>
+      <li>Click <strong>"Add user" → "Create new user"</strong></li>
+      <li>Enter your admin email + password, check "Auto Confirm User"</li>
+      <li>Copy the generated UUID from the users list</li>
+      <li>Run in SQL Editor:</li>
+    </ol>
+    <div class="code-block" id="adminSQL">INSERT INTO users (id, email, role)
+VALUES ('paste-your-uuid-here', '<span id="adminEmailSQL">admin@yourdomain.com</span>', 'super_admin');</div>
+
+    <!-- STEP 7: Storage -->
+    <div style="margin-top:24px;">
+      <div class="step-title" style="margin-bottom:12px;"><span class="step-num">7</span> Create Storage Buckets</div>
+      <ol style="font-size:.875rem;color:var(--text-sec);line-height:2;padding-left:20px;">
+        <li>Go to Supabase → <strong>Storage</strong> → "New Bucket"</li>
+        <li>Name: <code>menu-images</code> — check ✓ <strong>Public bucket</strong> → Create</li>
+        <li>Name: <code>menu-models</code> — check ✓ <strong>Public bucket</strong> → Create</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- STEP 8: GitHub + Vercel -->
+  <div class="step">
+    <div class="step-title"><span class="step-num">8</span> Deploy to Vercel via GitHub</div>
+    <ol style="font-size:.875rem;color:var(--text-sec);line-height:2.2;padding-left:20px;">
+      <li>Push the project to your GitHub: <a href="https://github.com/Tarit23" target="_blank">github.com/Tarit23</a></li>
+      <li>Go to <a href="https://vercel.com/tarit23s-projects" target="_blank">Vercel Dashboard</a> → "Add New Project"</li>
+      <li>Import the GitHub repo</li>
+      <li>Framework: <strong>Other</strong>, Root Directory: <strong>/</strong></li>
+      <li>Deploy → copy the Vercel URL</li>
+      <li>Update <code>APP_CONFIG.domain</code> in <code>js/supabase-config.js</code> with the Vercel URL</li>
+      <li>Update Razorpay webhook URL to the Supabase Edge Function URL</li>
+    </ol>
+    <button class="btn" onclick="openGitPush()">📋 Show Git Push Commands</button>
+    <div id="gitCommands" style="display:none; margin-top:16px;">
+      <div class="code-block">cd "e:\My Space\AR Menu"
+git init
+git add .
+git commit -m "feat: initial AR Menu Platform"
+git branch -M main
+git remote add origin https://github.com/Tarit23/ar-menu-platform.git
+git push -u origin main</div>
+    </div>
+  </div>
+
+  <!-- STEP 9: Status Check -->
+  <div class="step" id="statusSection">
+    <div class="step-title"><span class="step-num">✓</span> Configuration Status</div>
+    <div id="statusChecks"></div>
+    <button class="btn" onclick="runStatusCheck()">🔍 Run Status Check</button>
+  </div>
+</div>
+
+<script>
+function updatePreview() {
+  const url    = document.getElementById('supabaseUrl').value.trim();
+  const anon   = document.getElementById('anonKey').value.trim();
+  const svc    = document.getElementById('serviceKey').value.trim();
+  const rzpKey = document.getElementById('rzpKeyId').value.trim();
+  const domain = document.getElementById('appDomain').value.trim();
+  const email  = document.getElementById('adminEmail').value.trim();
+
+  // Update admin SQL
+  const el = document.getElementById('adminEmailSQL');
+  if (el) el.textContent = email || 'admin@yourdomain.com';
+
+  // Update progress
+  const steps = [
+    url && anon,
+    rzpKey,
+    domain,
+    url && anon && rzpKey && domain
+  ];
+  steps.forEach((done, i) => {
+    document.getElementById('p' + (i+1)).style.background = done ? 'var(--primary)' : 'var(--bg-elevated)';
+  });
+
+  const config = `// =====================================================
+// SUPABASE CONFIGURATION
+// ⚠️  Do NOT commit this file with real keys to public repos
+// =====================================================
+
+const SUPABASE_URL      = '${url || 'https://YOUR_PROJECT_ID.supabase.co'}';
+const SUPABASE_ANON_KEY = '${anon || 'YOUR_ANON_KEY_HERE'}';
+
+// =====================================================
+// RAZORPAY CONFIGURATION
+// =====================================================
+const RAZORPAY_KEY_ID = '${rzpKey || 'YOUR_RAZORPAY_KEY_ID'}';
+
+// =====================================================
+// APP CONFIGURATION
+// =====================================================
+const APP_CONFIG = {
+  name:   'AR Menu Platform',
+  domain: '${domain || 'http://localhost:3000'}',
+  plans: {
+    basic: {
+      id: 'plan_basic', name: 'Basic',
+      price: 99900, currency: 'INR', interval: 'monthly',
+      features: ['Up to 20 menu items','AR viewing (WebXR)','QR code generation','Basic support']
+    },
+    pro: {
+      id: 'plan_pro', name: 'Professional',
+      price: 249900, currency: 'INR', interval: 'monthly',
+      features: ['Unlimited menu items','AR viewing (WebXR)','QR code generation','Analytics dashboard','Priority support']
+    },
+    enterprise: {
+      id: 'plan_enterprise', name: 'Enterprise',
+      price: 499900, currency: 'INR', interval: 'monthly',
+      features: ['Everything in Pro','Custom domain','White-label option','Dedicated account manager','API access']
+    }
+  }
+};
+
+if (!window.supabase) {
+  throw new Error('[AR Menu] Supabase CDN not loaded.');
+}
+
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true }
+});
+
+export { supabase, RAZORPAY_KEY_ID, APP_CONFIG };`;
+
+  document.getElementById('configPreview').textContent = config;
+}
+
+function copyConfig() {
+  const text = document.getElementById('configPreview').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const box = document.getElementById('copySuccess');
+    box.style.display = 'block';
+    setTimeout(() => box.style.display = 'none', 3000);
+  });
+}
+
+function downloadConfig() {
+  const text = document.getElementById('configPreview').textContent;
+  const blob = new Blob([text], { type: 'text/javascript' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'supabase-config.js';
+  a.click();
+}
+
+function openSQL() {
+  const url = document.getElementById('supabaseUrl').value.trim();
+  if (url) {
+    const ref = url.replace('https://','').replace('.supabase.co','');
+    window.open(`https://supabase.com/dashboard/project/${ref}/sql/new`, '_blank');
+  } else {
+    window.open('https://supabase.com/dashboard', '_blank');
+  }
+}
+
+function openGitPush() {
+  const el = document.getElementById('gitCommands');
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
+}
+
+async function runStatusCheck() {
+  const url  = document.getElementById('supabaseUrl').value.trim();
+  const anon = document.getElementById('anonKey').value.trim();
+  const rzp  = document.getElementById('rzpKeyId').value.trim();
+  const dom  = document.getElementById('appDomain').value.trim();
+
+  const checks = [
+    { label: 'Supabase URL configured',     ok: url.startsWith('https://') && url.includes('.supabase.co') },
+    { label: 'Anon key configured',          ok: anon.startsWith('eyJ') && anon.length > 100 },
+    { label: 'Razorpay key configured',      ok: rzp.startsWith('rzp_') },
+    { label: 'Domain configured',            ok: dom.startsWith('http') },
+    { label: 'Local server running',         ok: true }, // we're on localhost:3000 serving this page
+  ];
+
+  // Test Supabase connection
+  if (url && anon) {
+    try {
+      const res = await fetch(`${url}/rest/v1/restaurants?select=count`, {
+        headers: { 'apikey': anon, 'Authorization': `Bearer ${anon}` }
+      });
+      checks.push({ label: 'Supabase DB connection', ok: res.status < 500, warn: res.status === 401 });
+    } catch(e) {
+      checks.push({ label: 'Supabase DB connection', ok: false });
+    }
+  }
+
+  const container = document.getElementById('statusChecks');
+  container.innerHTML = checks.map(c => `
+    <div class="status-check">
+      <div class="status-dot ${c.ok ? 'dot-ok' : c.warn ? 'dot-warn' : 'dot-err'}"></div>
+      <span style="color:${c.ok ? 'var(--success)' : c.warn ? 'var(--warning)' : 'var(--danger)'};">
+        ${c.ok ? '✓' : c.warn ? '~' : '✕'}
+      </span>
+      <span style="font-size:.85rem;">${c.label}</span>
+    </div>
+  `).join('');
+}
+
+// Init
+updatePreview();
+</script>
+</body>
+</html>

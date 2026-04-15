@@ -1,0 +1,388 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurants â€” AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />`n  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="dashboard-layout">
+
+  <!-- Sidebar (shared) -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">ðŸ½ï¸</div>
+      <div>
+        <div class="sidebar-logo-text">AR Menu</div>
+        <div class="sidebar-logo-sub">SUPER ADMIN</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-item" href="index.html"><span class="nav-icon">âŠž</span> Dashboard</a>
+      <div class="sidebar-section-label">Management</div>
+      <a class="nav-item active" href="restaurants.html"><span class="nav-icon">ðŸª</span> Restaurants</a>
+      <a class="nav-item" href="menu.html"><span class="nav-icon">ðŸ“‹</span> Menu Management</a>
+      <a class="nav-item" href="qr.html"><span class="nav-icon">â¬›</span> QR Generator</a>
+      <div class="sidebar-section-label">Billing</div>
+      <a class="nav-item" href="payments.html"><span class="nav-icon">ðŸ’³</span> Payments</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUserBtn">
+        <div class="user-avatar" id="avatarInitial">A</div>
+        <div><div class="user-name" id="adminName">Admin</div><div class="user-role">Super Admin</div></div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:.8rem;">â»</span>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">â˜°</button>
+      <div class="topbar-breadcrumb">
+        <span>Admin</span><span>/</span><span class="current">Restaurants</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" id="openAddModal">+ Add Restaurant</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in">
+        <div class="page-header-text">
+          <h1>Restaurants</h1>
+          <p>Manage all registered restaurants on the platform</p>
+        </div>
+      </div>
+
+      <!-- Search + Filter -->
+      <div class="search-bar animate-in animate-in-delay-1">
+        <div class="search-input-wrapper">
+          <span class="search-icon">ðŸ”</span>
+          <input type="text" class="form-control search-input" id="searchInput" placeholder="Search restaurantsâ€¦" />
+        </div>
+        <select class="form-control" id="statusFilter" style="width:160px;">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="expired">Expired</option>
+          <option value="pending">Pending</option>
+        </select>
+        <select class="form-control" id="planFilter" style="width:150px;">
+          <option value="">All Plans</option>
+          <option value="basic">Basic</option>
+          <option value="pro">Professional</option>
+          <option value="enterprise">Enterprise</option>
+        </select>
+      </div>
+
+      <!-- Table -->
+      <div class="card animate-in animate-in-delay-2" style="padding:0;">
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>Restaurant</th>
+                <th>Owner Email</th>
+                <th>Plan</th>
+                <th>Status</th>
+                <th>Autopay</th>
+                <th>Next Payment</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="restaurantsBody">
+              <tr><td colspan="7">
+                <div class="skeleton" style="height:40px; margin:8px 16px; border-radius:6px;"></div>
+              </td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="emptyState" class="empty-state hidden">
+          <div class="empty-state-icon">ðŸª</div>
+          <div class="empty-state-title">No restaurants found</div>
+          <div class="empty-state-text">Try a different search or add a new restaurant.</div>
+          <button class="btn btn-primary" id="emptyAddBtn">+ Add Restaurant</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add/Edit Restaurant Modal -->
+  <div class="modal-backdrop" id="restaurantModal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title" id="modalTitle">Add New Restaurant</h3>
+        <button class="modal-close" id="closeModal">Ã—</button>
+      </div>
+      <div class="modal-body">
+        <div id="formError" class="alert-banner alert-error hidden" style="margin-bottom:var(--space-5);">
+          <span class="alert-icon">âš </span><span id="formErrorText"></span>
+        </div>
+        <form id="restaurantForm" novalidate>
+          <input type="hidden" id="editRestaurantId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="rName">Restaurant Name *</label>
+              <input type="text" id="rName" class="form-control" placeholder="e.g. The Grand Spice" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="rPlan">Subscription Plan *</label>
+              <select id="rPlan" class="form-control" required>
+                <option value="">Select planâ€¦</option>
+                <option value="basic">Basic â€” â‚¹9.99/mo</option>
+                <option value="pro">Professional â€” â‚¹24.99/mo</option>
+                <option value="enterprise">Enterprise â€” â‚¹49.99/mo</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="rEmail">Owner Email *</label>
+              <input type="email" id="rEmail" class="form-control" placeholder="owner@restaurant.com" required />
+            </div>
+            <div class="form-group" id="passwordGroup">
+              <label class="form-label" for="rPassword">Password *</label>
+              <input type="text" id="rPassword" class="form-control" placeholder="Min 8 characters" />
+              <div class="form-hint">Leave blank when editing</div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="rStatus">Subscription Status</label>
+              <select id="rStatus" class="form-control">
+                <option value="pending">Pending</option>
+                <option value="active">Active</option>
+                <option value="expired">Expired</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Autopay</label>
+              <label class="toggle-wrapper" style="margin-top:8px;">
+                <label class="toggle">
+                  <input type="checkbox" id="rAutopay" />
+                  <span class="toggle-track"></span>
+                  <span class="toggle-thumb"></span>
+                </label>
+                <span style="font-size:.875rem; color:var(--text-secondary);">Enable Autopay</span>
+              </label>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelModal">Cancel</button>
+        <button class="btn btn-primary" id="saveRestaurantBtn">Create Restaurant</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirm Modal -->
+  <div class="modal-backdrop" id="deleteModal">
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Delete Restaurant</h3>
+        <button class="modal-close" onclick="document.getElementById('deleteModal').classList.remove('open')">Ã—</button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete <strong id="deleteRestaurantName"></strong>? This will also remove all menu items and cannot be undone.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('deleteModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+  .alert-banner{display:flex;align-items:center;gap:var(--space-3);padding:12px 14px;border-radius:var(--radius-md);font-size:.875rem;}
+  .alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--danger);}
+  </style>
+
+  <script type="module">
+    import { supabase } from '../js/supabase-config.js';
+    import { restaurantsAPI as api } from '../js/api.js';
+    import { showToast, formatDate, getStatusBadge, debounce } from '../js/utils.js';
+
+    // Auth guard
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = '../login.html'; }
+    else {
+      const { data: p } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+      if (p?.role !== 'super_admin') window.location.href = '../login.html';
+      document.getElementById('adminName').textContent = p.email.split('@')[0];
+      document.getElementById('avatarInitial').textContent = p.email[0].toUpperCase();
+    }
+
+    // Sidebar
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    });
+    document.getElementById('sidebarUserBtn').addEventListener('click', async () => {
+      if (confirm('Sign out?')) { await supabase.auth.signOut(); window.location.href = '../login.html'; }
+    });
+
+    let allRestaurants = [];
+    let editingId = null;
+    let deletingId = null;
+
+    // Load data
+    async function load() {
+      try {
+        allRestaurants = await api.getAll();
+        render(allRestaurants);
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    }
+
+    function render(list) {
+      const tbody = document.getElementById('restaurantsBody');
+      const empty = document.getElementById('emptyState');
+
+      if (!list.length) {
+        tbody.innerHTML = '';
+        empty.classList.remove('hidden');
+        return;
+      }
+      empty.classList.add('hidden');
+
+      tbody.innerHTML = list.map(r => `
+        <tr>
+          <td class="td-primary">${r.name}</td>
+          <td style="color:var(--text-muted);font-size:.85rem;">${r.owner_email}</td>
+          <td><span class="badge badge-primary">${r.plan || 'â€”'}</span></td>
+          <td>${getStatusBadge(r.subscription_status || 'pending')}</td>
+          <td>${r.autopay_enabled ? '<span class="badge badge-success">ON</span>' : '<span class="badge badge-secondary">OFF</span>'}</td>
+          <td style="font-size:.8rem;color:var(--text-muted);">${formatDate(r.next_payment_date)}</td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-ghost btn-sm btn-icon-only" title="Edit" onclick="openEdit('${r.id}')">âœï¸</button>
+              <button class="btn btn-danger btn-sm btn-icon-only" title="Delete" onclick="openDelete('${r.id}', '${r.name}')">ðŸ—‘ï¸</button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    // Search & filter
+    function applyFilters() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const status = document.getElementById('statusFilter').value;
+      const plan   = document.getElementById('planFilter').value;
+      render(allRestaurants.filter(r =>
+        (r.name.toLowerCase().includes(q) || r.owner_email?.toLowerCase().includes(q)) &&
+        (!status || r.subscription_status === status) &&
+        (!plan   || r.plan === plan)
+      ));
+    }
+
+    document.getElementById('searchInput').addEventListener('input', debounce(applyFilters));
+    document.getElementById('statusFilter').addEventListener('change', applyFilters);
+    document.getElementById('planFilter').addEventListener('change', applyFilters);
+
+    // Modal open/close
+    const modal = document.getElementById('restaurantModal');
+    const formError = document.getElementById('formError');
+
+    function openAdd() {
+      editingId = null;
+      document.getElementById('restaurantForm').reset();
+      document.getElementById('editRestaurantId').value = '';
+      document.getElementById('modalTitle').textContent = 'Add New Restaurant';
+      document.getElementById('saveRestaurantBtn').textContent = 'Create Restaurant';
+      document.getElementById('rPassword').required = true;
+      formError.classList.add('hidden');
+      modal.classList.add('open');
+    }
+
+    window.openEdit = async (id) => {
+      const r = allRestaurants.find(x => x.id === id);
+      editingId = id;
+      document.getElementById('editRestaurantId').value = id;
+      document.getElementById('rName').value = r.name;
+      document.getElementById('rEmail').value = r.owner_email;
+      document.getElementById('rPlan').value = r.plan || '';
+      document.getElementById('rStatus').value = r.subscription_status || 'pending';
+      document.getElementById('rAutopay').checked = r.autopay_enabled || false;
+      document.getElementById('rPassword').value = '';
+      document.getElementById('rPassword').required = false;
+      document.getElementById('modalTitle').textContent = 'Edit Restaurant';
+      document.getElementById('saveRestaurantBtn').textContent = 'Save Changes';
+      formError.classList.add('hidden');
+      modal.classList.add('open');
+    };
+
+    window.openDelete = (id, name) => {
+      deletingId = id;
+      document.getElementById('deleteRestaurantName').textContent = name;
+      document.getElementById('deleteModal').classList.add('open');
+    };
+
+    [document.getElementById('closeModal'), document.getElementById('cancelModal')].forEach(btn => {
+      btn.addEventListener('click', () => modal.classList.remove('open'));
+    });
+    modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
+    document.getElementById('deleteModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('open'); });
+
+    // Save
+    document.getElementById('saveRestaurantBtn').addEventListener('click', async () => {
+      const name   = document.getElementById('rName').value.trim();
+      const email  = document.getElementById('rEmail').value.trim();
+      const plan   = document.getElementById('rPlan').value;
+      const status = document.getElementById('rStatus').value;
+      const autopay = document.getElementById('rAutopay').checked;
+      const password = document.getElementById('rPassword').value.trim();
+
+      if (!name || !email || !plan) return showFormError('Please fill required fields.');
+      if (!editingId && (!password || password.length < 8)) return showFormError('Password must be min 8 characters.');
+
+      const btn = document.getElementById('saveRestaurantBtn');
+      btn.classList.add('loading');
+      try {
+        if (editingId) {
+          await api.update(editingId, { name, owner_email: email, plan, subscription_status: status, autopay_enabled: autopay });
+          showToast('Restaurant updated!', 'success');
+        } else {
+          const restaurant = await api.create({ name, owner_email: email, plan, subscription_status: status, autopay_enabled: autopay });
+          const { data: authData, error } = await supabase.auth.admin.createUser({
+            email, password, email_confirm: true,
+            user_metadata: { role: 'restaurant', restaurant_id: restaurant.id }
+          });
+          if (error) throw error;
+          await supabase.from('users').insert([{ id: authData.user.id, email, role: 'restaurant', restaurant_id: restaurant.id }]);
+          showToast('Restaurant created!', 'success');
+        }
+        modal.classList.remove('open');
+        formError.classList.add('hidden');
+        load();
+      } catch (e) { showFormError(e.message); } 
+      finally { btn.classList.remove('loading'); }
+    });
+
+    // Delete
+    document.getElementById('confirmDeleteBtn').addEventListener('click', async () => {
+      try {
+        await api.delete(deletingId);
+        document.getElementById('deleteModal').classList.remove('open');
+        showToast('Restaurant deleted.', 'success');
+        load();
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    });
+
+    function showFormError(msg) {
+      document.getElementById('formErrorText').textContent = msg;
+      formError.classList.remove('hidden');
+    }
+
+    document.getElementById('openAddModal').addEventListener('click', openAdd);
+    document.getElementById('emptyAddBtn')?.addEventListener('click', openAdd);
+
+    load();
+  </script>
+</body>
+</html>

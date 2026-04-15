@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Restaurant Dashboard â€” AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />`n  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="dashboard-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">ðŸ½ï¸</div>
+      <div>
+        <div class="sidebar-logo-text">AR Menu</div>
+        <div class="sidebar-logo-sub" id="restNameSub">Restaurant</div>
+      </div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">My Restaurant</div>
+      <a class="nav-item active" href="index.html"><span class="nav-icon">âŠž</span> Dashboard</a>
+      <a class="nav-item" href="menu.html"><span class="nav-icon">ðŸ“‹</span> My Menu</a>
+      <a class="nav-item" href="subscription.html"><span class="nav-icon">ðŸ’³</span> Subscription</a>
+      <a class="nav-item" href="qr.html"><span class="nav-icon">â¬›</span> QR Code</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUserBtn">
+        <div class="user-avatar" id="avatarInitial">R</div>
+        <div><div class="user-name" id="restName">Restaurant</div><div class="user-role">Restaurant Owner</div></div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:.8rem;">â»</span>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">â˜°</button>
+      <div class="topbar-breadcrumb">
+        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">Dashboard</span>
+      </div>
+      <div class="topbar-actions">
+        <a class="btn btn-secondary btn-sm" id="viewMenuBtn" href="#" target="_blank">ðŸ‘ View Public Menu</a>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in">
+        <div class="page-header-text">
+          <h1 id="pageTitle">Welcome back!</h1>
+          <p id="pageSubtitle">Here's an overview of your restaurant</p>
+        </div>
+      </div>
+
+      <!-- Subscription Banner -->
+      <div id="subBanner" class="animate-in animate-in-delay-1" style="margin-bottom:var(--space-6); display:none;"></div>
+
+      <!-- Stats -->
+      <div class="grid-3 animate-in animate-in-delay-2" id="restStats">
+        <div class="stat-card skeleton" style="min-height:120px;"></div>
+        <div class="stat-card skeleton" style="min-height:120px;"></div>
+        <div class="stat-card skeleton" style="min-height:120px;"></div>
+      </div>
+
+      <!-- Recent Menu Items -->
+      <div class="card animate-in animate-in-delay-3" style="margin-top:var(--space-8);">
+        <div class="card-header">
+          <div>
+            <div class="card-title">Menu Items</div>
+            <div class="card-subtitle">Your latest dishes</div>
+          </div>
+          <a href="menu.html" class="btn btn-ghost btn-sm">Manage â†’</a>
+        </div>
+        <div id="menuPreview" class="menu-preview-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+  .sub-banner-active {
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.25);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-5);
+    display: flex; align-items: center; gap: var(--space-3);
+    color: var(--success);
+    font-weight: 600;
+  }
+  .sub-banner-expired {
+    background: rgba(239,68,68,0.1);
+    border: 1px solid rgba(239,68,68,0.25);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4) var(--space-5);
+    display: flex; align-items: center; gap: var(--space-3);
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .sub-banner-expired a { color: var(--danger); text-decoration: underline; margin-left: var(--space-2); }
+
+  .menu-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-4);
+  }
+
+  .preview-card {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    transition: var(--transition);
+  }
+  .preview-card:hover { border-color: rgba(99,102,241,.25); }
+  .preview-img { width:100%; height:120px; object-fit:cover; background:var(--bg-surface); }
+  .preview-img-ph { width:100%; height:120px; background:var(--bg-surface); display:flex; align-items:center; justify-content:center; font-size:2rem; color:var(--text-muted); }
+  .preview-body { padding:var(--space-3); }
+  .preview-name { font-size:.875rem; font-weight:700; color:var(--text-primary); }
+  .preview-price { font-size:.8rem; color:var(--primary-light); font-weight:700; }
+  </style>
+
+  <script type="module">
+    import { supabase } from '../js/supabase-config.js';
+    import { menuAPI } from '../js/api.js';
+    import { showToast, formatDate, getStatusBadge, animateCount } from '../js/utils.js';
+    import { APP_CONFIG } from '../js/supabase-config.js';
+
+    // Auth guard & profile load
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = '../login.html'; }
+
+    const { data: profile } = await supabase
+      .from('users')
+      .select('*, restaurants(*)')
+      .eq('id', session.user.id)
+      .single();
+
+    if (!profile || profile.role === 'super_admin') window.location.href = '../admin/index.html';
+
+    const restaurant = profile.restaurants;
+
+    // Populate UI
+    document.getElementById('restName').textContent = restaurant.name;
+    document.getElementById('restNameSub').textContent = restaurant.name.substring(0, 16);
+    document.getElementById('topbarRestName').textContent = restaurant.name;
+    document.getElementById('avatarInitial').textContent = restaurant.name[0].toUpperCase();
+    document.getElementById('pageTitle').textContent = `Welcome, ${restaurant.name}`;
+    const publicUrl = `${APP_CONFIG.domain}/menu.html?restaurant=${restaurant.id}`;
+    document.getElementById('viewMenuBtn').href = publicUrl;
+
+    // Sidebar
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    });
+    document.getElementById('sidebarUserBtn').addEventListener('click', async () => {
+      if (confirm('Sign out?')) { await supabase.auth.signOut(); window.location.href = '../login.html'; }
+    });
+
+    // Subscription Banner
+    const banner = document.getElementById('subBanner');
+    if (restaurant.subscription_status === 'active') {
+      banner.innerHTML = `<div class="sub-banner-active">âœ“ Subscription Active â€” Next renewal: ${formatDate(restaurant.next_payment_date)}</div>`;
+      banner.style.display = 'block';
+    } else if (restaurant.subscription_status === 'expired') {
+      banner.innerHTML = `<div class="sub-banner-expired">âš  Subscription expired â€” AR features are disabled. <a href="subscription.html">Renew now â†’</a></div>`;
+      banner.style.display = 'block';
+    }
+
+    // Stats
+    const items = await menuAPI.getByRestaurant(restaurant.id);
+    const available   = items.filter(i => i.is_available).length;
+    const arItems = items.filter(i => i.model_url).length;
+
+    document.getElementById('restStats').innerHTML = `
+      <div class="stat-card blue">
+        <div class="stat-icon blue">ðŸ“‹</div>
+        <div class="stat-value" id="sItems">0</div>
+        <div class="stat-label">Total Menu Items</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon green">âœ“</div>
+        <div class="stat-value" id="sAvail">0</div>
+        <div class="stat-label">Available Dishes</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon purple">ðŸ§Š</div>
+        <div class="stat-value" id="sAR">0</div>
+        <div class="stat-label">AR-Enabled Dishes</div>
+      </div>
+    `;
+
+    animateCount(document.getElementById('sItems'),  items.length);
+    animateCount(document.getElementById('sAvail'),  available);
+    animateCount(document.getElementById('sAR'),     arItems);
+
+    // Menu preview
+    const previewGrid = document.getElementById('menuPreview');
+    if (!items.length) {
+      previewGrid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-icon">ðŸ½ï¸</div><div class="empty-state-title">No dishes yet</div><div class="empty-state-text">Your admin will add dishes to your menu.</div></div>`;
+    } else {
+      previewGrid.innerHTML = items.slice(0,8).map(item => `
+        <div class="preview-card">
+          ${item.image_url ? `<img class="preview-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />` : `<div class="preview-img-ph">ðŸ½ï¸</div>`}
+          <div class="preview-body">
+            <div class="preview-name">${item.name}</div>
+            <div class="preview-price">â‚¹${item.price?.toLocaleString('en-IN')}</div>
+          </div>
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

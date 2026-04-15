@@ -1,0 +1,436 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Menu Management â€” AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />`n  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="dashboard-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">ðŸ½ï¸</div>
+      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub">SUPER ADMIN</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-item" href="index.html"><span class="nav-icon">âŠž</span> Dashboard</a>
+      <div class="sidebar-section-label">Management</div>
+      <a class="nav-item" href="restaurants.html"><span class="nav-icon">ðŸª</span> Restaurants</a>
+      <a class="nav-item active" href="menu.html"><span class="nav-icon">ðŸ“‹</span> Menu Management</a>
+      <a class="nav-item" href="qr.html"><span class="nav-icon">â¬›</span> QR Generator</a>
+      <div class="sidebar-section-label">Billing</div>
+      <a class="nav-item" href="payments.html"><span class="nav-icon">ðŸ’³</span> Payments</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUserBtn">
+        <div class="user-avatar" id="avatarInitial">A</div>
+        <div><div class="user-name" id="adminName">Admin</div><div class="user-role">Super Admin</div></div>
+        <span style="margin-left:auto;color:var(--text-muted);font-size:.8rem;">â»</span>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">â˜°</button>
+      <div class="topbar-breadcrumb">
+        <span>Admin</span><span>/</span><span class="current">Menu Management</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-primary btn-sm" id="addItemBtn">+ Add Dish</button>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in">
+        <div class="page-header-text">
+          <h1>Menu Management</h1>
+          <p>Add and manage dishes with images and 3D AR models</p>
+        </div>
+      </div>
+
+      <!-- Restaurant Selector -->
+      <div class="card animate-in animate-in-delay-1" style="margin-bottom:var(--space-6);">
+        <div style="display:flex; align-items:center; gap:var(--space-4);">
+          <label class="form-label" style="margin:0; white-space:nowrap;">Restaurant:</label>
+          <select class="form-control" id="restaurantSelector" style="max-width:300px;">
+            <option value="">Loading restaurantsâ€¦</option>
+          </select>
+          <span id="menuCount" style="font-size:.8rem; color:var(--text-muted); white-space:nowrap;"></span>
+        </div>
+      </div>
+
+      <!-- Menu Items Grid -->
+      <div id="menuGrid" class="menu-grid animate-in animate-in-delay-2">
+        <div class="empty-state">
+          <div class="empty-state-icon">ðŸ½ï¸</div>
+          <div class="empty-state-title">Select a restaurant</div>
+          <div class="empty-state-text">Choose a restaurant above to manage its menu items.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add / Edit Dish Modal -->
+  <div class="modal-backdrop" id="dishModal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title" id="dishModalTitle">Add Dish</h3>
+        <button class="modal-close" id="closeDishModal">Ã—</button>
+      </div>
+      <div class="modal-body">
+        <div id="dishError" class="alert-banner alert-error hidden" style="margin-bottom:var(--space-5);">
+          <span>âš </span><span id="dishErrorText"></span>
+        </div>
+        <form id="dishForm" novalidate>
+          <input type="hidden" id="dishId" />
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="dishName">Dish Name *</label>
+              <input type="text" id="dishName" class="form-control" placeholder="e.g. Butter Chicken" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="dishPrice">Price (â‚¹) *</label>
+              <div class="input-group">
+                <span class="input-prefix">â‚¹</span>
+                <input type="number" id="dishPrice" class="form-control" placeholder="299" min="0" step="1" required style="border-radius:0 var(--radius-md) var(--radius-md) 0;" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Image Upload -->
+          <div class="form-group">
+            <label class="form-label">Dish Image</label>
+            <div class="file-upload" id="imageUploadZone">
+              <input type="file" id="dishImageFile" accept="image/*" />
+              <div class="file-upload-icon">ðŸ–¼ï¸</div>
+              <div class="file-upload-text">Click or drag & drop an image</div>
+              <div class="file-upload-hint">PNG, JPG, WebP â€” max 5MB</div>
+            </div>
+            <div id="imagePreview" style="margin-top:10px; display:none;">
+              <img id="imagePreviewImg" style="width:100%; max-height:160px; object-fit:cover; border-radius:var(--radius-md);" />
+            </div>
+            <input type="text" id="dishImageUrl" class="form-control" placeholder="Or paste image URL directly" style="margin-top:8px;" />
+          </div>
+
+          <!-- 3D Model Upload -->
+          <div class="form-group">
+            <label class="form-label">3D Model (.glb)</label>
+            <div class="file-upload" id="modelUploadZone">
+              <input type="file" id="dishModelFile" accept=".glb,.gltf" />
+              <div class="file-upload-icon">ðŸ§Š</div>
+              <div class="file-upload-text" id="modelFileText">Click or drag & drop a .glb file</div>
+              <div class="file-upload-hint">GLB/GLTF format â€” max 50MB</div>
+            </div>
+            <input type="text" id="dishModelUrl" class="form-control" placeholder="Or paste model URL directly" style="margin-top:8px;" />
+          </div>
+
+          <div class="form-group">
+            <label class="toggle-wrapper">
+              <label class="toggle">
+                <input type="checkbox" id="dishAvailable" checked />
+                <span class="toggle-track"></span>
+                <span class="toggle-thumb"></span>
+              </label>
+              <span style="font-size:.875rem; color:var(--text-secondary);">Available on menu</span>
+            </label>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelDishModal">Cancel</button>
+        <button class="btn btn-primary" id="saveDishBtn">Add Dish</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete confirm -->
+  <div class="modal-backdrop" id="deleteDishModal">
+    <div class="modal" style="max-width:380px;">
+      <div class="modal-header">
+        <h3 class="modal-title">Delete Dish</h3>
+        <button class="modal-close" onclick="document.getElementById('deleteDishModal').classList.remove('open')">Ã—</button>
+      </div>
+      <div class="modal-body"><p>Delete <strong id="deleteDishName"></strong>? This cannot be undone.</p></div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('deleteDishModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-danger" id="confirmDeleteDishBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+  .alert-banner{display:flex;align-items:center;gap:var(--space-3);padding:12px 14px;border-radius:var(--radius-md);font-size:.875rem;}
+  .alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:var(--danger);}
+
+  .menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--space-5);
+  }
+
+  .dish-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    transition: var(--transition-slow);
+    animation: fadeIn 0.4s ease both;
+  }
+  .dish-card:hover { transform: translateY(-3px); border-color: rgba(99,102,241,.25); box-shadow: var(--shadow-md); }
+
+  .dish-img {
+    width: 100%; height: 180px;
+    object-fit: cover;
+    background: var(--bg-elevated);
+  }
+  .dish-img-placeholder {
+    width: 100%; height: 180px;
+    background: var(--bg-elevated);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem; color: var(--text-muted);
+  }
+
+  .dish-body { padding: var(--space-4); }
+  .dish-name { font-size: 1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; }
+  .dish-price { font-size: 1.1rem; font-weight: 800; color: var(--primary-light); }
+
+  .dish-meta { display: flex; gap: 6px; margin-top: var(--space-3); flex-wrap: wrap; }
+
+  .dish-actions {
+    display: flex; gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
+    border-top: 1px solid var(--border);
+  }
+  </style>
+
+  <script type="module">
+    import { supabase } from '../js/supabase-config.js';
+    import { menuAPI, restaurantsAPI } from '../js/api.js';
+    import { showToast, uploadFile } from '../js/utils.js';
+
+    // Auth guard
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = '../login.html'; }
+    else {
+      const { data: p } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+      if (p?.role !== 'super_admin') window.location.href = '../login.html';
+      document.getElementById('adminName').textContent = p.email.split('@')[0];
+      document.getElementById('avatarInitial').textContent = p.email[0].toUpperCase();
+    }
+
+    // Sidebar
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    });
+    document.getElementById('sidebarUserBtn').addEventListener('click', async () => {
+      if (confirm('Sign out?')) { await supabase.auth.signOut(); window.location.href = '../login.html'; }
+    });
+
+    // Load restaurants for selector
+    const restaurantSel = document.getElementById('restaurantSelector');
+    let currentRestaurantId = null;
+    let editingDishId = null;
+    let deletingDishId = null;
+
+    try {
+      const restaurants = await restaurantsAPI.getAll();
+      restaurantSel.innerHTML = '<option value="">â€” Select a restaurant â€”</option>' +
+        restaurants.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
+    } catch (e) { showToast('Error loading restaurants', 'error'); }
+
+    restaurantSel.addEventListener('change', async () => {
+      currentRestaurantId = restaurantSel.value;
+      if (!currentRestaurantId) {
+        document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-state-icon">ðŸ½ï¸</div><div class="empty-state-title">Select a restaurant</div></div>`;
+        return;
+      }
+      await loadMenuItems();
+    });
+
+    async function loadMenuItems() {
+      const grid = document.getElementById('menuGrid');
+      grid.innerHTML = `<div class="skeleton" style="height:260px; border-radius:var(--radius-xl);"></div>`.repeat(3);
+
+      try {
+        const items = await menuAPI.getByRestaurant(currentRestaurantId);
+        document.getElementById('menuCount').textContent = `${items.length} item${items.length !== 1 ? 's' : ''}`;
+
+        if (!items.length) {
+          grid.innerHTML = `
+            <div class="empty-state" style="grid-column:1/-1;">
+              <div class="empty-state-icon">ðŸ½ï¸</div>
+              <div class="empty-state-title">No dishes yet</div>
+              <div class="empty-state-text">Add the first dish to this restaurant's menu.</div>
+              <button class="btn btn-primary" id="emptyAddDish">+ Add Dish</button>
+            </div>`;
+          document.getElementById('emptyAddDish')?.addEventListener('click', openAdd);
+          return;
+        }
+
+        grid.innerHTML = items.map(item => `
+          <div class="dish-card">
+            ${item.image_url
+              ? `<img class="dish-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />`
+              : `<div class="dish-img-placeholder">ðŸ½ï¸</div>`
+            }
+            <div class="dish-body">
+              <div class="dish-name">${item.name}</div>
+              <div class="dish-price">â‚¹${item.price?.toLocaleString('en-IN')}</div>
+              <div class="dish-meta">
+                ${item.is_available ? '<span class="badge badge-success">Available</span>' : '<span class="badge badge-danger">Unavailable</span>'}
+                ${item.model_url ? '<span class="badge badge-info">AR Model</span>' : '<span class="badge badge-secondary">No AR</span>'}
+              </div>
+            </div>
+            <div class="dish-actions">
+              <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openEditDish('${item.id}')">âœï¸ Edit</button>
+              <button class="btn btn-success btn-sm btn-icon-only" title="Toggle availability" onclick="toggleAvailability('${item.id}', ${item.is_available})">
+                ${item.is_available ? 'â¸' : 'â–¶'}
+              </button>
+              <button class="btn btn-danger btn-sm btn-icon-only" title="Delete" onclick="openDeleteDish('${item.id}', '${item.name}')">ðŸ—‘ï¸</button>
+            </div>
+          </div>
+        `).join('');
+      } catch (e) { showToast('Error loading menu: ' + e.message, 'error'); }
+    }
+
+    // Image preview
+    document.getElementById('dishImageFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        document.getElementById('imagePreviewImg').src = ev.target.result;
+        document.getElementById('imagePreview').style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Model file name display
+    document.getElementById('dishModelFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) document.getElementById('modelFileText').textContent = `ðŸ“¦ ${file.name}`;
+    });
+
+    // Drag over
+    ['imageUploadZone','modelUploadZone'].forEach(id => {
+      const zone = document.getElementById(id);
+      zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+      zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+      zone.addEventListener('drop', e => { e.preventDefault(); zone.classList.remove('drag-over'); });
+    });
+
+    function openAdd() {
+      if (!currentRestaurantId) { showToast('Please select a restaurant first.', 'warning'); return; }
+      editingDishId = null;
+      document.getElementById('dishForm').reset();
+      document.getElementById('dishId').value = '';
+      document.getElementById('dishModalTitle').textContent = 'Add Dish';
+      document.getElementById('saveDishBtn').textContent = 'Add Dish';
+      document.getElementById('imagePreview').style.display = 'none';
+      document.getElementById('modelFileText').textContent = 'Click or drag & drop a .glb file';
+      document.getElementById('dishError').classList.add('hidden');
+      document.getElementById('dishModal').classList.add('open');
+    }
+
+    window.openEditDish = async (id) => {
+      const { data: item } = await supabase.from('menu_items').select('*').eq('id', id).single();
+      editingDishId = id;
+      document.getElementById('dishId').value = id;
+      document.getElementById('dishName').value = item.name;
+      document.getElementById('dishPrice').value = item.price;
+      document.getElementById('dishImageUrl').value = item.image_url || '';
+      document.getElementById('dishModelUrl').value = item.model_url || '';
+      document.getElementById('dishAvailable').checked = item.is_available;
+      if (item.image_url) {
+        document.getElementById('imagePreviewImg').src = item.image_url;
+        document.getElementById('imagePreview').style.display = 'block';
+      } else {
+        document.getElementById('imagePreview').style.display = 'none';
+      }
+      document.getElementById('dishModalTitle').textContent = 'Edit Dish';
+      document.getElementById('saveDishBtn').textContent = 'Save Changes';
+      document.getElementById('dishError').classList.add('hidden');
+      document.getElementById('dishModal').classList.add('open');
+    };
+
+    window.openDeleteDish = (id, name) => {
+      deletingDishId = id;
+      document.getElementById('deleteDishName').textContent = name;
+      document.getElementById('deleteDishModal').classList.add('open');
+    };
+
+    window.toggleAvailability = async (id, current) => {
+      try {
+        await menuAPI.toggleAvailability(id, current);
+        showToast('Availability updated.', 'success');
+        loadMenuItems();
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    };
+
+    // Save dish
+    document.getElementById('saveDishBtn').addEventListener('click', async () => {
+      const name  = document.getElementById('dishName').value.trim();
+      const price = parseFloat(document.getElementById('dishPrice').value);
+      const avail = document.getElementById('dishAvailable').checked;
+      const imageFile = document.getElementById('dishImageFile').files[0];
+      const modelFile = document.getElementById('dishModelFile').files[0];
+      let imageUrl = document.getElementById('dishImageUrl').value.trim();
+      let modelUrl = document.getElementById('dishModelUrl').value.trim();
+
+      if (!name || isNaN(price)) {
+        document.getElementById('dishErrorText').textContent = 'Name and price are required.';
+        document.getElementById('dishError').classList.remove('hidden');
+        return;
+      }
+
+      const btn = document.getElementById('saveDishBtn');
+      btn.classList.add('loading'); btn.textContent = '';
+
+      try {
+        if (imageFile) imageUrl = await menuAPI.uploadImage(imageFile, currentRestaurantId);
+        if (modelFile) modelUrl = await menuAPI.uploadModel(modelFile, currentRestaurantId);
+
+        const payload = { name, price, image_url: imageUrl, model_url: modelUrl, is_available: avail, restaurant_id: currentRestaurantId };
+
+        if (editingDishId) await menuAPI.update(editingDishId, payload);
+        else await menuAPI.create(payload);
+
+        showToast(editingDishId ? 'Dish updated!' : 'Dish added!', 'success');
+        document.getElementById('dishModal').classList.remove('open');
+        document.getElementById('dishError').classList.add('hidden');
+        loadMenuItems();
+      } catch (e) {
+        document.getElementById('dishErrorText').textContent = e.message;
+        document.getElementById('dishError').classList.remove('hidden');
+      } finally {
+        btn.classList.remove('loading');
+        btn.textContent = editingDishId ? 'Save Changes' : 'Add Dish';
+      }
+    });
+
+    document.getElementById('confirmDeleteDishBtn').addEventListener('click', async () => {
+      try {
+        await menuAPI.delete(deletingDishId);
+        document.getElementById('deleteDishModal').classList.remove('open');
+        showToast('Dish deleted.', 'success');
+        loadMenuItems();
+      } catch (e) { showToast('Error: ' + e.message, 'error'); }
+    });
+
+    document.getElementById('addItemBtn').addEventListener('click', openAdd);
+    [document.getElementById('closeDishModal'),document.getElementById('cancelDishModal')].forEach(b => b.addEventListener('click', () => document.getElementById('dishModal').classList.remove('open')));
+    document.getElementById('dishModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('open'); });
+    document.getElementById('deleteDishModal').addEventListener('click', e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('open'); });
+  </script>
+</body>
+</html>

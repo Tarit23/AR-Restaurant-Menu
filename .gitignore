@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Environment / secrets - NEVER commit these
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Build output
+dist/
+.vercel/
+
+# Logs
+*.log
+npm-debug.log*

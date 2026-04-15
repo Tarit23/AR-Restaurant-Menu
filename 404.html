@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>404 — Page Not Found | AR Menu Platform</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --primary: #6366f1; --bg: #08080e;
+      --text: #f1f5f9; --text-sec: #94a3b8;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center; padding: 40px 24px;
+      overflow: hidden;
+    }
+    .blob {
+      position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none;
+    }
+    .blob-1 { width:500px; height:500px; background:rgba(99,102,241,.18); top:-150px; left:-100px; }
+    .blob-2 { width:400px; height:400px; background:rgba(6,182,212,.12); bottom:-100px; right:-80px; }
+    .inner { position: relative; z-index: 1; max-width: 500px; }
+    .code {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 8rem; font-weight: 900; line-height: 1;
+      background: linear-gradient(135deg,#6366f1,#06b6d4);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+      margin-bottom: 12px;
+    }
+    h1 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.5rem; font-weight:800; margin-bottom:12px; }
+    p  { font-size:.95rem; color:var(--text-sec); line-height:1.7; margin-bottom:36px; }
+    .actions { display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+    .btn-primary {
+      padding:12px 28px; background:var(--primary); color:#fff;
+      border-radius:10px; font-weight:700; font-size:.9rem;
+      text-decoration:none; transition:all .2s;
+    }
+    .btn-primary:hover { opacity:.9; transform:translateY(-2px); }
+    .btn-secondary {
+      padding:12px 28px; background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.1); color:var(--text);
+      border-radius:10px; font-weight:600; font-size:.9rem;
+      text-decoration:none; transition:all .2s;
+    }
+    .btn-secondary:hover { background:rgba(255,255,255,.08); }
+  </style>
+</head>
+<body>
+  <div class="blob blob-1"></div>
+  <div class="blob blob-2"></div>
+  <div class="inner">
+    <div class="code">404</div>
+    <h1>Page not found</h1>
+    <p>The page you're looking for doesn't exist or has been moved. Try heading back to the dashboard or scanning a restaurant QR code.</p>
+    <div class="actions">
+      <a class="btn-primary" href="login.html">← Go to Dashboard</a>
+      <a class="btn-secondary" href="home.html">View Homepage</a>
+    </div>
+  </div>
+</body>
+</html>
