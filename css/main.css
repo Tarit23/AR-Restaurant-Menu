@@ -151,12 +151,10 @@ p  { color: var(--text-secondary); }
 }
 
 .sidebar-logo-icon {
-  width: 36px; height: 36px;
+  width: 4px; height: 16px;
   background: var(--gradient-hero);
-  border-radius: var(--radius-md);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem;
-  box-shadow: var(--shadow-glow);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
 }
 
 .sidebar-logo-text {
@@ -223,7 +221,7 @@ p  { color: var(--text-secondary); }
   border-radius: 0 3px 3px 0;
 }
 
-.nav-icon { width: 16px; text-align: center; opacity: 0.8; }
+.nav-icon { display: none; }
 .nav-badge {
   margin-left: auto;
   background: var(--primary);
@@ -263,7 +261,7 @@ p  { color: var(--text-secondary); }
 }
 
 .user-name { font-size: 0.8rem; font-weight: 600; color: var(--text-primary); }
-.user-role { font-size: 0.7rem; color: var(--text-muted); }
+.user-role { font-size: 1rem; color: var(--text-muted); }
 
 /* Sidebar toggle (mobile) */
 .sidebar-overlay {
@@ -483,10 +481,8 @@ p  { color: var(--text-secondary); }
 .stat-card.amber::after  { background: var(--warning); }
 
 .stat-icon {
-  width: 44px; height: 44px;
-  border-radius: var(--radius-lg);
-  display: flex; align-items: center; justify-content: center;
-  font-size: 1.1rem;
+  width: 12px; height: 12px;
+  border-radius: 50%;
   margin-bottom: var(--space-4);
 }
 
@@ -637,7 +633,7 @@ textarea.form-control { resize: vertical; min-height: 100px; }
 }
 
 .file-upload input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
-.file-upload-icon { font-size: 2rem; margin-bottom: var(--space-3); opacity: 0.6; }
+.file-upload-icon { display: none; }
 .file-upload-text { font-size: 0.875rem; color: var(--text-secondary); }
 .file-upload-hint { font-size: 0.75rem; color: var(--text-muted); margin-top: 4px; }
 

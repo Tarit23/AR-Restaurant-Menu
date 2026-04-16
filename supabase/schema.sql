@@ -119,15 +119,21 @@ CREATE POLICY "Public read restaurants"
 
 -- ── Users policies ──
 
+-- Create a helper function to avoid recursive RLS
+CREATE OR REPLACE FUNCTION is_admin()
+RETURNS BOOLEAN AS $$
+BEGIN
+  RETURN EXISTS (
+    SELECT 1 FROM users
+    WHERE id = auth.uid()
+      AND role = 'super_admin'
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
 CREATE POLICY "Super admin full access on users"
   ON users FOR ALL
-  USING (
-    EXISTS (
-      SELECT 1 FROM users u2
-      WHERE u2.id = auth.uid()
-        AND u2.role = 'super_admin'
-    )
-  );
+  USING (is_admin());
 
 CREATE POLICY "Users read own profile"
   ON users FOR SELECT

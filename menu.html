@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Menu — AR Menu Platform</title>
+  <title>Our Menu — AR Menu Platform</title>
   <meta name="description" content="Browse our menu and view dishes in augmented reality." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -59,16 +59,6 @@
       gap: 16px;
     }
 
-    .header-brand {
-      display: flex; align-items: center; gap: 12px;
-    }
-    .brand-icon {
-      width: 42px; height: 42px;
-      background: linear-gradient(135deg,#6366f1,#06b6d4);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.2rem;
-    }
     .brand-name {
       font-family: var(--font-display);
       font-weight: 800;
@@ -229,7 +219,7 @@
       border-top: 1px solid var(--border);
     }
 
-    .dish-price {
+    .ui-dish-price {
       font-family: var(--font-display);
       font-size: 1.15rem; font-weight: 800;
       color: var(--primary-light);
@@ -292,7 +282,6 @@
       padding: 80px 24px;
       grid-column: 1 / -1;
     }
-    .empty-icon { font-size: 3.5rem; opacity: .3; margin-bottom: 16px; }
     .empty-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
     .empty-text  { font-size: .875rem; color: var(--text-muted); }
 
@@ -317,15 +306,10 @@
 
   <header class="header">
     <div class="header-inner">
-      <div class="header-brand">
-        <div class="brand-icon">🍽️</div>
-        <div>
-          <div class="brand-name" id="restaurantName">Loading…</div>
-          <div class="brand-sub">Digital Menu</div>
-        </div>
-      </div>
+      <div class="brand-name" id="restaurantName">Loading...</div>
+      <div class="brand-sub">Digital Menu</div>
       <div class="header-badge" id="itemCount">
-        <span>🍽️</span><span>Loading menu…</span>
+        <span>Loading menu...</span>
       </div>
     </div>
   </header>
@@ -333,14 +317,13 @@
   <!-- Expired Banner (hidden by default) -->
   <div class="sub-expired-banner" id="expiredBanner" style="display:none; margin-top:16px;">
     <div class="sub-expired-inner">
-      <span>⚠</span>
       <span>AR features are currently unavailable. The restaurant's subscription has expired.</span>
     </div>
   </div>
 
   <!-- Hero -->
   <div class="hero">
-    <div class="hero-badge">✦ AR-Powered Menu</div>
+    <div class="hero-badge">AR-Powered Menu</div>
     <h1 class="hero-title" id="heroTitle">Explore Our Menu</h1>
     <p class="hero-subtitle">Tap "View in AR" to see any dish in your real-world environment — right from your phone camera.</p>
   </div>
@@ -371,7 +354,7 @@
 
     if (!restaurantId) {
       document.getElementById('heroTitle').textContent = 'Restaurant not found';
-      document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-title">No restaurant specified</div><div class="empty-text">Please scan the QR code provided by the restaurant.</div></div>`;
+      document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-title">No restaurant specified</div><div class="empty-text">Please scan the QR code provided by the restaurant.</div></div>`;
     } else {
       await loadMenu(restaurantId);
     }
@@ -387,7 +370,7 @@
 
         if (rErr || !restaurant) {
           document.getElementById('heroTitle').textContent = 'Restaurant not found';
-          document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-icon">🏪</div><div class="empty-title">Restaurant not found</div><div class="empty-text">This QR code may be invalid or expired.</div></div>`;
+          document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="error-code">404</div><h1 class="error-title">Page Not Found</h1><p class="error-message">The page you are looking for might have been moved, deleted, or never existed.</p><a href="/" class="btn btn-primary">Go to Home</a></div>`;
           return;
         }
 
@@ -411,10 +394,10 @@
         if (mErr) throw mErr;
 
         const availableItems = items.filter(i => i.is_available);
-        document.getElementById('itemCount').innerHTML = `<span>🍽️</span><span>${availableItems.length} dishes</span>`;
+        document.getElementById('itemCount').innerHTML = `<span>${availableItems.length} dishes</span>`;
 
         if (!items.length) {
-          document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-icon">🍽️</div><div class="empty-title">Menu coming soon</div><div class="empty-text">This restaurant hasn't added any dishes yet.</div></div>`;
+          document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-title">Menu coming soon</div><div class="empty-text">This restaurant hasn't added any dishes yet.</div></div>`;
           document.getElementById('categoryBar').style.display = 'none';
           return;
         }
@@ -423,7 +406,7 @@
         document.getElementById('categoryBar').innerHTML = `
           <button class="cat-pill active" onclick="filterItems('all', this)">All (${items.length})</button>
           <button class="cat-pill" onclick="filterItems('available', this)">Available (${availableItems.length})</button>
-          ${items.some(i => i.model_url) ? `<button class="cat-pill" onclick="filterItems('ar', this)">AR Dishes 🧊</button>` : ''}
+          ${items.some(i => i.model_url) ? `<button class="cat-pill" onclick="filterItems('ar', this)">AR Dishes</button>` : ''}
         `;
 
         window._allItems   = items;
@@ -433,14 +416,14 @@
         renderItems(items, arEnabled);
 
       } catch (err) {
-        document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-title">Error loading menu</div><div class="empty-text">${err.message}</div></div>`;
+        document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-title">Error loading menu</div><div class="empty-text">${err.message}</div></div>`;
       }
     }
 
     function renderItems(items, arEnabled) {
       const grid = document.getElementById('menuGrid');
       if (!items.length) {
-        grid.innerHTML = `<div class="empty-state"><div class="empty-icon">🍽️</div><div class="empty-title">No dishes found</div></div>`;
+        grid.innerHTML = `<div class="empty-state"><div class="empty-title">No dishes found</div></div>`;
         return;
       }
 
@@ -453,7 +436,7 @@
             <div class="dish-img-wrap">
               ${item.image_url
                 ? `<img class="dish-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />`
-                : `<div class="dish-img-placeholder">🍽️</div>`
+                : `<div class="dish-img-placeholder"></div>`
               }
               ${item.model_url ? `<div class="dish-ar-badge">AR</div>` : ''}
               ${!item.is_available ? `
@@ -462,15 +445,19 @@
                 </div>` : ''
               }
             </div>
+            <div class="search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="searchInput" placeholder="Search dishes..." />
+            </div>
             <div class="dish-body">
               <div class="dish-name">${item.name}</div>
             </div>
             <div class="dish-footer">
-              <div class="dish-price">₹${item.price?.toLocaleString('en-IN')}</div>
+              <div class="ui-dish-price">₹${item.price.toLocaleString('en-IN')}</div>
               ${item.model_url
                 ? arBtnEnabled
-                  ? `<a class="btn-ar" href="${arUrl}" title="View in AR">🧊 View in AR</a>`
-                  : `<button class="btn-ar disabled" title="Subscription expired — AR unavailable" disabled>🚫 AR Unavailable</button>`
+                  ? `<a class="btn-ar" href="${arUrl}" title="View in AR">View in AR</a>`
+                  : `<button class="btn-ar disabled" title="Subscription expired — AR unavailable" disabled>AR Unavailable</button>`
                 : `<span style="font-size:.75rem;color:var(--text-muted);">No AR model</span>`
               }
             </div>

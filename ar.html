@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>View in AR — AR Menu Platform</title>
+  <title>AR View — AR Menu Platform</title>
   <meta name="description" content="View this dish in augmented reality using your phone camera." />
 
   <!-- model-viewer by Google -->
@@ -141,6 +141,16 @@
       margin-bottom: 20px;
     }
 
+    .ui-dish-price {
+      display: inline-flex; align-items: center;
+      padding: 5px 12px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-size: .75rem; font-weight: 600;
+      color: var(--primary);
+    }
+
     .info-chip {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 5px 12px;
@@ -153,7 +163,7 @@
 
     .info-tips {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
 
@@ -164,7 +174,6 @@
       padding: 12px;
       text-align: center;
     }
-    .tip-icon { font-size: 1.4rem; margin-bottom: 6px; }
     .tip-text { font-size: .7rem; color: var(--text-muted); line-height: 1.4; }
 
     /* ── LOADING STATE ── */
@@ -193,7 +202,6 @@
       align-items: center; justify-content: center;
       padding: 60px 24px; text-align: center;
     }
-    #errorState .icon { font-size: 3rem; margin-bottom: 16px; opacity: .5; }
     #errorState h2 { font-family:'Plus Jakarta Sans',sans-serif; font-size:1.25rem; font-weight:800; margin-bottom:8px; }
     #errorState p { color:var(--text-muted); font-size:.875rem; margin-bottom:24px; }
     #errorState a {
@@ -202,7 +210,6 @@
       border-radius:12px; font-weight:700; font-size:.875rem; text-decoration:none;
     }
 
-    /* No AR fallback tooltip */
     .no-ar-note {
       position: absolute;
       bottom: 70px; left: 50%; transform: translateX(-50%);
@@ -214,39 +221,30 @@
       white-space: nowrap;
       display: none;
     }
-
-    @media (max-width: 480px) {
-      .info-tips { grid-template-columns: repeat(3, 1fr); }
-    }
   </style>
 </head>
 <body>
 
-  <!-- Loading -->
   <div id="loadingState">
     <div class="loading-ring"></div>
-    <p>Loading 3D model…</p>
+    <p>Loading 3D model...</p>
   </div>
 
-  <!-- Top Bar -->
   <header class="ar-topbar" style="display:none;" id="arTopbar">
-    <a class="back-btn" id="backBtn" href="#" title="Go back">←</a>
+    <a class="back-btn" id="backBtn" href="#">&lt;</a>
     <div class="topbar-info">
       <div class="topbar-dish-name" id="dishNameTop">Dish</div>
       <div class="topbar-rest-name" id="restNameTop">Restaurant</div>
     </div>
-    <div class="topbar-price" id="dishPriceTop">₹0</div>
+    <div class="topbar-price" id="dishPriceTop">0</div>
   </header>
 
-  <!-- Error State -->
-  <div id="errorState" style="display:none; flex:1; flex-direction:column; align-items:center; justify-content:center; padding:80px 24px; text-align:center;">
-    <div class="icon">⚠️</div>
-    <h2 id="errorTitle">Model Not Found</h2>
-    <p id="errorDesc">This dish doesn't have an AR model attached.</p>
-    <a id="errorBackLink" href="#">← Back to Menu</a>
+  <div id="errorState" style="display:none;">
+    <h2 id="errorTitle">Error</h2>
+    <p id="errorDesc"></p>
+    <a id="errorBackLink" href="#">Go Back</a>
   </div>
 
-  <!-- Viewer -->
   <div class="viewer-wrapper" id="viewerWrapper" style="display:none;">
     <div style="position:relative; flex:1; display:flex; flex-direction:column;">
       <model-viewer
@@ -262,37 +260,35 @@
         shadow-intensity="1"
         environment-image="neutral"
         exposure="1"
-        min-camera-orbit="auto auto auto"
-        max-camera-orbit="auto auto auto"
-        style="flex:1; min-height:280px;">
-        <!-- Custom AR button slot -->
-        <button class="ar-launch-btn" slot="ar-button">🧊 View in AR</button>
-        <div class="no-ar-note" slot="ar-failure">AR not supported on this device</div>
+        style="flex:1;">
+        <button class="ar-launch-btn" slot="ar-button">View in AR</button>
+        <div class="no-ar-note" slot="ar-failure">AR not supported</div>
       </model-viewer>
     </div>
 
-    <!-- Info Panel -->
     <div class="info-panel">
       <div class="info-panel-title" id="dishNamePanel">Dish</div>
       <div class="info-panel-meta">
-        <div class="info-chip">₹<span id="dishPricePanel">0</span></div>
-        <div class="info-chip">🧊 3D Model</div>
-        <div class="info-chip" id="arModeChip">📱 WebXR / ARCore</div>
+        <div class="ui-dish-price">₹<span id="dishPricePanel">0</span></div>
+        <div class="info-chip">3D Model</div>
+        <div class="info-chip" id="arModeChip">AR Ready</div>
       </div>
       <div class="info-tips">
         <div class="tip-card">
-          <div class="tip-icon">☀️</div>
           <div class="tip-text">Aim at a well-lit flat surface</div>
         </div>
         <div class="tip-card">
-          <div class="tip-icon">📐</div>
           <div class="tip-text">Move phone slowly to detect surface</div>
-        </div>
-        <div class="tip-card">
-          <div class="tip-icon">👆</div>
-          <div class="tip-text">Tap "View in AR" to place in room</div>
-        </div>
+        <div class="header" id="arTopbar" style="display:none;">
+      <div class="logo">
+        <div class="logo-icon"></div>
+        <span>AR Menu</span>
       </div>
+      <div>
+        <div class="brand-name" id="dishNameTop">Loading...</div>
+        <div class="brand-sub" id="restNameTop">AR View</div>
+      </div>
+      <a id="backBtn" href="#" class="btn-back">Back</a>
     </div>
   </div>
 
@@ -307,7 +303,6 @@
 
     // Set back links
     document.getElementById('backBtn').href = menuUrl;
-    document.getElementById('errorBackLink').href = menuUrl;
 
     if (!restaurantId || !dishId) {
       showError('Invalid URL', 'Missing restaurant or dish parameter.', menuUrl);

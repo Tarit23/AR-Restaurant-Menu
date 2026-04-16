@@ -35,6 +35,14 @@ export const restaurantsAPI = {
     return data;
   },
 
+  async createWithAuth(payload) {
+    const { data, error } = await supabase.functions.invoke('admin-create-restaurant', {
+      body: payload
+    });
+    if (error) throw error;
+    return data;
+  },
+
   async update(id, updates) {
     const { data, error } = await supabase
       .from('restaurants')

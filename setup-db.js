@@ -4,8 +4,8 @@
 // Requires: SUPABASE_URL and SERVICE_ROLE_KEY
 // =============================================
 
-const SUPABASE_URL      = process.env.SUPABASE_URL      || 'https://YOUR_PROJECT_ID.supabase.co';
-const SERVICE_ROLE_KEY  = process.env.SUPABASE_SERVICE_KEY || 'YOUR_SERVICE_ROLE_KEY';
+const SUPABASE_URL      = process.env.SUPABASE_URL      || 'https://fuezcrbfswgghawhfxrv.supabase.co';
+const SERVICE_ROLE_KEY  = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1ZXpjcmJmc3dnZ2hhd2hmeHJ2Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjIxMzM3MiwiZXhwIjoyMDkxNzg5MzcyfQ.LUjdZ99kuIZUq5Rf9fRD2uas9d3V5DXvGBixRzBuBqk';
 const ADMIN_EMAIL       = process.env.ADMIN_EMAIL        || 'admin@armenu.app';
 const ADMIN_PASSWORD    = process.env.ADMIN_PASSWORD     || 'ARMenu@2026!';
 

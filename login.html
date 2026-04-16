@@ -21,7 +21,7 @@
     <!-- Left Panel -->
     <div class="login-left">
       <div class="login-brand">
-        <div class="login-brand-icon">🍽️</div>
+        <div class="login-brand-icon"></div>
         <div>
           <div class="login-brand-name">AR Menu Platform</div>
           <div class="login-brand-tagline">Next-gen restaurant experiences</div>
@@ -35,15 +35,15 @@
 
       <div class="login-features">
         <div class="login-feature">
-          <span class="feature-icon">✦</span>
+          <span class="feature-icon"></span>
           <span>Markerless AR — works on any modern phone</span>
         </div>
         <div class="login-feature">
-          <span class="feature-icon">✦</span>
+          <span class="feature-icon"></span>
           <span>Instant QR code for every restaurant</span>
         </div>
         <div class="login-feature">
-          <span class="feature-icon">✦</span>
+          <span class="feature-icon"></span>
           <span>Subscription-based with autopay billing</span>
         </div>
       </div>
@@ -59,7 +59,7 @@
 
         <form id="loginForm" class="login-form" novalidate>
           <div id="loginError" class="alert-banner alert-error hidden">
-            <span class="alert-icon">⚠</span>
+            <span class="alert-icon"></span>
             <span id="loginErrorText">Invalid credentials. Please try again.</span>
           </div>
 
@@ -86,7 +86,7 @@
                 autocomplete="current-password"
                 required
               />
-              <button type="button" class="password-toggle" id="togglePassword" aria-label="Toggle password">👁</button>
+              <button type="button" class="password-toggle" id="togglePassword" aria-label="Toggle password">Show</button>
             </div>
           </div>
 
@@ -129,7 +129,7 @@
     togglePassword.addEventListener('click', () => {
       const isPassword = passwordInput.type === 'password';
       passwordInput.type = isPassword ? 'text' : 'password';
-      togglePassword.textContent = isPassword ? '🙈' : '👁';
+      togglePassword.textContent = isPassword ? 'Hide' : 'Show';
     });
 
     // Form submit
