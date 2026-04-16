@@ -184,9 +184,8 @@
               <label class="form-label" for="restPlan">Subscription Plan *</label>
               <select id="restPlan" class="form-control" required>
                 <option value="">Select plan...</option>
-                <option value="basic">Basic — ₹9.99/mo</option>
-                <option value="pro">Professional — ₹24.99/mo</option>
-                <option value="enterprise">Enterprise — ₹49.99/mo</option>
+                <option value="basic">Basic — ₹249/mo</option>
+                <option value="pro">Professional — ₹449/mo</option>
               </select>
             </div>
           </div>
@@ -285,10 +284,10 @@
         const expired = restaurants.filter(r => r.subscription_status === 'expired').length;
 
         // Estimate revenue (active × plan avg)
-        const planPrices = { basic: 999, pro: 2499, enterprise: 4999 };
+        const planPrices = { basic: 24900, pro: 44900 };
         const revenue = restaurants
           .filter(r => r.subscription_status === 'active')
-          .reduce((sum, r) => sum + (planPrices[r.plan] || 999), 0);
+          .reduce((sum, r) => sum + (planPrices[r.plan] || 24900), 0);
 
         // Render stat cards
         document.getElementById('statsGrid').innerHTML = `

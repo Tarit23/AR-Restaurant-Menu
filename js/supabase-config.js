@@ -21,7 +21,7 @@ const APP_CONFIG = {
     basic: {
       id:       'plan_basic',
       name:     'Basic',
-      price:    99900,       // paise  = ₹999/mo
+      price:    24900,       // paise  = ₹249/mo
       currency: 'INR',
       interval: 'monthly',
       features: [
@@ -34,7 +34,7 @@ const APP_CONFIG = {
     pro: {
       id:       'plan_pro',
       name:     'Professional',
-      price:    249900,      // paise  = ₹2,499/mo
+      price:    44900,      // paise  = ₹449/mo
       currency: 'INR',
       interval: 'monthly',
       features: [
@@ -43,20 +43,6 @@ const APP_CONFIG = {
         'QR code generation',
         'Analytics dashboard',
         'Priority support'
-      ]
-    },
-    enterprise: {
-      id:       'plan_enterprise',
-      name:     'Enterprise',
-      price:    499900,      // paise  = ₹4,999/mo
-      currency: 'INR',
-      interval: 'monthly',
-      features: [
-        'Everything in Pro',
-        'Custom domain',
-        'White-label option',
-        'Dedicated account manager',
-        'API access'
       ]
     }
   }
