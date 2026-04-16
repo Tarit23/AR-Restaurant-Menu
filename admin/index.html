@@ -1,420 +1,421 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard — AR Menu Platform</title>
-  <meta name="description" content="Super Admin dashboard for managing restaurants, menus, and subscriptions." />
-  <link rel="stylesheet" href="../css/main.css" />`n  <link rel="stylesheet" href="../css/dashboard.css" />
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-</head>
-<body class="dashboard-layout">
-
-  <!-- Sidebar -->
-  <aside class="sidebar" id="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"></div>
-      <div>
-        <div class="sidebar-logo-text">AR Menu</div>
-        <div class="sidebar-logo-sub">SUPER ADMIN</div>
-      </div>
-    </div>
-
-    <nav class="sidebar-nav">
-      <div class="sidebar-section-label">Overview</div>
-      <a class="nav-item active" href="index.html" id="nav-overview">
-        Dashboard
-      </a>
-
-      <div class="sidebar-section-label">Management</div>
-      <a class="nav-item" href="restaurants.html" id="nav-restaurants">
-        Restaurants
-      </a>
-      <a class="nav-item" href="menu.html" id="nav-menu">
-        Menu Management
-      </a>
-      <a class="nav-item" href="qr.html" id="nav-qr">
-        QR Generator
-      </a>
-
-      <div class="sidebar-section-label">Billing</div>
-      <a class="nav-item" href="payments.html" id="nav-payments">
-        Payments
-      </a>
-    </nav>
-
-    <div class="sidebar-footer">
-      <div class="sidebar-user" id="sidebarUserBtn">
-        <div class="user-avatar" id="avatarInitial">A</div>
-        <div>
-          <div class="user-name" id="adminName">Admin</div>
-          <div class="user-role">Super Admin</div>
-        </div>
-        <span style="margin-left:auto; color:var(--text-muted); font-size:0.8rem;"></span>
-      </div>
-    </div>
-  </aside>
-
-  <!-- Sidebar overlay (mobile) -->
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-  <!-- Main content -->
-  <div class="main-content">
-    <!-- Topbar -->
-    <header class="topbar">
-      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
-      <div class="topbar-breadcrumb">
-        <span>Admin</span>
-        <span>/</span>
-        <span class="current">Dashboard</span>
-      </div>
-      <div class="topbar-actions">
-        <button class="topbar-btn" id="refreshBtn">
-          Refresh
-        </button>
-        <button class="btn btn-primary btn-sm" onclick="document.getElementById('addRestaurantModal').classList.add('open')">
-          + Add Restaurant
-        </button>
-      </div>
-    </header>
-
-    <!-- Page Content -->
-    <div class="page-content">
-      <div class="page-header animate-in">
-        <div class="page-header-text">
-          <h1>Platform Overview</h1>
-          <p>Monitor your AR Menu platform at a glance</p>
-        </div>
-        <div class="page-header-actions">
-          <span id="lastUpdated" style="font-size:0.75rem; color:var(--text-muted);">Updating...</span>
-        </div>
-      </div>
-
-      <!-- Stat Cards -->
-      <div class="grid-4 animate-in animate-in-delay-1" id="statsGrid">
-        <div class="stat-card blue skeleton" style="min-height:130px;"></div>
-        <div class="stat-card green skeleton" style="min-height:130px;"></div>
-        <div class="stat-card purple skeleton" style="min-height:130px;"></div>
-        <div class="stat-card amber skeleton" style="min-height:130px;"></div>
-      </div>
-
-      <!-- Bottom section: Recent Restaurants + Quick Actions -->
-      <div style="display:grid; grid-template-columns:1fr 360px; gap:var(--space-6); margin-top:var(--space-8);">
-        <!-- Recent Restaurants -->
-        <div class="card animate-in animate-in-delay-2">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Recent Restaurants</div>
-              <div class="card-subtitle">Newly added restaurants</div>
-            </div>
-            <a href="restaurants.html" class="btn btn-ghost btn-sm">View All</a>
-          </div>
-          <div class="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>Restaurant</th>
-                  <th>Plan</th>
-                  <th>Status</th>
-                  <th>Joined</th>
-                </tr>
-              </thead>
-              <tbody id="recentRestaurantsBody">
-                <tr><td colspan="4"><div class="skeleton" style="height:20px; border-radius:4px;"></div></td></tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="card animate-in animate-in-delay-3">
-          <div class="card-header">
-            <div>
-              <div class="card-title">Quick Actions</div>
-              <div class="card-subtitle">Common tasks</div>
-            </div>
-          </div>
-          <div style="display:flex; flex-direction:column; gap:var(--space-3);">
-            <button class="quick-action-btn" onclick="document.getElementById('addRestaurantModal').classList.add('open')">
-              <span class="quick-action-icon" style="background:rgba(99,102,241,0.15); color:var(--primary-light);"></span>
-              <div class="quick-action-text">Add Restaurant</div>
-              <span></span>
-            </button>
-            <a class="quick-action-btn" href="menu.html">
-              <span class="quick-action-icon" style="background:rgba(6,182,212,0.15); color:var(--accent);"></span>
-              <div class="quick-action-text">Manage Menus</div>
-              <span></span>
-            </a>
-            <a class="quick-action-btn" href="qr.html">
-              <span class="quick-action-icon" style="background:rgba(16,185,129,0.15); color:var(--success);"></span>
-              <div class="quick-action-text">Generate QR Codes</div>
-              <span></span>
-            </a>
-            <a class="quick-action-btn" href="payments.html">
-              <span class="quick-action-icon" style="background:rgba(245,158,11,0.15); color:var(--warning);"></span>
-              <div class="quick-action-text">View Payments</div>
-              <span></span>
-            </a>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Add Restaurant Modal -->
-  <div class="modal-backdrop" id="addRestaurantModal">
-    <div class="modal modal-lg">
-      <div class="modal-header">
-        <h3 class="modal-title">Add New Restaurant</h3>
-        <button class="modal-close" onclick="document.getElementById('addRestaurantModal').classList.remove('open')">×</button>
-      </div>
-      <div class="modal-body">
-        <div id="addRestaurantError" class="alert-banner alert-error hidden" style="margin-bottom:var(--space-5);">
-          <span class="alert-icon">!</span>
-          <span id="addRestaurantErrorText"></span>
-        </div>
-        <form id="addRestaurantForm" novalidate>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="restName">Restaurant Name *</label>
-              <input type="text" id="restName" class="form-control" placeholder="e.g. The Grand Spice" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="restPlan">Subscription Plan *</label>
-              <select id="restPlan" class="form-control" required>
-                <option value="">Select plan...</option>
-                <option value="basic">Basic — ₹9.99/mo</option>
-                <option value="pro">Professional — ₹24.99/mo</option>
-                <option value="enterprise">Enterprise — ₹49.99/mo</option>
-              </select>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="restEmail">Owner Email *</label>
-              <input type="email" id="restEmail" class="form-control" placeholder="owner@restaurant.com" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="restPassword">Temporary Password *</label>
-              <input type="text" id="restPassword" class="form-control" placeholder="Min 8 characters" required />
-              <div class="form-hint">The restaurant owner will use this to log in</div>
-            </div>
-          </div>
-        </form>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" onclick="document.getElementById('addRestaurantModal').classList.remove('open')">Cancel</button>
-        <button class="btn btn-primary" id="addRestaurantBtn">Create Restaurant</button>
-      </div>
-    </div>
-  </div>
-
-  <style>
-    .quick-action-btn {
-      display: flex; align-items: center; gap: var(--space-3);
-      padding: var(--space-4);
-      background: var(--bg-elevated);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      cursor: pointer;
-      text-decoration: none;
-      color: var(--text-secondary);
-      font-size: 0.875rem;
-      font-weight: 500;
-      font-family: inherit;
-      transition: var(--transition);
-      width: 100%;
-    }
-    .quick-action-btn:hover {
-      border-color: var(--primary);
-      color: var(--text-primary);
-      transform: translateX(2px);
-    }
-    .quick-action-icon {
-      width: 36px; height: 36px; border-radius: var(--radius-md);
-      display:flex; align-items:center; justify-content:center;
-      font-size:1rem; flex-shrink:0;
-    }
-    .quick-action-text { flex:1; text-align:left; }
-
-    .alert-banner { display:flex; align-items:center; gap:var(--space-3); padding:12px 14px; border-radius:var(--radius-md); font-size:.875rem; }
-    .alert-error  { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25); color:var(--danger); }
-  </style>
-
-  <script type="module">
-    import { supabase } from '../js/supabase-config.js';
-    import { restaurantsAPI } from '../js/api.js';
-    import { showToast, formatDate, getStatusBadge, animateCount } from '../js/utils.js';
-
-    // --- Auth guard ---
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { window.location.href = '../login.html'; }
-    else {
-      const { data: profile } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
-      if (profile?.role !== 'super_admin') window.location.href = '../login.html';
-      document.getElementById('adminName').textContent = profile.email.split('@')[0];
-      document.getElementById('avatarInitial').textContent = profile.email[0].toUpperCase();
-    }
-
-    // --- Sidebar toggle ---
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('open');
-    });
-    document.getElementById('sidebarOverlay').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('open');
-    });
-
-    // --- Sign out ---
-    document.getElementById('sidebarUserBtn').addEventListener('click', async () => {
-      if (confirm('Sign out?')) {
-        await supabase.auth.signOut();
-        window.location.href = '../login.html';
-      }
-    });
-
-    // --- Load dashboard data ---
-    async function loadDashboard() {
-      try {
-        const { data: restaurants } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false });
-
-        const total   = restaurants.length;
-        const active  = restaurants.filter(r => r.subscription_status === 'active').length;
-        const expired = restaurants.filter(r => r.subscription_status === 'expired').length;
-
-        // Estimate revenue (active × plan avg)
-        const planPrices = { basic: 999, pro: 2499, enterprise: 4999 };
-        const revenue = restaurants
-          .filter(r => r.subscription_status === 'active')
-          .reduce((sum, r) => sum + (planPrices[r.plan] || 999), 0);
-
-        // Render stat cards
-        document.getElementById('statsGrid').innerHTML = `
-          <div class="stat-card blue animate-in">
-            <div class="stat-icon blue"></div>
-            <div class="stat-value" id="statTotal">0</div>
-            <div class="stat-label">Total Restaurants</div>
-          </div>
-          <div class="stat-card green animate-in animate-in-delay-1">
-            <div class="stat-icon green"></div>
-            <div class="stat-value" id="statActive">0</div>
-            <div class="stat-label">Active Subscriptions</div>
-          </div>
-          <div class="stat-card purple animate-in animate-in-delay-2">
-            <div class="stat-icon red"></div>
-            <div class="stat-value" id="statExpired">0</div>
-            <div class="stat-label">Expired Subscriptions</div>
-          </div>
-          <div class="stat-card amber animate-in animate-in-delay-3">
-            <div class="stat-icon amber">₹</div>
-            <div class="stat-value" id="statRevenue">0</div>
-            <div class="stat-label">Est. Monthly Revenue</div>
-          </div>
-        `;
-
-        // Animate counts
-        animateCount(document.getElementById('statTotal'),   total);
-        animateCount(document.getElementById('statActive'),  active);
-        animateCount(document.getElementById('statExpired'), expired);
-        animateCount(document.getElementById('statRevenue'), revenue / 100); // display in ₹
-
-        // Recent restaurants table
-        const tbody = document.getElementById('recentRestaurantsBody');
-        if (!restaurants.length) {
-          tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-state-icon"></div><div class="empty-state-title">No restaurants yet</div><div class="empty-state-text">Add your first restaurant to get started.</div></div></td></tr>`;
-          return;
-        }
-
-        tbody.innerHTML = restaurants.slice(0, 8).map(r => `
-          <tr>
-            <td class="td-primary">${r.name}</td>
-            <td><span class="badge badge-primary">${r.plan || '—'}</span></td>
-            <td>${getStatusBadge(r.subscription_status || 'pending')}</td>
-            <td>${formatDate(r.created_at)}</td>
-          </tr>
-        `).join('');
-
-        document.getElementById('lastUpdated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
-      } catch (err) {
-        showToast('Error loading dashboard data: ' + err.message, 'error');
-      }
-    }
-
-    // --- Add Restaurant ---
-    document.getElementById('addRestaurantBtn').addEventListener('click', async () => {
-      const name     = document.getElementById('restName').value.trim();
-      const email    = document.getElementById('restEmail').value.trim();
-      const password = document.getElementById('restPassword').value.trim();
-      const plan     = document.getElementById('restPlan').value;
-
-      if (!name || !email || !password || !plan) {
-        showError('Please fill in all required fields.');
-        return;
-      }
-      if (password.length < 8) {
-        showError('Password must be at least 8 characters.');
-        return;
-      }
-
-      const btn = document.getElementById('addRestaurantBtn');
-      btn.classList.add('loading');
-      btn.textContent = '';
-
-      try {
-        // 1. Create restaurant record
-        const restaurant = await restaurantsAPI.create({
-          name,
-          owner_email: email,
-          plan,
-          subscription_status: 'pending',
-          autopay_enabled: false
-        });
-
-        // 2. Create auth user via Supabase admin invite
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: true,
-          user_metadata: { role: 'restaurant', restaurant_id: restaurant.id }
-        });
-
-        if (authError) throw authError;
-
-        // 3. Insert into users table
-        await supabase.from('users').insert([{
-          id: authData.user.id,
-          email,
-          role: 'restaurant',
-          restaurant_id: restaurant.id
-        }]);
-
-        showToast(`Restaurant "${name}" created successfully!`, 'success');
-        document.getElementById('addRestaurantForm').reset();
-        document.getElementById('addRestaurantModal').classList.remove('open');
-        document.getElementById('addRestaurantError').classList.add('hidden');
-        loadDashboard();
-      } catch (err) {
-        showError(err.message || 'Failed to create restaurant.');
-      } finally {
-        btn.classList.remove('loading');
-        btn.textContent = 'Create Restaurant';
-      }
-    });
-
-    function showError(msg) {
-      document.getElementById('addRestaurantErrorText').textContent = msg;
-      document.getElementById('addRestaurantError').classList.remove('hidden');
-    }
-
-    document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
-
-    // Close modal on backdrop click
-    document.getElementById('addRestaurantModal').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
-    });
-
-    loadDashboard();
-  </script>
-</body>
-</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — AR Menu Platform</title>
+  <meta name="description" content="Super Admin dashboard for managing restaurants, menus, and subscriptions." />
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="dashboard-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"></div>
+      <div>
+        <div class="sidebar-logo-text">AR Menu</div>
+        <div class="sidebar-logo-sub">SUPER ADMIN</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-item active" href="/admin" id="nav-overview">
+        Dashboard
+      </a>
+
+      <div class="sidebar-section-label">Management</div>
+      <a class="nav-item" href="/admin/restaurants" id="nav-restaurants">
+        Restaurants
+      </a>
+      <a class="nav-item" href="/admin/menu" id="nav-menu">
+        Menu Management
+      </a>
+      <a class="nav-item" href="/admin/qr" id="nav-qr">
+        QR Generator
+      </a>
+
+      <div class="sidebar-section-label">Billing</div>
+      <a class="nav-item" href="/admin/payments" id="nav-payments">
+        Payments
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user" id="sidebarUserBtn">
+        <div class="user-avatar" id="avatarInitial">A</div>
+        <div>
+          <div class="user-name" id="adminName">Admin</div>
+          <div class="user-role">Super Admin</div>
+        </div>
+        <span style="margin-left:auto; color:var(--text-muted); font-size:0.8rem;"></span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
+      <div class="topbar-breadcrumb">
+        <span>Admin</span>
+        <span>/</span>
+        <span class="current">Dashboard</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn" id="refreshBtn">
+          Refresh
+        </button>
+        <button class="btn btn-primary btn-sm" onclick="document.getElementById('addRestaurantModal').classList.add('open')">
+          + Add Restaurant
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="page-content">
+      <div class="page-header animate-in">
+        <div class="page-header-text">
+          <h1>Platform Overview</h1>
+          <p>Monitor your AR Menu platform at a glance</p>
+        </div>
+        <div class="page-header-actions">
+          <span id="lastUpdated" style="font-size:0.75rem; color:var(--text-muted);">Updating...</span>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="grid-4 animate-in animate-in-delay-1" id="statsGrid">
+        <div class="stat-card blue skeleton" style="min-height:130px;"></div>
+        <div class="stat-card green skeleton" style="min-height:130px;"></div>
+        <div class="stat-card purple skeleton" style="min-height:130px;"></div>
+        <div class="stat-card amber skeleton" style="min-height:130px;"></div>
+      </div>
+
+      <!-- Bottom section: Recent Restaurants + Quick Actions -->
+      <div style="display:grid; grid-template-columns:1fr 360px; gap:var(--space-6); margin-top:var(--space-8);">
+        <!-- Recent Restaurants -->
+        <div class="card animate-in animate-in-delay-2">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Recent Restaurants</div>
+              <div class="card-subtitle">Newly added restaurants</div>
+            </div>
+            <a href="/admin/restaurants" class="btn btn-ghost btn-sm">View All</a>
+          </div>
+          <div class="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Restaurant</th>
+                  <th>Plan</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                </tr>
+              </thead>
+              <tbody id="recentRestaurantsBody">
+                <tr><td colspan="4"><div class="skeleton" style="height:20px; border-radius:4px;"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card animate-in animate-in-delay-3">
+          <div class="card-header">
+            <div>
+              <div class="card-title">Quick Actions</div>
+              <div class="card-subtitle">Common tasks</div>
+            </div>
+          </div>
+          <div style="display:flex; flex-direction:column; gap:var(--space-3);">
+            <button class="quick-action-btn" onclick="document.getElementById('addRestaurantModal').classList.add('open')">
+              <span class="quick-action-icon" style="background:rgba(99,102,241,0.15); color:var(--primary-light);"></span>
+              <div class="quick-action-text">Add Restaurant</div>
+              <span></span>
+            </button>
+            <a class="quick-action-btn" href="/admin/menu">
+              <span class="quick-action-icon" style="background:rgba(6,182,212,0.15); color:var(--accent);"></span>
+              <div class="quick-action-text">Manage Menus</div>
+              <span></span>
+            </a>
+            <a class="quick-action-btn" href="/admin/qr">
+              <span class="quick-action-icon" style="background:rgba(16,185,129,0.15); color:var(--success);"></span>
+              <div class="quick-action-text">Generate QR Codes</div>
+              <span></span>
+            </a>
+            <a class="quick-action-btn" href="/admin/payments">
+              <span class="quick-action-icon" style="background:rgba(245,158,11,0.15); color:var(--warning);"></span>
+              <div class="quick-action-text">View Payments</div>
+              <span></span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Restaurant Modal -->
+  <div class="modal-backdrop" id="addRestaurantModal">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3 class="modal-title">Add New Restaurant</h3>
+        <button class="modal-close" onclick="document.getElementById('addRestaurantModal').classList.remove('open')">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="addRestaurantError" class="alert-banner alert-error hidden" style="margin-bottom:var(--space-5);">
+          <span class="alert-icon">!</span>
+          <span id="addRestaurantErrorText"></span>
+        </div>
+        <form id="addRestaurantForm" novalidate>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="restName">Restaurant Name *</label>
+              <input type="text" id="restName" class="form-control" placeholder="e.g. The Grand Spice" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="restPlan">Subscription Plan *</label>
+              <select id="restPlan" class="form-control" required>
+                <option value="">Select plan...</option>
+                <option value="basic">Basic — ₹9.99/mo</option>
+                <option value="pro">Professional — ₹24.99/mo</option>
+                <option value="enterprise">Enterprise — ₹49.99/mo</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="restEmail">Owner Email *</label>
+              <input type="email" id="restEmail" class="form-control" placeholder="owner@restaurant.com" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="restPassword">Temporary Password *</label>
+              <input type="text" id="restPassword" class="form-control" placeholder="Min 8 characters" required />
+              <div class="form-hint">The restaurant owner will use this to log in</div>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('addRestaurantModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" id="addRestaurantBtn">Create Restaurant</button>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .quick-action-btn {
+      display: flex; align-items: center; gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      text-decoration: none;
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-weight: 500;
+      font-family: inherit;
+      transition: var(--transition);
+      width: 100%;
+    }
+    .quick-action-btn:hover {
+      border-color: var(--primary);
+      color: var(--text-primary);
+      transform: translateX(2px);
+    }
+    .quick-action-icon {
+      width: 36px; height: 36px; border-radius: var(--radius-md);
+      display:flex; align-items:center; justify-content:center;
+      font-size:1rem; flex-shrink:0;
+    }
+    .quick-action-text { flex:1; text-align:left; }
+
+    .alert-banner { display:flex; align-items:center; gap:var(--space-3); padding:12px 14px; border-radius:var(--radius-md); font-size:.875rem; }
+    .alert-error  { background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.25); color:var(--danger); }
+  </style>
+
+  <script type="module">
+    import { supabase } from '../js/supabase-config.js';
+    import { restaurantsAPI } from '../js/api.js';
+    import { showToast, formatDate, getStatusBadge, animateCount } from '../js/utils.js';
+
+    // --- Auth guard ---
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { window.location.href = '../login.html'; }
+    else {
+      const { data: profile } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+      if (profile?.role !== 'super_admin') window.location.href = '../login.html';
+      document.getElementById('adminName').textContent = profile.email.split('@')[0];
+      document.getElementById('avatarInitial').textContent = profile.email[0].toUpperCase();
+    }
+
+    // --- Sidebar toggle ---
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    });
+
+    // --- Sign out ---
+    document.getElementById('sidebarUserBtn').addEventListener('click', async () => {
+      if (confirm('Sign out?')) {
+        await supabase.auth.signOut();
+        window.location.href = '../login.html';
+      }
+    });
+
+    // --- Load dashboard data ---
+    async function loadDashboard() {
+      try {
+        const { data: restaurants } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false });
+
+        const total   = restaurants.length;
+        const active  = restaurants.filter(r => r.subscription_status === 'active').length;
+        const expired = restaurants.filter(r => r.subscription_status === 'expired').length;
+
+        // Estimate revenue (active × plan avg)
+        const planPrices = { basic: 999, pro: 2499, enterprise: 4999 };
+        const revenue = restaurants
+          .filter(r => r.subscription_status === 'active')
+          .reduce((sum, r) => sum + (planPrices[r.plan] || 999), 0);
+
+        // Render stat cards
+        document.getElementById('statsGrid').innerHTML = `
+          <div class="stat-card blue animate-in">
+            <div class="stat-icon blue"></div>
+            <div class="stat-value" id="statTotal">0</div>
+            <div class="stat-label">Total Restaurants</div>
+          </div>
+          <div class="stat-card green animate-in animate-in-delay-1">
+            <div class="stat-icon green"></div>
+            <div class="stat-value" id="statActive">0</div>
+            <div class="stat-label">Active Subscriptions</div>
+          </div>
+          <div class="stat-card purple animate-in animate-in-delay-2">
+            <div class="stat-icon red"></div>
+            <div class="stat-value" id="statExpired">0</div>
+            <div class="stat-label">Expired Subscriptions</div>
+          </div>
+          <div class="stat-card amber animate-in animate-in-delay-3">
+            <div class="stat-icon amber">₹</div>
+            <div class="stat-value" id="statRevenue">0</div>
+            <div class="stat-label">Est. Monthly Revenue</div>
+          </div>
+        `;
+
+        // Animate counts
+        animateCount(document.getElementById('statTotal'),   total);
+        animateCount(document.getElementById('statActive'),  active);
+        animateCount(document.getElementById('statExpired'), expired);
+        animateCount(document.getElementById('statRevenue'), revenue / 100); // display in ₹
+
+        // Recent restaurants table
+        const tbody = document.getElementById('recentRestaurantsBody');
+        if (!restaurants.length) {
+          tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><div class="empty-state-icon"></div><div class="empty-state-title">No restaurants yet</div><div class="empty-state-text">Add your first restaurant to get started.</div></div></td></tr>`;
+          return;
+        }
+
+        tbody.innerHTML = restaurants.slice(0, 8).map(r => `
+          <tr>
+            <td class="td-primary">${r.name}</td>
+            <td><span class="badge badge-primary">${r.plan || '—'}</span></td>
+            <td>${getStatusBadge(r.subscription_status || 'pending')}</td>
+            <td>${formatDate(r.created_at)}</td>
+          </tr>
+        `).join('');
+
+        document.getElementById('lastUpdated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        showToast('Error loading dashboard data: ' + err.message, 'error');
+      }
+    }
+
+    // --- Add Restaurant ---
+    document.getElementById('addRestaurantBtn').addEventListener('click', async () => {
+      const name     = document.getElementById('restName').value.trim();
+      const email    = document.getElementById('restEmail').value.trim();
+      const password = document.getElementById('restPassword').value.trim();
+      const plan     = document.getElementById('restPlan').value;
+
+      if (!name || !email || !password || !plan) {
+        showError('Please fill in all required fields.');
+        return;
+      }
+      if (password.length < 8) {
+        showError('Password must be at least 8 characters.');
+        return;
+      }
+
+      const btn = document.getElementById('addRestaurantBtn');
+      btn.classList.add('loading');
+      btn.textContent = '';
+
+      try {
+        // 1. Create restaurant record
+        const restaurant = await restaurantsAPI.create({
+          name,
+          owner_email: email,
+          plan,
+          subscription_status: 'pending',
+          autopay_enabled: false
+        });
+
+        // 2. Create auth user via Supabase admin invite
+        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { role: 'restaurant', restaurant_id: restaurant.id }
+        });
+
+        if (authError) throw authError;
+
+        // 3. Insert into users table
+        await supabase.from('users').insert([{
+          id: authData.user.id,
+          email,
+          role: 'restaurant',
+          restaurant_id: restaurant.id
+        }]);
+
+        showToast(`Restaurant "${name}" created successfully!`, 'success');
+        document.getElementById('addRestaurantForm').reset();
+        document.getElementById('addRestaurantModal').classList.remove('open');
+        document.getElementById('addRestaurantError').classList.add('hidden');
+        loadDashboard();
+      } catch (err) {
+        showError(err.message || 'Failed to create restaurant.');
+      } finally {
+        btn.classList.remove('loading');
+        btn.textContent = 'Create Restaurant';
+      }
+    });
+
+    function showError(msg) {
+      document.getElementById('addRestaurantErrorText').textContent = msg;
+      document.getElementById('addRestaurantError').classList.remove('hidden');
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+
+    // Close modal on backdrop click
+    document.getElementById('addRestaurantModal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+    });
+
+    loadDashboard();
+  </script>
+</body>
+</html>
