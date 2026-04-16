@@ -363,32 +363,15 @@
       btn.textContent = '';
 
       try {
-        // 1. Create restaurant record
-        const restaurant = await restaurantsAPI.create({
+        // Use the secure Edge Function to create both the restaurant and the auth user
+        const result = await restaurantsAPI.createWithAuth({
           name,
           owner_email: email,
           plan,
-          subscription_status: 'pending',
-          autopay_enabled: false
+          password
         });
 
-        // 2. Create auth user via Supabase admin invite
-        const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-          email,
-          password,
-          email_confirm: true,
-          user_metadata: { role: 'restaurant', restaurant_id: restaurant.id }
-        });
-
-        if (authError) throw authError;
-
-        // 3. Insert into users table
-        await supabase.from('users').insert([{
-          id: authData.user.id,
-          email,
-          role: 'restaurant',
-          restaurant_id: restaurant.id
-        }]);
+        if (result.error) throw new Error(result.error);
 
         showToast(`Restaurant "${name}" created successfully!`, 'success');
         document.getElementById('addRestaurantForm').reset();
