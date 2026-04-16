@@ -16,7 +16,7 @@ const RAZORPAY_KEY_ID = 'YOUR_RAZORPAY_KEY_ID';
 // =====================================================
 const APP_CONFIG = {
   name:   'AR Menu Platform',
-  domain: 'https://your-domain.vercel.app',  // ← update after deploying to Vercel
+  domain: 'https://ar-restaurant-menu-eta.vercel.app',  // ← update after deploying to Vercel
   plans: {
     basic: {
       id:       'plan_basic',
