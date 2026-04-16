@@ -4,7 +4,7 @@
 // =====================================================
 
 const SUPABASE_URL      = 'https://fuezcrbfswgghawhfxrv.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1ZXpjcmJmc3dnZ2hhd2hmeHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMTMzNzIsImV4cCI6MjA5MTc4OTM3Mn0.wIhnSy1L-U9s-BH4UB7KE6Wf3nt-PyGyaKutMMsv0tk';
+const SUPABASE_ANON_KEY = 'sb_publishable_e-iyRzYDsfR2HMuWPuKoXQ_6_esYlLd';
 
 // =====================================================
 // RAZORPAY CONFIGURATION
