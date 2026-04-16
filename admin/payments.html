@@ -119,7 +119,7 @@
       const active = data.filter(r => r.subscription_status === 'active');
       const expired = data.filter(r => r.subscription_status === 'expired');
       const autopay = data.filter(r => r.autopay_enabled);
-      const revenue = active.reduce((s, r) => s + (r.plan === 'pro' ? 2499 : r.plan === 'enterprise' ? 4999 : 999), 0);
+      const revenue = active.reduce((s, r) => s + (r.plan === 'pro' ? 449 : 249), 0);
       document.getElementById('paymentStats').innerHTML = `
         <div class="stat-card green"><div class="stat-value" id="sActive">0</div><div class="stat-label">Active Subscriptions</div></div>
         <div class="stat-card purple"><div class="stat-value" id="sExpired">0</div><div class="stat-label">Expired</div></div>

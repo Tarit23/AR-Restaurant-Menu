@@ -36,10 +36,29 @@ export const restaurantsAPI = {
   },
 
   async createWithAuth(payload) {
+    // Get current session token
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
+
     const { data, error } = await supabase.functions.invoke('admin-create-restaurant', {
-      body: payload
+      body: payload,
+      headers: {
+        'x-user-token': token // Custom header to bypass Gateway JWT algorithm mismatch
+      }
     });
-    if (error) throw error;
+    
+    // If invoke fails with a non-2xx, 'error' is a FunctionsHttpError
+    if (error) {
+      console.error('Edge Function Error:', error);
+      // Try to parse error from response body
+      try {
+        const body = await error.context.json();
+        if (body.error) throw new Error(body.error);
+      } catch (parseErr) {
+        throw error;
+      }
+      throw error;
+    }
     return data;
   },
 

@@ -283,8 +283,8 @@
         let imageUrl = editingDishId ? (await supabase.from('menu_items').select('image_url').eq('id', editingDishId).single()).data.image_url : null;
         let modelUrl = editingDishId ? (await supabase.from('menu_items').select('model_url').eq('id', editingDishId).single()).data.model_url : null;
 
-        if (imageFile) imageUrl = await menuAPI.uploadImage(imageFile);
-        if (modelFile) modelUrl = await menuAPI.uploadModel(modelFile);
+        if (imageFile) imageUrl = await menuAPI.uploadImage(imageFile, currentRestaurantId);
+        if (modelFile) modelUrl = await menuAPI.uploadModel(modelFile, currentRestaurantId);
 
         const payload = { name, price, image_url: imageUrl, model_url: modelUrl, is_available: avail, restaurant_id: currentRestaurantId };
         if (editingDishId) await menuAPI.update(editingDishId, payload);
