@@ -17,10 +17,8 @@ class AuthManager {
       
       const profile = await this.loadProfile(data.user.id);
       
-      // Trigger login notification for restaurant owners
-      if (profile.role === 'restaurant') {
-        this.notifyLogin(email);
-      }
+      // Trigger login confirmation email
+      this.notifyLogin(email);
 
       return { user: data.user, profile };
     } catch (error) {

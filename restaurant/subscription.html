@@ -38,6 +38,21 @@
       <a class="nav-item active" href="/restaurant/subscription">Subscription</a>
       <a class="nav-item" href="/restaurant/qr">QR Code</a>
     </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">R</div>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="restaurantName">Loading...</div>
+          <div class="user-role">Restaurant Owner</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Sign Out
+        </button>
+      </div>
+    </div>
   </aside>
 
   <div class="main-content">
@@ -104,56 +119,18 @@
 
   <script type="module">
 
-  // --- EXPLICIT GLOBAL LOGOUT ---
-  window.handleLogout = async () => {
-    if (!confirm('Are you sure you want to sign out?')) return;
-    try {
-      // Direct call to avoid any authManager dependency issues
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) await supabase.auth.signOut();
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = window.location.origin + '/login.html';
-    } catch (err) {
-      console.error('Logout failed:', err);
-      window.location.href = window.location.origin + '/login.html';
-    }
-  };
-  
-  import { supabase } from "../js/supabase-config.js";
-  import { authManager } from "../js/auth.js";
-
-  // Global Logout Handler
-  document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('#logoutBtn');
-    if (btn) {
-      e.preventDefault();
-      if (confirm('Are you sure you want to sign out?')) {
-        try {
-          await supabase.auth.signOut();
-          window.location.href = window.location.origin + '/login.html';
-        } catch (err) {
-          console.error('Logout failed:', err);
-          window.location.href = window.location.origin + '/login.html';
-        }
-      }
-    }
-  });
-  
-    
-    
-    
-    
-  
-    import { supabase, RAZORPAY_KEY_ID, APP_CONFIG } from '../js/supabase-config.js';
-    import { formatDate, showToast } from '../js/utils.js';
+  import "/js/logout-handler.js";
+  import { supabase, RAZORPAY_KEY_ID, APP_CONFIG } from '/js/supabase-config.js';
+  import { formatDate, showToast } from '/js/utils.js';
 
     let restaurant = null;
     let profile = null;
+    let currentSession = null;
 
     async function init() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { window.location.href = '../login.html'; return; }
+      currentSession = session;
 
       const { data: prof } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
       profile = prof;
@@ -163,6 +140,11 @@
 
       updateUI();
       renderPlans();
+      
+      // Populate sidebar
+      document.getElementById('restaurantName').textContent = restaurant.name;
+      document.getElementById('restNameSub').textContent = restaurant.name.substring(0, 16);
+      document.getElementById('avatarInitial').textContent = restaurant.name[0].toUpperCase();
     }
 
     function updateUI() {
@@ -208,43 +190,68 @@
     }
 
     window.startSubscription = async (planKey) => {
+      if (!currentSession) {
+        showToast('Session expired. Please log in again.', 'error');
+        return;
+      }
+
       const overlay = document.createElement('div');
       overlay.className = 'loading-overlay';
       overlay.innerHTML = '<div class="loader"></div><div style="margin-left:20px; color:#fff;">Preparing UPI Autopay...</div>';
       document.body.appendChild(overlay);
 
       try {
+        console.log('Initiating subscription for:', planKey);
+        
         // 1. Call Edge Function to create subscription
         const { data, error } = await supabase.functions.invoke('create-subscription', {
           body: {
             restaurantId: restaurant.id,
             plan: planKey,
-            email: session.user.email,
+            email: currentSession.user.email,
             name: restaurant.name
           }
         });
 
-        if (error) throw new Error(error.message || 'Server error');
+        if (error) {
+          console.error('Edge Function Error:', error);
+          throw new Error(error.message || 'Failed to create subscription on server');
+        }
+        
         if (data.error) throw new Error(data.error);
+        if (!data.id) throw new Error('No subscription ID returned from server');
+
+        console.log('Subscription created:', data.id);
 
         // 2. Open Razorpay Checkout
         const options = {
           key: RAZORPAY_KEY_ID,
           subscription_id: data.id,
           name: APP_CONFIG.name,
-          description: `Subscription for ${restaurant.name}`,
+          description: `${APP_CONFIG.plans[planKey].name} Plan — AR Menu`,
+          image: 'https://ar-restaurant-menu-eta.vercel.app/favicon.ico', // Optional: your logo
           handler: function (response) {
-            showToast('Payment Successful! Activating Autopay...', 'success');
-            setTimeout(() => window.location.reload(), 2000);
+            console.log('Razorpay Response:', response);
+            showToast('Payment Authorized! Activating Subscription...', 'success');
+            // Wait for webhook to process, then reload
+            setTimeout(() => {
+              window.location.reload();
+            }, 3000);
           },
           prefill: {
             name: restaurant.name,
-            email: profile.email
+            email: currentSession.user.email
           },
           notes: {
-            restaurant_id: restaurant.id
+            restaurant_id: restaurant.id,
+            plan_key: planKey
           },
-          theme: { color: "#6366f1" }
+          theme: { color: "#6366f1" },
+          modal: {
+            ondismiss: function() {
+              console.log('Checkout dismissed');
+            }
+          }
         };
 
         const rzp = new Razorpay(options);
@@ -252,9 +259,11 @@
         
       } catch (err) {
         showToast(err.message, 'error');
-        console.error(err);
+        console.error('Subscription Flow Error:', err);
       } finally {
-        document.body.removeChild(overlay);
+        if (document.body.contains(overlay)) {
+          document.body.removeChild(overlay);
+        }
       }
     };
 

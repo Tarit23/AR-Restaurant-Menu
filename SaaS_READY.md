@@ -10,7 +10,11 @@ The only thing remaining is to deploy the backend logic for creating restaurants
     ```powershell
     ./deploy.ps1
     ```
-3.  Follow the login prompt in your browser. Once done, the backend will be live!
+3.  Follow the login prompt in your browser. This will deploy all backend logic, including the new **Login Confirmation Emails**.
+4.  **Crucial**: Set your Resend API Key for emails to work:
+    ```powershell
+    npx supabase secrets set RESEND_API_KEY=your_resend_key --project-ref fuezcrbfswgghawhfxrv
+    ```
 
 ---
 

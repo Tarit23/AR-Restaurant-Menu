@@ -28,10 +28,10 @@ Deno.serve(async (req) => {
             'Authorization': `Bearer ${RESEND_API_KEY}`
           },
           body: JSON.stringify({
-            from: 'AR Menu Security <no-reply@armenu.app>',
+            from: 'AR Menu Platform <no-reply@armenu.app>',
             to: [email],
-            subject: `Security Alert: New login detected`,
-            html: EMAIL_TEMPLATES.loginAlert({
+            subject: `Sign-in Confirmation: Welcome back to AR Menu`,
+            html: EMAIL_TEMPLATES.loginConfirmation({
               email,
               time,
               device: device || 'Unknown Device',

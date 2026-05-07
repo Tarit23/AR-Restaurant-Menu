@@ -40,11 +40,19 @@ if ($SERVICE_KEY) {
     Write-Host "Skipping secrets. The Add Restaurant feature might fail if secrets aren't set." -ForegroundColor Gray
 }
 
-# 7. Deploy Edge Function
+# 7. Deploy Edge Functions
 Write-Host ""
-Write-Host "[6/7] Deploying Edge Function: admin-create-restaurant..." -ForegroundColor Cyan
-npx supabase functions deploy admin-create-restaurant --project-ref $PROJECT_ID
+Write-Host "[6/7] Deploying Edge Functions..." -ForegroundColor Cyan
+
+$functions = @("admin-create-restaurant", "user-login-notify", "public-signup-restaurant", "init-user-profile")
+
+foreach ($fn in $functions) {
+    Write-Host "Deploying $fn..." -ForegroundColor Yellow
+    npx supabase functions deploy $fn --project-ref $PROJECT_ID --no-verify-jwt
+}
 
 Write-Host ""
 Write-Host "[7/7] DEPLOYMENT COMPLETE!" -ForegroundColor Green
-Write-Host "The restaurant creation feature should now work correctly in your dashboard." -ForegroundColor White
+Write-Host "All backend logic is now live. Please ensure RESEND_API_KEY is set for emails to work." -ForegroundColor White
+Write-Host "Run: npx supabase secrets set RESEND_API_KEY=your_key --project-ref $PROJECT_ID" -ForegroundColor Gray
+

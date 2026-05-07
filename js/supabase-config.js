@@ -9,7 +9,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // =====================================================
 // RAZORPAY CONFIGURATION
 // =====================================================
-const RAZORPAY_KEY_ID = 'rzp_live_Sm3srHnT1vBx7y';
+const RAZORPAY_KEY_ID = 'rzp_live_SmVRJqtNiMuDqP';
 
 // =====================================================
 // APP CONFIGURATION
@@ -20,12 +20,12 @@ const APP_CONFIG = {
   domain: 'https://ar-restaurant-menu-eta.vercel.app',
   plans: {
     basic: {
-      id: 'plan_basic', name: 'Basic',
+      id: 'plan_SmVN9PPiUNaOxG', name: 'Basic', // Set RAZORPAY_PLAN_BASIC_ID in Supabase Secrets
       price: 24900, currency: 'INR', interval: 'monthly',
       features: ['Up to 20 menu items','AR viewing (WebXR)','QR code generation','Basic support']
     },
     pro: {
-      id: 'plan_pro', name: 'Professional',
+      id: 'plan_SmVOECOgOcpnix', name: 'Professional', // Set RAZORPAY_PLAN_PRO_ID in Supabase Secrets
       price: 44900, currency: 'INR', interval: 'monthly',
       features: ['Unlimited menu items','AR viewing (WebXR)','QR code generation','Analytics dashboard','Priority support']
     }

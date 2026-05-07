@@ -17,8 +17,27 @@
       cursor: pointer; transition: all 0.2s; 
     }
     .btn-logout:hover { background: #ef4444; color: #fff; border-color: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+    
+    .sub-banner-active {
+      background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25);
+      border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5);
+      display: flex; align-items: center; gap: var(--space-3); color: var(--success); font-weight: 600;
+    }
+    .sub-banner-expired {
+      background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.25);
+      border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5);
+      display: flex; align-items: center; gap: var(--space-3); color: var(--danger); font-weight: 600;
+    }
+    .sub-banner-expired a { color: var(--danger); text-decoration: underline; margin-left: var(--space-2); }
+    .menu-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-4); }
+    .preview-card { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; transition: var(--transition); }
+    .preview-card:hover { border-color: rgba(99,102,241,.25); }
+    .preview-img { width:100%; height:120px; object-fit:cover; background:var(--bg-surface); }
+    .preview-img-ph { width:100%; height:120px; background:var(--bg-surface); display:flex; align-items:center; justify-content:center; font-size:2rem; color:var(--text-muted); }
+    .preview-body { padding:var(--space-3); }
+    .preview-name { font-size:.875rem; font-weight:700; color:var(--text-primary); }
+    .preview-price { font-size:.8rem; color:var(--primary-light); font-weight:700; }
   </style>
-
 </head>
 <body class="dashboard-layout">
 
@@ -37,7 +56,7 @@
       <a class="nav-item" href="/restaurant/subscription">Subscription</a>
       <a class="nav-item" href="/restaurant/qr">QR Code</a>
     </nav>
-                <div class="sidebar-footer">
+    <div class="sidebar-footer">
       <div class="sidebar-user">
         <div class="user-avatar" id="avatarInitial">R</div>
         <div style="flex:1; min-width:0;">
@@ -46,7 +65,7 @@
         </div>
       </div>
       <div class="sidebar-logout">
-        <button class="btn-logout" id="logoutBtn" type="button" onclick="window.handleLogout()">
+        <button class="btn-logout" id="logoutBtn" type="button">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           Sign Out
         </button>
@@ -77,7 +96,7 @@
       <!-- Subscription Banner -->
       <div id="subBanner" class="animate-in animate-in-delay-1" style="margin-bottom:var(--space-6); display:none;"></div>
 
-      <!-- Onboarding Checklist (Only for new restaurants) -->
+      <!-- Onboarding Checklist -->
       <div id="onboardingSection" class="card glass animate-in" style="margin-bottom: var(--space-8); display:none;">
         <div class="card-header" style="margin-bottom: var(--space-4);">
           <div>
@@ -122,223 +141,147 @@
     </div>
   </div>
 
-  <style>
-  .sub-banner-active {
-    background: rgba(16,185,129,0.1);
-    border: 1px solid rgba(16,185,129,0.25);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4) var(--space-5);
-    display: flex; align-items: center; gap: var(--space-3);
-    color: var(--success);
-    font-weight: 600;
-  }
-  .sub-banner-expired {
-    background: rgba(239,68,68,0.1);
-    border: 1px solid rgba(239,68,68,0.25);
-    border-radius: var(--radius-lg);
-    padding: var(--space-4) var(--space-5);
-    display: flex; align-items: center; gap: var(--space-3);
-    color: var(--danger);
-    font-weight: 600;
-  }
-  .sub-banner-expired a { color: var(--danger); text-decoration: underline; margin-left: var(--space-2); }
-
-  .menu-preview-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--space-4);
-  }
-
-  .preview-card {
-    background: var(--bg-elevated);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    transition: var(--transition);
-  }
-  .preview-card:hover { border-color: rgba(99,102,241,.25); }
-  .preview-img { width:100%; height:120px; object-fit:cover; background:var(--bg-surface); }
-  .preview-img-ph { width:100%; height:120px; background:var(--bg-surface); display:flex; align-items:center; justify-content:center; font-size:2rem; color:var(--text-muted); }
-  .preview-body { padding:var(--space-3); }
-  .preview-name { font-size:.875rem; font-weight:700; color:var(--text-primary); }
-  .preview-price { font-size:.8rem; color:var(--primary-light); font-weight:700; }
-  </style>
-
   <script type="module">
+    import "/js/logout-handler.js";
+    import { supabase } from "/js/supabase-config.js";
+    import { menuAPI } from '/js/api.js';
+    import { showToast, formatDate, animateCount } from '/js/utils.js';
+    import { APP_CONFIG } from '/js/supabase-config.js';
 
-  // --- EXPLICIT GLOBAL LOGOUT ---
-  window.handleLogout = async () => {
-    if (!confirm('Are you sure you want to sign out?')) return;
-    try {
-      // Direct call to avoid any authManager dependency issues
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) await supabase.auth.signOut();
-      localStorage.clear();
-      sessionStorage.clear();
-      window.location.href = window.location.origin + '/login.html';
-    } catch (err) {
-      console.error('Logout failed:', err);
-      window.location.href = window.location.origin + '/login.html';
-    }
-  };
-  
-  import { supabase } from "../js/supabase-config.js";
-  import { authManager } from "../js/auth.js";
+    async function initDashboard() {
+      try {
+        const { data: { session }, error: sErr } = await supabase.auth.getSession();
+        if (sErr) throw sErr;
+        if (!session) { window.location.href = '../login.html'; return; }
 
-  // Global Logout Handler
-  document.addEventListener('click', async (e) => {
-    const btn = e.target.closest('#logoutBtn');
-    if (btn) {
-      e.preventDefault();
-      if (confirm('Are you sure you want to sign out?')) {
-        try {
-          await supabase.auth.signOut();
-          window.location.href = window.location.origin + '/login.html';
-        } catch (err) {
-          console.error('Logout failed:', err);
-          window.location.href = window.location.origin + '/login.html';
+        const { data: profile, error: pErr } = await supabase
+          .from('users')
+          .select('*, restaurants(*)')
+          .eq('id', session.user.id)
+          .single();
+
+        if (pErr) throw pErr;
+        
+        // Ensure restaurant exists
+        const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+        if (!restaurant) {
+          console.warn('No restaurant found for user. Redirecting...');
+          window.location.href = '../pending.html';
+          return;
         }
+
+        // Populate Header UI
+        document.getElementById('restaurantName').textContent = restaurant.name;
+        document.getElementById('restNameSub').textContent = restaurant.name.substring(0, 16);
+        document.getElementById('topbarRestName').textContent = restaurant.name;
+        document.getElementById('avatarInitial').textContent = restaurant.name[0].toUpperCase();
+        document.getElementById('pageTitle').textContent = `Welcome, ${restaurant.name}`;
+        
+        const publicUrl = `${APP_CONFIG.domain}/menu.html?restaurant=${restaurant.id}`;
+        document.getElementById('viewMenuBtn').href = publicUrl;
+
+        // Subscription Banner
+        const banner = document.getElementById('subBanner');
+        const now = new Date();
+        const nextPay = restaurant.next_payment_date ? new Date(restaurant.next_payment_date) : null;
+        const diffDays = nextPay ? Math.ceil((nextPay - now) / (1000 * 60 * 60 * 24)) : null;
+
+        if (restaurant.subscription_status === 'active') {
+          if (diffDays !== null && diffDays <= 3) {
+            banner.innerHTML = `<div class="sub-banner-warning" style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); border-radius:var(--radius-lg); padding:var(--space-4) var(--space-5); color:var(--warning); font-weight:600;">⚠ Plan renewing in ${diffDays} day(s). Ensure your UPI Autopay is ready.</div>`;
+          } else {
+            banner.innerHTML = `<div class="sub-banner-active">✓ Subscription Active — Next renewal: ${formatDate(restaurant.next_payment_date)}</div>`;
+          }
+          banner.style.display = 'block';
+        } else if (restaurant.subscription_status === 'expired') {
+          banner.innerHTML = `<div class="sub-banner-expired">! Subscription expired — AR features are disabled. <a href="subscription.html">Renew now</a></div>`;
+          banner.style.display = 'block';
+        } else if (restaurant.subscription_status === 'pending' || !restaurant.plan) {
+          banner.innerHTML = `<div class="card glass" style="border-left:4px solid var(--primary); padding:var(--space-4); margin-bottom:var(--space-6); display:flex; justify-content:space-between; align-items:center;">
+            <div><div style="font-weight:700; color:#fff;">Welcome! Activate your AR Menu</div><div style="font-size:0.85rem; color:var(--text-muted);">Choose a plan to enable 3D viewing.</div></div>
+            <a href="subscription.html" class="btn btn-primary btn-sm">Get Started</a>
+          </div>`;
+          banner.style.display = 'flex';
+        }
+
+        // Stats & Items
+        const items = await menuAPI.getByRestaurant(restaurant.id);
+        const available = items.filter(i => i.is_available).length;
+        const arItems = items.filter(i => i.model_url).length;
+
+        // Onboarding Check
+        if (items.length === 0 || arItems === 0) {
+          document.getElementById('onboardingSection').style.display = 'block';
+          if (items.length > 0) {
+            const checkItems = document.getElementById('check-items');
+            if (checkItems) {
+              checkItems.style.color = 'var(--success)';
+              checkItems.querySelector('.check-dot').style.background = 'var(--success)';
+            }
+          }
+          if (arItems > 0) {
+            const checkAR = document.getElementById('check-ar');
+            if (checkAR) {
+              checkAR.style.color = 'var(--success)';
+              checkAR.querySelector('.check-dot').style.background = 'var(--success)';
+            }
+          }
+        }
+
+        // Populate Stats
+        document.getElementById('restStats').innerHTML = `
+          <div class="stat-card blue animate-in">
+            <div class="stat-icon blue"></div>
+            <div class="stat-value" id="sItems">${items.length}</div>
+            <div class="stat-label">Total Menu Items</div>
+          </div>
+          <div class="stat-card green animate-in animate-in-delay-1">
+            <div class="stat-icon green"></div>
+            <div class="stat-value" id="sAvail">${available}</div>
+            <div class="stat-label">Available Dishes</div>
+          </div>
+          <div class="stat-card purple animate-in animate-in-delay-2">
+            <div class="stat-icon purple"></div>
+            <div class="stat-value" id="sAR">${arItems}</div>
+            <div class="stat-label">AR-Enabled Dishes</div>
+          </div>
+        `;
+
+        animateCount(document.getElementById('sItems'), items.length);
+        animateCount(document.getElementById('sAvail'), available);
+        animateCount(document.getElementById('sAR'), arItems);
+
+        // Menu Preview Grid
+        const previewGrid = document.getElementById('menuPreview');
+        if (!items.length) {
+          previewGrid.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1; padding: 40px; text-align: center;">🍽️<br>Your menu is being prepared.</div>`;
+        } else {
+          previewGrid.innerHTML = items.slice(0, 8).map(item => `
+            <div class="preview-card">
+              ${item.image_url ? `<img class="preview-img" src="${item.image_url}" alt="${item.name}" />` : `<div class="preview-img-ph"></div>`}
+              <div class="preview-body"><div class="preview-name">${item.name}</div><div class="preview-price">₹${item.price?.toLocaleString('en-IN')}</div></div>
+            </div>
+          `).join('');
+        }
+
+      } catch (err) {
+        console.error('Dashboard Init Error:', err);
+        showToast(err.message || 'Failed to load dashboard', 'error');
       }
     }
-  });
-  
-    
-    
-    
-    
-  
-    
-    import { menuAPI } from '../js/api.js';
-    import { showToast, formatDate, getStatusBadge, animateCount } from '../js/utils.js';
-    import { APP_CONFIG } from '../js/supabase-config.js';
 
-    // Auth guard & profile load
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { window.location.href = '../login.html'; }
-
-    const { data: profile } = await supabase
-      .from('users')
-      .select('*, restaurants(*)')
-      .eq('id', session.user.id)
-      .single();
-
-    if (!profile || profile.role === 'super_admin') window.location.href = '../admin/index.html';
-    
-    // FAIL-SAFE: If restaurant data is missing, redirect to pending
-    if (!profile.restaurants || (Array.isArray(profile.restaurants) && profile.restaurants.length === 0)) {
-        console.warn('User has no linked restaurant. Redirecting to pending...');
-        window.location.href = '../pending.html';
-        return;
-    }
-
-    const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
-
-    // Populate UI
-    document.getElementById('restName').textContent = restaurant.name;
-    document.getElementById('restNameSub').textContent = restaurant.name.substring(0, 16);
-    document.getElementById('topbarRestName').textContent = restaurant.name;
-    document.getElementById('avatarInitial').textContent = restaurant.name[0].toUpperCase();
-    document.getElementById('pageTitle').textContent = `Welcome, ${restaurant.name}`;
-    const publicUrl = `${APP_CONFIG.domain}/menu.html?restaurant=${restaurant.id}`;
-    document.getElementById('viewMenuBtn').href = publicUrl;
-
-    // Sidebar
+    // Sidebar Toggles
     document.getElementById('menuToggle').addEventListener('click', () => {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('sidebarOverlay').classList.toggle('open');
     });
+
     document.getElementById('sidebarOverlay').addEventListener('click', () => {
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('sidebarOverlay').classList.remove('open');
     });
-        // Subscription Banner & Expiry Check
-    const banner = document.getElementById('subBanner');
-    const now = new Date();
-    const nextPay = restaurant.next_payment_date ? new Date(restaurant.next_payment_date) : null;
-    const diffDays = nextPay ? Math.ceil((nextPay - now) / (1000 * 60 * 60 * 24)) : null;
 
-    if (restaurant.subscription_status === 'active') {
-      if (diffDays !== null && diffDays <= 3) {
-        banner.innerHTML = `<div class="sub-banner-warning" style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); border-radius:var(--radius-lg); padding:var(--space-4) var(--space-5); color:var(--warning); font-weight:600;">⚠ Plan renewing in ${diffDays} day(s). Ensure your UPI Autopay is ready.</div>`;
-      } else {
-        banner.innerHTML = `<div class="sub-banner-active">✓ Subscription Active — Next renewal: ${formatDate(restaurant.next_payment_date)}</div>`;
-      }
-      banner.style.display = 'block';
-    } else if (restaurant.subscription_status === 'expired') {
-      banner.innerHTML = `<div class="sub-banner-expired">! Subscription expired — AR features are disabled. <a href="subscription.html">Renew now</a></div>`;
-      banner.style.display = 'block';
-    } else if (restaurant.subscription_status === 'pending' || !restaurant.plan) {
-      banner.innerHTML = `<div class="card glass" style="border-left:4px solid var(--primary); padding:var(--space-4); margin-bottom:var(--space-6); display:flex; justify-content:space-between; align-items:center;">
-        <div>
-          <div style="font-weight:700; color:#fff;">Welcome! Activate your AR Menu</div>
-          <div style="font-size:0.85rem; color:var(--text-muted);">Choose a plan to enable 3D viewing and priority support.</div>
-        </div>
-        <a href="subscription.html" class="btn btn-primary btn-sm">Get Started</a>
-      </div>`;
-      banner.style.display = 'flex';
-    }
-
-    // Stats
-    const items = await menuAPI.getByRestaurant(restaurant.id);
-    const available   = items.filter(i => i.is_available).length;
-    const arItems = items.filter(i => i.model_url).length;
-
-    // Show onboarding if needed
-    if (items.length === 0 || arItems === 0) {
-      document.getElementById('onboardingSection').style.display = 'block';
-      if (items.length > 0) {
-        document.getElementById('check-items').style.color = 'var(--success)';
-        document.getElementById('check-items').querySelector('.check-dot').style.background = 'var(--success)';
-      }
-      if (arItems > 0) {
-        document.getElementById('check-ar').style.color = 'var(--success)';
-        document.getElementById('check-ar').querySelector('.check-dot').style.background = 'var(--success)';
-      }
-    }
-
-    document.getElementById('restStats').innerHTML = `
-      <div class="stat-card blue animate-in">
-        <div class="stat-icon blue"></div>
-        <div class="stat-value" id="sItems">0</div>
-        <div class="stat-label">Total Menu Items</div>
-      </div>
-      <div class="stat-card green animate-in animate-in-delay-1">
-        <div class="stat-icon green"></div>
-        <div class="stat-value" id="sAvail">0</div>
-        <div class="stat-label">Available Dishes</div>
-      </div>
-      <div class="stat-card purple animate-in animate-in-delay-2">
-        <div class="stat-icon purple"></div>
-        <div class="stat-value" id="sAR">0</div>
-        <div class="stat-label">AR-Enabled Dishes</div>
-      </div>
-    `;
-
-    animateCount(document.getElementById('sItems'),  items.length);
-    animateCount(document.getElementById('sAvail'),  available);
-    animateCount(document.getElementById('sAR'),     arItems);
-
-    // Menu preview
-    const previewGrid = document.getElementById('menuPreview');
-    if (!items || !items.length) {
-      previewGrid.innerHTML = `
-        <div class="empty-state" style="grid-column: 1 / -1; padding: 40px; text-align: center; background: rgba(255,255,255,0.02); border: 1px dashed var(--border); border-radius: var(--radius-lg);">
-          <div style="font-size: 2rem; margin-bottom: 10px;">🍽️</div>
-          <div class="empty-state-title" style="font-weight: 700; color: #fff;">Your menu is being prepared</div>
-          <p class="empty-state-text" style="color: var(--text-muted); font-size: 0.9rem;">Our team is reviewing your signup and will upload your menu items shortly. You will be notified via email once your AR menu is ready.</p>
-        </div>
-      `;
-    } else {
-      previewGrid.innerHTML = items.slice(0,8).map(item => `
-        <div class="preview-card">
-          ${item.image_url ? `<img class="preview-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />` : `<div class="preview-img-ph"></div>`}
-          <div class="preview-body">
-            <div class="preview-name">${item.name}</div>
-            <div class="preview-price">₹${item.price?.toLocaleString('en-IN')}</div>
-          </div>
-        </div>
-      `).join('');
-    }
+    initDashboard();
   </script>
 </body>
 </html>

@@ -60,28 +60,30 @@
     </p>
 
     <div class="action-row">
-      <button onclick="window.handleSignOut()" class="btn btn-secondary">Sign Out</button>
+      <button id="logoutBtn" class="btn btn-secondary">Sign Out</button>
       <a href="mailto:support@armenu.app" class="btn btn-primary">Contact Support</a>
     </div>
   </div>
 
   <script type="module">
+    import "./js/logout-handler.js";
     import { authManager } from './js/auth.js';
-    
-    window.handleSignOut = async () => {
-      if (confirm('Are you sure you want to sign out?')) {
-        await authManager.signOut();
-        window.location.href = '/login.html';
-      }
-    };
 
     // Auto-check if profile was updated while user is waiting
     setInterval(async () => {
-      const session = await authManager.getSession();
-      if (session && authManager.currentProfile) {
-        if (authManager.isAdmin()) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const { data: profile } = await supabase
+        .from('users')
+        .select('*, restaurants(*)')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profile) {
+        if (profile.role === 'super_admin') {
           window.location.href = '/admin/index.html';
-        } else if (authManager.currentProfile.restaurant_id) {
+        } else if (profile.restaurants && (Array.isArray(profile.restaurants) ? profile.restaurants.length > 0 : !!profile.restaurants)) {
           window.location.href = '/restaurant/index.html';
         }
       }

@@ -170,5 +170,73 @@ export const EMAIL_TEMPLATES = {
       </div>
     </body>
     </html>
+  `,
+
+  loginConfirmation: (data: { email: string, time: string, device: string, ip: string }) => `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #05050a; color: #f1f5f9; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #0f0f17; border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .header { padding: 40px 20px; text-align: center; background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%); }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.1em; }
+        .content { padding: 40px; }
+        .content h2 { font-size: 22px; font-weight: 700; margin-bottom: 10px; color: #ffffff; }
+        .content p { line-height: 1.6; color: #94a3b8; margin-bottom: 25px; }
+        .info-card { background-color: #161622; border: 1px solid rgba(255,255,255,0.03); border-radius: 16px; padding: 25px; margin-bottom: 30px; }
+        .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #64748b; font-size: 13px; font-weight: 600; text-transform: uppercase; }
+        .info-value { color: #f1f5f9; font-weight: 600; font-size: 14px; }
+        .btn-box { text-align: center; margin: 20px 0; }
+        .btn { display: inline-block; padding: 12px 30px; background-color: #4f46e5; color: #ffffff !important; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; }
+        .footer { padding: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.03); font-size: 12px; color: #475569; line-height: 1.5; }
+        .accent { color: #38bdf8; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>AR Menu Platform</h1>
+        </div>
+        <div class="content">
+          <h2>Successful Sign-in <span class="accent">Confirmed</span></h2>
+          <p>Hello! This is a confirmation that your account was successfully accessed. If this was you, no further action is needed.</p>
+          
+          <div class="info-card">
+            <div class="info-row">
+              <span class="info-label">Account</span>
+              <span class="info-value">${data.email}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Sign-in Time</span>
+              <span class="info-value">${data.time}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Device</span>
+              <span class="info-value">${data.device}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Location (IP)</span>
+              <span class="info-value">${data.ip}</span>
+            </div>
+          </div>
+
+          <div class="btn-box">
+            <a href="https://ar-restaurant-menu-eta.vercel.app/restaurant/index.html" class="btn">Open Dashboard</a>
+          </div>
+
+          <p style="font-size: 13px; color: #64748b; text-align: center;">Not you? Secure your account by changing your password immediately.</p>
+        </div>
+        <div class="footer">
+          &copy; 2026 AR Menu Platform. All rights reserved.<br>
+          This is an automated security notification.
+        </div>
+      </div>
+    </body>
+    </html>
   `
 };
