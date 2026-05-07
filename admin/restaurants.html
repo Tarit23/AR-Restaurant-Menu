@@ -28,11 +28,19 @@
       <div class="sidebar-section-label">Billing</div>
       <a class="nav-item" href="/admin/payments">Payments</a>
     </nav>
-    <div class="sidebar-footer">
-      <div class="sidebar-user" id="sidebarUserBtn">
+            <div class="sidebar-footer">
+      <div class="sidebar-user">
         <div class="user-avatar" id="avatarInitial">A</div>
-        <div><div class="user-name" id="adminName">Admin</div><div class="user-role">Super Admin</div></div>
-        <span style="margin-left:auto;color:var(--text-muted);font-size:.8rem;"></span>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="adminName">Admin</div>
+          <div class="user-role">Super Admin</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Sign Out
+        </button>
       </div>
     </div>
   </aside>
@@ -220,8 +228,11 @@
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('sidebarOverlay').classList.remove('open');
     });
-    document.getElementById('sidebarUserBtn').addEventListener('click', async () => {
-      if (confirm('Sign out?')) { await supabase.auth.signOut(); window.location.href = '../login.html'; }
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+      if (confirm('Sign out?')) {
+        await supabase.auth.signOut();
+        window.location.href = window.location.origin + '/login.html';
+      }
     });
 
     let allRestaurants = [];

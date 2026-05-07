@@ -60,7 +60,7 @@
     </p>
 
     <div class="action-row">
-      <a href="login.html" class="btn btn-secondary" onclick="signOut()">Sign Out</a>
+      <button onclick="window.handleSignOut()" class="btn btn-secondary">Sign Out</button>
       <a href="mailto:support@armenu.app" class="btn btn-primary">Contact Support</a>
     </div>
   </div>
@@ -68,9 +68,11 @@
   <script type="module">
     import { authManager } from './js/auth.js';
     
-    window.signOut = async () => {
-      await authManager.signOut();
-      window.location.href = 'login.html';
+    window.handleSignOut = async () => {
+      if (confirm('Are you sure you want to sign out?')) {
+        await authManager.signOut();
+        window.location.href = '/login.html';
+      }
     };
 
     // Auto-check if profile was updated while user is waiting
