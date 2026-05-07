@@ -229,29 +229,47 @@
           subscription_id: data.id,
           name: APP_CONFIG.name,
           description: `${APP_CONFIG.plans[planKey].name} Plan — AR Menu`,
-          image: 'https://ar-restaurant-menu-eta.vercel.app/favicon.ico', // Optional: your logo
+          image: 'https://ar-restaurant-menu-eta.vercel.app/favicon.ico',
+          config: {
+            display: {
+              blocks: {
+                banks: {
+                  name: 'UPI Autopay (Recommended)',
+                  instruments: [
+                    {
+                      method: 'upi'
+                    }
+                  ]
+                }
+              },
+              sequence: ['block.banks'],
+              preferences: {
+                show_default_blocks: true
+              }
+            }
+          },
           handler: function (response) {
             console.log('Razorpay Response:', response);
-            showToast('Payment Authorized! Activating Subscription...', 'success');
-            // Wait for webhook to process, then reload
+            showToast('UPI Mandate Authorized! Activating your plan...', 'success');
+            
+            // Show a nice success state
+            overlay.innerHTML = '<div style="text-align:center;"><div class="loader" style="margin:0 auto 20px;"></div><h3 style="color:#fff;">Activation in progress...</h3><p style="color:rgba(255,255,255,0.7);">We are verifying your UPI mandate and setting up your dashboard.</p></div>';
+            
+            // Wait for webhook to process, then redirect
             setTimeout(() => {
-              window.location.reload();
-            }, 3000);
+              window.location.href = '/restaurant/index.html';
+            }, 4000);
           },
           prefill: {
             name: restaurant.name,
-            email: currentSession.user.email
+            email: currentSession.user.email,
+            contact: '' // Add contact if you have it
           },
           notes: {
             restaurant_id: restaurant.id,
             plan_key: planKey
           },
-          theme: { color: "#6366f1" },
-          modal: {
-            ondismiss: function() {
-              console.log('Checkout dismissed');
-            }
-          }
+          theme: { color: "#6366f1" }
         };
 
         const rzp = new Razorpay(options);

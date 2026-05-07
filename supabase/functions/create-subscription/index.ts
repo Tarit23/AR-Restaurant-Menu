@@ -105,7 +105,13 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to update restaurant record: ${updateError.message}`)
     }
 
-    return new Response(JSON.stringify(subData), {
+    return new Response(JSON.stringify({
+      id: subData.id,
+      customer_id: customerId,
+      entity: subData.entity,
+      plan_id: subData.plan_id,
+      status: subData.status
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
     })
