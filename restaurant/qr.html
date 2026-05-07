@@ -133,8 +133,29 @@
   </style>
 
   <script type="module">
-    import { supabase } from '../js/supabase-config.js';
     import { authManager } from '../js/auth.js';
+    import { supabase } from '../js/supabase-config.js';
+    
+    // Immediate logout listener attachment
+    setTimeout(() => {
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          if (confirm('Are you sure you want to sign out?')) {
+            try {
+              await authManager.signOut();
+              window.location.href = '/login.html';
+            } catch (err) {
+              console.error('Sign out error:', err);
+              window.location.href = '/login.html';
+            }
+          }
+        });
+      }
+    }, 0);
+  
+    import { supabase } from '../js/supabase-config.js';
     import { generateQRUrl } from '../js/utils.js';
     import { APP_CONFIG } from '../js/supabase-config.js';
     import { showToast } from '../js/utils.js';
@@ -145,7 +166,7 @@
     const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
     if (!profile || profile.role === 'super_admin') window.location.href = '../admin/index.html';
 
-    const restaurant = profile.restaurants;
+    const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
 
     document.getElementById('restName').textContent    = restaurant.name;
     document.getElementById('restNameSub').textContent = restaurant.name.substring(0,16);

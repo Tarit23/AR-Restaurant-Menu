@@ -91,6 +91,28 @@
   </style>
 
   <script type="module">
+    import { authManager } from '../js/auth.js';
+    import { supabase } from '../js/supabase-config.js';
+    
+    // Immediate logout listener attachment
+    setTimeout(() => {
+      const logoutBtn = document.getElementById('logoutBtn');
+      if (logoutBtn) {
+        logoutBtn.addEventListener('click', async (e) => {
+          e.preventDefault();
+          if (confirm('Are you sure you want to sign out?')) {
+            try {
+              await authManager.signOut();
+              window.location.href = '/login.html';
+            } catch (err) {
+              console.error('Sign out error:', err);
+              window.location.href = '/login.html';
+            }
+          }
+        });
+      }
+    }, 0);
+  
     import { supabase, RAZORPAY_KEY_ID, APP_CONFIG } from '../js/supabase-config.js';
     import { formatDate, showToast } from '../js/utils.js';
 
