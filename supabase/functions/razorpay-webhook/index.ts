@@ -18,7 +18,7 @@ import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts";
 
 const RAZORPAY_WEBHOOK_SECRET = Deno.env.get("RAZORPAY_WEBHOOK_SECRET") ?? "";
 const SUPABASE_URL            = Deno.env.get("SUPABASE_URL") ?? "";
-const SUPABASE_SERVICE_KEY    = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+const SUPABASE_SERVICE_KEY    = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? Deno.env.get("SERVICE_ROLE_KEY") ?? "";
 
 serve(async (req: Request) => {
   if (req.method !== "POST") {

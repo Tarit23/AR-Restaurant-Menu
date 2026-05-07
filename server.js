@@ -45,6 +45,8 @@ const server = http.createServer((req, res) => {
     '/restaurant/menu':        '/restaurant/menu.html',
     '/restaurant/subscription':'/restaurant/subscription.html',
     '/restaurant/qr': '/restaurant/qr.html',
+    '/unauthorized': '/unauthorized.html',
+    '/404': '/404.html',
   };
 
   if (rewrites[urlPath]) urlPath = rewrites[urlPath];

@@ -50,12 +50,15 @@ export const restaurantsAPI = {
     // If invoke fails with a non-2xx, 'error' is a FunctionsHttpError
     if (error) {
       console.error('Edge Function Error:', error);
-      // Try to parse error from response body
-      try {
-        const body = await error.context.json();
-        if (body.error) throw new Error(body.error);
-      } catch (parseErr) {
-        throw error;
+      // Try to parse error from response body if it's a FunctionsHttpError
+      if (error.context && typeof error.context.json === 'function') {
+        try {
+          const body = await error.context.json();
+          if (body && body.error) throw new Error(body.error);
+        } catch (parseErr) {
+          // If JSON parsing fails, just throw the original error or a fallback
+          throw new Error(error.message || 'Server error occurred');
+        }
       }
       throw error;
     }

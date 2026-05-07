@@ -260,6 +260,8 @@
         shadow-intensity="1"
         environment-image="neutral"
         exposure="1"
+        loading="eager"
+        reveal="manual"
         style="flex:1;">
         <button class="ar-launch-btn" slot="ar-button">View in AR</button>
         <div class="no-ar-note" slot="ar-failure">AR not supported</div>
@@ -279,16 +281,8 @@
         </div>
         <div class="tip-card">
           <div class="tip-text">Move phone slowly to detect surface</div>
-        <div class="header" id="arTopbar" style="display:none;">
-      <div class="logo">
-        <div class="logo-icon"></div>
-        <span>AR Menu</span>
+        </div>
       </div>
-      <div>
-        <div class="brand-name" id="dishNameTop">Loading...</div>
-        <div class="brand-sub" id="restNameTop">AR View</div>
-      </div>
-      <a id="backBtn" href="#" class="btn-back">Back</a>
     </div>
   </div>
 

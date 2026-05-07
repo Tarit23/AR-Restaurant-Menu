@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register Restaurant — AR Menu Platform</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/login.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+</head>
+<body class="login-body">
+  <div class="login-bg">
+    <div class="login-orb orb-1"></div>
+    <div class="login-orb orb-2"></div>
+  </div>
+
+  <div class="login-wrapper">
+    <div class="login-left">
+      <div class="login-brand">
+        <div class="login-brand-icon"></div>
+        <div>
+          <div class="login-brand-name">AR Menu Platform</div>
+          <div class="login-brand-tagline">Empower your dining experience</div>
+        </div>
+      </div>
+      <div class="login-hero">
+        <h1 class="login-headline">Join the future of<br><span class="gradient-text">Dining</span></h1>
+        <p class="login-subtext">Register your restaurant today and let our team handle the AR menu creation for you.</p>
+      </div>
+    </div>
+
+    <div class="login-right">
+      <div class="login-card">
+        <div class="login-card-header">
+          <h2>Create Account</h2>
+          <p>Register your restaurant in minutes</p>
+        </div>
+
+        <form id="signupForm" class="login-form">
+          <div id="signupError" class="alert-banner alert-error hidden">
+            <span class="alert-icon"></span>
+            <span id="signupErrorText"></span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Owner Full Name</label>
+            <input type="text" id="ownerName" class="form-control" placeholder="Enter your name" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Restaurant Name</label>
+            <input type="text" id="restaurantName" class="form-control" placeholder="e.g. The Grand Bistro" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Business Email</label>
+            <input type="email" id="email" class="form-control" placeholder="owner@restaurant.com" required>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Create Password</label>
+            <input type="password" id="password" class="form-control" placeholder="Min. 8 characters" required minlength="8">
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full btn-lg" id="signupBtn">
+            <span>Register Interest</span>
+          </button>
+        </form>
+
+        <div class="login-card-footer">
+          <p>Already have an account? <a href="login.html">Sign In</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { authManager } from './js/auth.js';
+    import { showToast } from './js/utils.js';
+
+    const form = document.getElementById('signupForm');
+    const signupBtn = document.getElementById('signupBtn');
+    const errorBanner = document.getElementById('signupError');
+    const errorText = document.getElementById('signupErrorText');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const ownerName = document.getElementById('ownerName').value.trim();
+      const restaurantName = document.getElementById('restaurantName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+
+      signupBtn.disabled = true;
+      signupBtn.querySelector('span').textContent = 'Processing...';
+      errorBanner.classList.add('hidden');
+
+      try {
+        const result = await authManager.signUpRestaurant({
+          ownerName,
+          restaurantName,
+          email,
+          password
+        });
+
+        showToast('Registration successful! Redirecting...', 'success');
+        
+        // Wait a small moment for DB trigger to complete
+        setTimeout(() => {
+          window.location.href = '/index.html';
+        }, 1500);
+
+      } catch (err) {
+        console.error('Signup form error:', err);
+        let errorMsg = 'Registration failed. Please try again.';
+        
+        // Try to extract internal error from Supabase Function response
+        if (err.context && typeof err.context.json === 'function') {
+          try {
+            const body = await err.context.json();
+            if (body && body.error) errorMsg = body.error;
+          } catch (pErr) {
+            errorMsg = err.message || errorMsg;
+          }
+        } else {
+          errorMsg = err.message || errorMsg;
+        }
+
+        errorText.textContent = errorMsg;
+        errorBanner.classList.remove('hidden');
+      } finally {
+        signupBtn.disabled = false;
+        signupBtn.querySelector('span').textContent = 'Register Interest';
+      }
+    });
+  </script>
+</body>
+</html>

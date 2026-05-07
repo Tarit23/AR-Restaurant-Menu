@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.4"
+import { EMAIL_TEMPLATES } from "../_shared/email-templates.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,7 +7,7 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-serve(async (req) => {
+Deno.serve(async (req) => {
   // Handle CORS Preflight
   if (req.method === 'OPTIONS') {
     return new Response('ok', { 
@@ -19,7 +19,8 @@ serve(async (req) => {
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
-    const SERVICE_ROLE_KEY = Deno.env.get('SERVICE_ROLE_KEY')
+    const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SERVICE_ROLE_KEY')
+    const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY') || 're_CwtwqYHh_Pfdtw5qbJCowTiNYW12QTrYL'
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY || !SERVICE_ROLE_KEY) {
       throw new Error('Missing environment variables. Please set SERVICE_ROLE_KEY in your project secrets.')
@@ -86,39 +87,95 @@ serve(async (req) => {
       throw new Error(`Database Error (Restaurants): ${restError.message}`)
     }
 
-    // 6. Create Auth User
-    console.log(`Creating auth user for ${owner_email}`)
-    const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
-      email: owner_email,
-      password: password,
-      email_confirm: true,
-      user_metadata: { role: 'restaurant', restaurant_id: restaurant.id }
-    })
+    // 6. Create or Get Auth User
+    console.log(`Checking for existing auth user: ${owner_email}`)
+    let userId;
+    const { data: existingUser } = await adminClient.auth.admin.listUsers()
+    const foundUser = existingUser?.users.find(u => u.email === owner_email)
 
-    if (authError) {
-      console.error('Auth User Creation Error:', authError)
-      // Rollback restaurant creation if auth fails
-      await adminClient.from('restaurants').delete().eq('id', restaurant.id)
-      throw new Error(`Auth Error: ${authError.message}`)
+    if (foundUser) {
+      console.log(`User already exists with UUID: ${foundUser.id}. Updating metadata...`)
+      userId = foundUser.id
+      const { error: updateAuthError } = await adminClient.auth.admin.updateUserById(userId, {
+        user_metadata: { role: 'restaurant', restaurant_id: restaurant.id }
+      })
+      if (updateAuthError) {
+        console.error('Auth User Update Error:', updateAuthError)
+        throw new Error(`Failed to update existing user: ${updateAuthError.message}`)
+      }
+    } else {
+      console.log(`Creating new auth user for ${owner_email}`)
+      const { data: authUser, error: authError } = await adminClient.auth.admin.createUser({
+        email: owner_email,
+        password: password,
+        email_confirm: true,
+        user_metadata: { role: 'restaurant', restaurant_id: restaurant.id }
+      })
+
+      if (authError) {
+        console.error('Auth User Creation Error:', authError)
+        // Rollback restaurant creation if auth fails
+        await adminClient.from('restaurants').delete().eq('id', restaurant.id)
+        throw new Error(`Auth Error: ${authError.message}`)
+      }
+      userId = authUser.user.id
     }
 
-    // 7. Create User profile record
-    console.log(`Creating user profile for UUID: ${authUser.user.id}`)
+    // 7. Upsert User profile record
+    console.log(`Upserting user profile for UUID: ${userId}`)
     const { error: userTableError } = await adminClient
       .from('users')
-      .insert([{ 
-        id: authUser.user.id, 
+      .upsert([{ 
+        id: userId, 
         email: owner_email, 
         role: 'restaurant', 
         restaurant_id: restaurant.id 
-      }])
+      }], { onConflict: 'id' })
 
     if (userTableError) {
-      console.error('User Profile Insert Error:', userTableError)
-      // Cleanup: delete auth user and restaurant on profile failure
-      await adminClient.auth.admin.deleteUser(authUser.user.id)
+      console.error('User Profile Upsert Error:', userTableError)
+      // Cleanup: only if we created a new user, maybe don't delete if it was existing
+      if (!foundUser) {
+        await adminClient.auth.admin.deleteUser(userId)
+      }
       await adminClient.from('restaurants').delete().eq('id', restaurant.id)
       throw new Error(`Database Error (Users): ${userTableError.message}`)
+    }
+
+    // 8. Send Welcome Email via Resend (Optional)
+    if (RESEND_API_KEY && RESEND_API_KEY !== 'REPLACE_WITH_RESEND_KEY') {
+      console.log(`Sending welcome email to ${owner_email}`)
+      try {
+        const emailRes = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${RESEND_API_KEY}`
+          },
+          body: JSON.stringify({
+            from: 'AR Menu <no-reply@armenu.app>',
+            to: [owner_email],
+            subject: `Welcome to AR Menu - your portal is ready!`,
+            html: EMAIL_TEMPLATES.welcome({
+              restaurantName: name,
+              email: owner_email,
+              password: password,
+              loginUrl: 'https://ar-restaurant-menu-eta.vercel.app/login.html'
+            })
+          })
+        })
+
+        if (!emailRes.ok) {
+          const errData = await emailRes.json()
+          console.error('Resend Error:', errData)
+        } else {
+          console.log('Welcome email sent successfully')
+        }
+      } catch (e) {
+        console.error('Failed to trigger welcome email:', e.message)
+      }
+    } else {
+      console.warn('RESEND_API_KEY not found. Skipping welcome email.')
     }
 
     return new Response(

@@ -80,6 +80,7 @@ ALTER TABLE payment_logs ENABLE ROW LEVEL SECURITY;
 -- ── Restaurants policies ──
 
 -- Super admin can do anything
+DROP POLICY IF EXISTS "Super admin full access on restaurants" ON restaurants;
 CREATE POLICY "Super admin full access on restaurants"
   ON restaurants FOR ALL
   USING (
@@ -91,6 +92,7 @@ CREATE POLICY "Super admin full access on restaurants"
   );
 
 -- Restaurant users can read their own
+DROP POLICY IF EXISTS "Restaurant users read own restaurant" ON restaurants;
 CREATE POLICY "Restaurant users read own restaurant"
   ON restaurants FOR SELECT
   USING (
@@ -102,6 +104,7 @@ CREATE POLICY "Restaurant users read own restaurant"
   );
 
 -- Restaurant users can update own subscription fields
+DROP POLICY IF EXISTS "Restaurant users update own subscription" ON restaurants;
 CREATE POLICY "Restaurant users update own subscription"
   ON restaurants FOR UPDATE
   USING (
@@ -113,6 +116,7 @@ CREATE POLICY "Restaurant users update own subscription"
   );
 
 -- Public can read restaurants (for menu page)
+DROP POLICY IF EXISTS "Public read restaurants" ON restaurants;
 CREATE POLICY "Public read restaurants"
   ON restaurants FOR SELECT
   USING (true);
@@ -131,10 +135,12 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
+DROP POLICY IF EXISTS "Super admin full access on users" ON users;
 CREATE POLICY "Super admin full access on users"
   ON users FOR ALL
   USING (is_admin());
 
+DROP POLICY IF EXISTS "Users read own profile" ON users;
 CREATE POLICY "Users read own profile"
   ON users FOR SELECT
   USING (id = auth.uid());
@@ -142,6 +148,7 @@ CREATE POLICY "Users read own profile"
 -- ── Menu Items policies ──
 
 -- Super admin can do anything
+DROP POLICY IF EXISTS "Super admin full access on menu_items" ON menu_items;
 CREATE POLICY "Super admin full access on menu_items"
   ON menu_items FOR ALL
   USING (
@@ -153,6 +160,7 @@ CREATE POLICY "Super admin full access on menu_items"
   );
 
 -- Restaurant users can manage their own menu
+DROP POLICY IF EXISTS "Restaurant users manage own menu" ON menu_items;
 CREATE POLICY "Restaurant users manage own menu"
   ON menu_items FOR ALL
   USING (
@@ -164,12 +172,14 @@ CREATE POLICY "Restaurant users manage own menu"
   );
 
 -- Public can read menu items
+DROP POLICY IF EXISTS "Public read menu_items" ON menu_items;
 CREATE POLICY "Public read menu_items"
   ON menu_items FOR SELECT
   USING (true);
 
 -- ── Payment Logs policies ──
 
+DROP POLICY IF EXISTS "Super admin full access on payment_logs" ON payment_logs;
 CREATE POLICY "Super admin full access on payment_logs"
   ON payment_logs FOR ALL
   USING (
@@ -180,6 +190,7 @@ CREATE POLICY "Super admin full access on payment_logs"
     )
   );
 
+DROP POLICY IF EXISTS "Restaurant users read own payment logs" ON payment_logs;
 CREATE POLICY "Restaurant users read own payment logs"
   ON payment_logs FOR SELECT
   USING (
@@ -190,6 +201,7 @@ CREATE POLICY "Restaurant users read own payment logs"
     )
   );
 
+DROP POLICY IF EXISTS "Anyone can insert payment logs" ON payment_logs;
 CREATE POLICY "Anyone can insert payment logs"
   ON payment_logs FOR INSERT
   WITH CHECK (true);
@@ -211,6 +223,42 @@ CREATE POLICY "Anyone can insert payment logs"
 
 -- INSERT INTO users (id, email, role)
 -- VALUES ('PUT-YOUR-AUTH-USER-UUID-HERE', 'admin@armenu.app', 'super_admin');
+
+-- =====================================================
+-- 5. AUTO-CREATE PROFILE ON SIGNUP
+-- =====================================================
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+DECLARE
+  found_restaurant_id UUID;
+BEGIN
+  -- Try to find a restaurant by owner_email matching the new user's email
+  SELECT id INTO found_restaurant_id 
+  FROM public.restaurants 
+  WHERE owner_email = NEW.email 
+  LIMIT 1;
+
+  INSERT INTO public.users (id, email, role, restaurant_id)
+  VALUES (new.id, new.email, 'restaurant', found_restaurant_id)
+  ON CONFLICT (id) DO UPDATE 
+  SET restaurant_id = EXCLUDED.restaurant_id,
+      email = EXCLUDED.email;
+      
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger the function every time a user is created
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+
+-- Sync existing users (run this once manually if needed)
+-- INSERT INTO public.users (id, email, role, restaurant_id)
+-- SELECT au.id, au.email, 'restaurant', (SELECT id FROM public.restaurants r WHERE r.owner_email = au.email LIMIT 1)
+-- FROM auth.users au LEFT JOIN public.users pu ON au.id = pu.id WHERE pu.id IS NULL
+-- ON CONFLICT (id) DO NOTHING;
 
 -- =====================================================
 -- WEBHOOK SETUP (for Razorpay)

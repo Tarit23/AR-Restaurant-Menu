@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>404 — Page Not Found | AR Menu Platform</title>
+  <title>Unauthorized Access — AR Menu Platform</title>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@700;800;900&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
@@ -22,13 +22,13 @@
     .blob {
       position: fixed; border-radius: 50%; filter: blur(100px); pointer-events: none;
     }
-    .blob-1 { width:500px; height:500px; background:rgba(99,102,241,.18); top:-150px; left:-100px; }
-    .blob-2 { width:400px; height:400px; background:rgba(6,182,212,.12); bottom:-100px; right:-80px; }
+    .blob-1 { width:500px; height:500px; background:rgba(239,68,68,.12); top:-150px; left:-100px; }
+    .blob-2 { width:400px; height:400px; background:rgba(99,102,241,.1); bottom:-100px; right:-80px; }
     .inner { position: relative; z-index: 1; max-width: 500px; }
     .code {
       font-family: 'Plus Jakarta Sans', sans-serif;
       font-size: 8rem; font-weight: 900; line-height: 1;
-      background: linear-gradient(135deg,#6366f1,#06b6d4);
+      background: linear-gradient(135deg,#ef4444,#6366f1);
       -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
       margin-bottom: 12px;
     }
@@ -54,12 +54,12 @@
   <div class="blob blob-1"></div>
   <div class="blob blob-2"></div>
   <div class="inner">
-    <div class="code">404</div>
-    <h1 class="code-title">Page Not Found</h1>
-    <p class="code-message">The page you are looking for might have been moved, deleted, or never existed.</p>
+    <div class="code">403</div>
+    <h1>Unauthorized Access</h1>
+    <p>You don't have permission to access this page. Please sign in with an authorized account or contact support.</p>
     <div class="actions">
-      <a class="btn-primary" href="login.html">Go to Dashboard</a>
-      <a class="btn-secondary" href="home.html">View Homepage</a>
+      <a class="btn-primary" href="login.html">Sign In Again</a>
+      <a class="btn-secondary" href="home.html">Go Home</a>
     </div>
   </div>
 </body>

@@ -95,32 +95,48 @@
           </button>
         </form>
 
+        <div class="login-divider">
+          <span>OR</span>
+        </div>
+
+        <button type="button" class="btn btn-google btn-full btn-lg" id="googleBtn">
+          <span class="google-icon"></span>
+          <span>Sign in with Google</span>
+        </button>
+
         <div class="login-card-footer">
-          <p>Need help? <a href="mailto:support@armenu.app">Contact Support</a></p>
+          <p>Don't have an account? <a href="signup.html">Register here</a></p>
+          <p style="margin-top: 8px;">Need help? <a href="mailto:support@armenu.app">Contact Support</a></p>
         </div>
       </div>
     </div>
   </div>
 
   <script type="module">
-    import { supabase } from './js/supabase-config.js';
+    import { authManager } from './js/auth.js';
     import { showToast } from './js/utils.js';
 
     const form = document.getElementById('loginForm');
     const loginBtn = document.getElementById('loginBtn');
+    const googleBtn = document.getElementById('googleBtn');
     const errorBanner = document.getElementById('loginError');
     const errorText = document.getElementById('loginErrorText');
     const togglePassword = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('password');
 
     // Check if already logged in
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
+    authManager.getSession().then((session) => {
       if (session) {
-        const { data: profile } = await supabase.from('users').select('role').eq('id', session.user.id).single();
+        const profile = authManager.currentProfile;
+        
+        // Handle redirection based on profile/role
         if (profile?.role === 'super_admin') {
           window.location.href = '/admin/index.html';
-        } else {
+        } else if (profile?.restaurant_id) {
           window.location.href = '/restaurant/index.html';
+        } else {
+          // No profile or no restaurant_id yet
+          window.location.href = '/pending.html';
         }
       }
     });
@@ -130,6 +146,19 @@
       const isPassword = passwordInput.type === 'password';
       passwordInput.type = isPassword ? 'text' : 'password';
       togglePassword.textContent = isPassword ? 'Hide' : 'Show';
+    });
+
+    // Google Sign In
+    googleBtn.addEventListener('click', async () => {
+      try {
+        googleBtn.classList.add('loading');
+        googleBtn.querySelector('span:last-child').textContent = 'Connecting…';
+        await authManager.signInWithGoogle();
+      } catch (err) {
+        showToast(err.message, 'error');
+        googleBtn.classList.remove('loading');
+        googleBtn.querySelector('span:last-child').textContent = 'Sign in with Google';
+      }
     });
 
     // Form submit
@@ -148,24 +177,16 @@
       errorBanner.classList.add('hidden');
 
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-
-        // Fetch role
-        const { data: profile, error: profileError } = await supabase
-          .from('users')
-          .select('role')
-          .eq('id', data.user.id)
-          .single();
-
-        if (profileError || !profile) throw new Error('Could not load user profile.');
+        const { profile } = await authManager.signIn(email, password);
 
         showToast('Welcome back! Redirecting…', 'success');
         setTimeout(() => {
-          if (profile.role === 'super_admin') {
+          if (profile?.role === 'super_admin') {
             window.location.href = '/admin/index.html';
-          } else {
+          } else if (profile?.restaurant_id) {
             window.location.href = '/restaurant/index.html';
+          } else {
+            window.location.href = '/pending.html';
           }
         }, 800);
       } catch (err) {

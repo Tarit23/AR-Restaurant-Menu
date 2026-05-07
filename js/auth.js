@@ -14,8 +14,15 @@ class AuthManager {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
-      await this.loadProfile(data.user.id);
-      return { user: data.user, profile: this.currentProfile };
+      
+      const profile = await this.loadProfile(data.user.id);
+      
+      // Trigger login notification for restaurant owners
+      if (profile.role === 'restaurant') {
+        this.notifyLogin(email);
+      }
+
+      return { user: data.user, profile };
     } catch (error) {
       throw error;
     }
@@ -28,15 +35,33 @@ class AuthManager {
     this.currentProfile = null;
   }
 
-  async loadProfile(userId) {
-    const { data, error } = await supabase
-      .from('users')
-      .select('*, restaurants(*)')
-      .eq('id', userId)
-      .single();
-    if (error) throw error;
-    this.currentProfile = data;
-    return data;
+  async loadProfile(userId, retryCount = 0) {
+    if (!userId) return null;
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*, restaurants(*)')
+        .eq('id', userId)
+        .maybeSingle(); 
+      
+      if (error) {
+        console.warn('Profile fetch error:', error.message);
+        return null;
+      }
+      
+      if (!data && retryCount < 3) {
+        console.log(`Profile not found, retrying... (${retryCount + 1}/3)`);
+        await new Promise(resolve => setTimeout(resolve, 800)); // Wait 800ms
+        return this.loadProfile(userId, retryCount + 1);
+      }
+      
+      this.currentProfile = data || null;
+      return this.currentProfile;
+    } catch (err) {
+      console.error('Critical profile loading failure:', err);
+      this.currentProfile = null;
+      return null;
+    }
   }
 
   async getSession() {
@@ -78,6 +103,52 @@ class AuthManager {
 
   isRestaurant() {
     return this.currentProfile?.role === 'restaurant';
+  }
+
+  async signInWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.origin + '/index.html',
+        queryParams: {
+          access_type: 'offline',
+          prompt: 'consent',
+        },
+      }
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async notifyLogin(email) {
+    try {
+      // Get user agent and generic IP info
+      const device = navigator.userAgent.substring(0, 50) + '...';
+      
+      await supabase.functions.invoke('user-login-notify', {
+        body: { email, device, ip: 'Detecting...' }
+      });
+    } catch (err) {
+      console.warn('Could not send login notification:', err);
+    }
+  }
+
+  async signUpRestaurant(data) {
+    try {
+      const { data: result, error } = await supabase.functions.invoke('public-signup-restaurant', {
+        body: data
+      });
+      
+      if (error) throw error;
+      if (result.error) throw new Error(result.error);
+
+      // Perform standard sign-in so session is established
+      await this.signIn(data.email, data.password);
+      return result;
+    } catch (error) {
+      console.error('Signup failed:', error);
+      throw error;
+    }
   }
 }
 

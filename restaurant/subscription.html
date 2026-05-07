@@ -3,17 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Subscription — AR Menu Platform</title>
+  <title>Manage Subscription — AR Menu Platform</title>
   <link rel="stylesheet" href="../css/main.css" />
   <link rel="stylesheet" href="../css/dashboard.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body class="dashboard-layout">
+
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div class="sidebar-logo-icon"></div>
-      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
+      <div>
+        <div class="sidebar-logo-text">AR Menu</div>
+        <div class="sidebar-logo-sub" id="restNameSub">Restaurant</div>
+      </div>
     </div>
     <nav class="sidebar-nav">
       <div class="sidebar-section-label">My Restaurant</div>
@@ -22,127 +26,185 @@
       <a class="nav-item active" href="/restaurant/subscription">Subscription</a>
       <a class="nav-item" href="/restaurant/qr">QR Code</a>
     </nav>
-    <div class="sidebar-footer">
-      <div class="sidebar-user" id="sidebarUserBtn">
-        <div class="user-avatar" id="avatarInitial">R</div>
-        <div><div class="user-name" id="restName">Restaurant</div><div class="user-role">Restaurant Owner</div></div>
-      </div>
-    </div>
   </aside>
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="main-content">
     <header class="topbar">
-      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
       <div class="topbar-breadcrumb">
-        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">Subscription</span>
+        <span>Restaurant</span><span>/</span><span class="current">Subscription</span>
       </div>
     </header>
 
     <div class="page-content">
       <div class="page-header animate-in">
         <div class="page-header-text">
-          <h1>Subscription</h1>
-          <p>Manage your plan and billing</p>
+          <h1>Subscription & Autopay</h1>
+          <p>Choose a plan to activate your AR menu features with automated recurring payments.</p>
         </div>
       </div>
 
-      <div class="card animate-in animate-in-delay-1" style="margin-bottom:var(--space-8);">
-        <div class="card-header">
-          <div><div class="card-title">Current Plan</div><div class="card-subtitle">Your active subscription details</div></div>
-        </div>
-        <div id="currentPlanContent">
-          <div class="skeleton" style="height:80px; border-radius:var(--radius-md);"></div>
+      <div id="statusCard" class="card glass animate-in animate-in-delay-1" style="margin-bottom: var(--space-8); border-left: 4px solid var(--primary);">
+        <div class="card-body" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;">
+          <div>
+            <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--text-muted); margin-bottom:4px;">Current Status</div>
+            <div style="display:flex; align-items:center; gap:12px;">
+              <h2 id="currentPlanName" style="margin:0;">Checking...</h2>
+              <span id="statusBadge"></span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div id="nextPaymentText" style="font-size:0.9rem; color:var(--text-secondary);"></div>
+            <div id="autopayStatus" style="font-size:0.8rem; font-weight:600; margin-top:4px;"></div>
+          </div>
         </div>
       </div>
 
-      <div class="animate-in animate-in-delay-2">
-        <h2 style="font-size:1.3rem; margin-bottom:var(--space-2);">Upgrade Your Plan</h2>
-        <p style="color:var(--text-muted); font-size:.9rem; margin-bottom:var(--space-6);">Choose the plan that fits your restaurant</p>
-        <div class="grid-2" id="planCards"></div>
+      <h2 style="margin-bottom: var(--space-6);">Available Plans</h2>
+      <div class="grid-2 animate-in animate-in-delay-2" id="plansGrid">
+        <!-- Plans will be injected here -->
       </div>
     </div>
   </div>
 
   <style>
-  .current-plan-info { display: flex; align-items: center; gap: var(--space-6); padding: var(--space-5); background: var(--bg-elevated); border-radius: var(--radius-lg); }
-  .current-plan-badge { background: var(--gradient-hero); color: #fff; padding: var(--space-3) var(--space-5); border-radius: var(--radius-full); font-weight: 700; font-size: .9rem; }
-  .current-plan-detail { font-size:.85rem; color:var(--text-muted); }
-  .current-plan-detail strong { color:var(--text-primary); }
+    .plan-card {
+      padding: var(--space-8);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+    }
+    .plan-card.current {
+      border-color: var(--primary);
+      box-shadow: 0 0 20px rgba(99,102,241,0.1);
+    }
+    .plan-price { font-size: 2.5rem; font-weight: 800; margin: var(--space-4) 0; }
+    .plan-price span { font-size: 1rem; color: var(--text-muted); font-weight: 400; }
+    .feature-list { list-style:none; padding:0; margin: var(--space-6) 0; flex: 1; }
+    .feature-list li { display:flex; gap:10px; margin-bottom:var(--space-3); font-size:0.9rem; color:var(--text-secondary); }
+    .feature-list li::before { content: "✓"; color: var(--success); font-weight: bold; }
+    
+    .loading-overlay {
+      position: fixed; inset:0; background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+      display:flex; align-items:center; justify-content:center; z-index: 9999;
+    }
   </style>
 
   <script type="module">
-    import { supabase } from '../js/supabase-config.js';
-    import { APP_CONFIG, RAZORPAY_KEY_ID } from '../js/supabase-config.js';
-    import { showToast, formatDate } from '../js/utils.js';
+    import { supabase, RAZORPAY_KEY_ID, APP_CONFIG } from '../js/supabase-config.js';
+    import { formatDate, showToast } from '../js/utils.js';
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { window.location.href = '../login.html'; }
+    let restaurant = null;
+    let profile = null;
 
-    const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
-    if (!profile || profile.role === 'super_admin') window.location.href = '../admin/index.html';
+    async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) { window.location.href = '../login.html'; return; }
 
-    const restaurant = profile.restaurants;
+      const { data: prof } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+      profile = prof;
+      restaurant = prof.restaurants;
 
-    document.getElementById('restName').textContent    = restaurant.name;
-    document.getElementById('restNameSub').textContent = restaurant.name.substring(0,16);
-    document.getElementById('topbarRestName').textContent = restaurant.name;
-    document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+      if (!restaurant) { window.location.href = '../pending.html'; return; }
 
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('open');
-    });
+      updateUI();
+      renderPlans();
+    }
 
-    const planContent = document.getElementById('currentPlanContent');
-    const statusColors = { active:'var(--success)', expired:'var(--danger)', pending:'var(--warning)' };
-    planContent.innerHTML = `
-      <div class="current-plan-info">
-        <div class="current-plan-badge">${(restaurant.plan || 'No Plan').toUpperCase()}</div>
-        <div class="current-plan-detail">Status: <strong style="color:${statusColors[restaurant.subscription_status]||'var(--text-muted)'};">${restaurant.subscription_status || 'N/A'}</strong></div>
-        <div class="current-plan-detail">Next Payment: <strong>${formatDate(restaurant.next_payment_date)}</strong></div>
-        <div class="current-plan-detail">Autopay: <strong>${restaurant.autopay_enabled ? 'Enabled' : 'Disabled'}</strong></div>
-      </div>
-    `;
+    function updateUI() {
+      document.getElementById('currentPlanName').textContent = (restaurant.plan || 'No Plan').toUpperCase();
+      
+      const badge = document.getElementById('statusBadge');
+      const status = restaurant.subscription_status || 'pending';
+      badge.innerHTML = `<span class="badge badge-${status === 'active' ? 'success' : status === 'pending' ? 'warning' : 'danger'}">${status.toUpperCase()}</span>`;
 
-    const plans = Object.entries(APP_CONFIG.plans);
-    const plansContainer = document.getElementById('planCards');
-    plansContainer.innerHTML = plans.map(([key, plan], i) => `
-      <div class="plan-card ${key === 'pro' ? 'popular' : ''}">
-        ${key === 'pro' ? '<div class="plan-popular-badge">Most Popular</div>' : ''}
-        <div class="plan-name">${plan.name}</div>
-        <div class="plan-price">₹${(plan.price/100).toLocaleString('en-IN')}<span>/mo</span></div>
-        <ul class="plan-features">${plan.features.map(f => `<li>${f}</li>`).join('')}</ul>
-        <button class="btn btn-${key === 'pro' ? 'primary' : 'secondary'} btn-full"
-          onclick="subscribe('${key}', ${plan.price})"
-          ${restaurant.plan === key && restaurant.subscription_status === 'active' ? 'disabled' : ''}>
-          ${restaurant.plan === key && restaurant.subscription_status === 'active' ? '✓ Current Plan' : 'Subscribe →'}
-        </button>
-      </div>
-    `).join('');
+      if (restaurant.next_payment_date) {
+        document.getElementById('nextPaymentText').textContent = `Renewal Date: ${formatDate(restaurant.next_payment_date)}`;
+      }
 
-    window.subscribe = async (planKey, amount) => {
-      const plan = APP_CONFIG.plans[planKey];
-      showToast('Initializing payment...', 'info');
-      const options = {
-        key: RAZORPAY_KEY_ID, amount, currency: 'INR', name: 'AR Menu Platform',
-        description: `${plan.name} Plan Membership`,
-        prefill: { name: restaurant.name, email: restaurant.owner_email },
-        theme: { color: '#6366f1' },
-        handler: async (response) => {
-          try {
-            const nextDate = new Date(); nextDate.setMonth(nextDate.getMonth() + 1);
-            await supabase.from('restaurants').update({
-              plan: planKey, subscription_status: 'active', autopay_enabled: true,
-              next_payment_date: nextDate.toISOString(), razorpay_subscription_id: response.razorpay_payment_id
-            }).eq('id', restaurant.id);
-            showToast('Subscription activated!', 'success');
-            setTimeout(() => window.location.reload(), 1500);
-          } catch (e) { showToast('DB update failed: ' + e.message, 'warning'); }
-        }
-      };
-      const rzp = new Razorpay(options); rzp.open();
+      const autopay = document.getElementById('autopayStatus');
+      if (restaurant.autopay_enabled) {
+        autopay.textContent = '● UPI Autopay Enabled';
+        autopay.style.color = 'var(--success)';
+      } else {
+        autopay.textContent = '○ Autopay Disabled';
+        autopay.style.color = 'var(--text-muted)';
+      }
+    }
+
+    function renderPlans() {
+      const grid = document.getElementById('plansGrid');
+      grid.innerHTML = Object.entries(APP_CONFIG.plans).map(([key, plan]) => {
+        const isCurrent = restaurant.plan === key;
+        return `
+          <div class="card glass plan-card ${isCurrent ? 'current' : ''}">
+            <h3>${plan.name}</h3>
+            <div class="plan-price">₹${plan.price / 100}<span>/mo</span></div>
+            <ul class="feature-list">
+              ${plan.features.map(f => `<li>${f}</li>`).join('')}
+            </ul>
+            <button class="btn ${isCurrent ? 'btn-ghost' : 'btn-primary'} btn-full" 
+                    ${isCurrent ? 'disabled' : ''} 
+                    onclick="window.startSubscription('${key}')">
+              ${isCurrent ? 'Current Plan' : 'Select Plan & Set Autopay'}
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.startSubscription = async (planKey) => {
+      const overlay = document.createElement('div');
+      overlay.className = 'loading-overlay';
+      overlay.innerHTML = '<div class="loader"></div><div style="margin-left:20px; color:#fff;">Preparing UPI Autopay...</div>';
+      document.body.appendChild(overlay);
+
+      try {
+        // 1. Call Edge Function to create subscription
+        const { data, error } = await supabase.functions.invoke('create-subscription', {
+          body: {
+            restaurantId: restaurant.id,
+            plan: planKey,
+            email: session.user.email,
+            name: restaurant.name
+          }
+        });
+
+        if (error) throw new Error(error.message || 'Server error');
+        if (data.error) throw new Error(data.error);
+
+        // 2. Open Razorpay Checkout
+        const options = {
+          key: RAZORPAY_KEY_ID,
+          subscription_id: data.id,
+          name: APP_CONFIG.name,
+          description: `Subscription for ${restaurant.name}`,
+          handler: function (response) {
+            showToast('Payment Successful! Activating Autopay...', 'success');
+            setTimeout(() => window.location.reload(), 2000);
+          },
+          prefill: {
+            name: restaurant.name,
+            email: profile.email
+          },
+          notes: {
+            restaurant_id: restaurant.id
+          },
+          theme: { color: "#6366f1" }
+        };
+
+        const rzp = new Razorpay(options);
+        rzp.open();
+        
+      } catch (err) {
+        showToast(err.message, 'error');
+        console.error(err);
+      } finally {
+        document.body.removeChild(overlay);
+      }
     };
+
+    init();
   </script>
 </body>
 </html>

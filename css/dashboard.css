@@ -232,4 +232,25 @@
   .tabs::-webkit-scrollbar { display: none; }
   .menu-grid { grid-template-columns: 1fr; }
   .qr-grid   { grid-template-columns: 1fr; }
+
+/* ── Logout button ── */
+.logout-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: var(--radius-md);
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+}
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: var(--danger);
+}
+.logout-btn svg {
+  display: block;
 }

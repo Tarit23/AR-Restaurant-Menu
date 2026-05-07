@@ -3,55 +3,239 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AR Menu Platform</title>
-  <meta name="description" content="AR-powered digital menus for restaurants. Scan, browse, and view dishes in augmented reality." />
+  <title>AR Menu Platform — AR-Powered Digital Menus for Restaurants</title>
+  <meta name="description" content="Transform your restaurant with augmented reality menus. Let customers see dishes in 3D before ordering — no app required." />
+  <link rel="stylesheet" href="css/main.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <script type="module">
-    import { supabase } from './js/supabase-config.js';
-
-    // Redirect based on auth state
-    async function redirect() {
-      const { data: { session } } = await supabase.auth.getSession();
-
-      if (!session) {
-        window.location.href = '/login.html';
-        return;
-      }
-
-      const { data: profile } = await supabase
-        .from('users')
-        .select('role')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profile?.role === 'super_admin') {
-        window.location.href = '/admin/index.html';
-      } else {
-        window.location.href = '/restaurant/index.html';
-      }
-    }
-
-    redirect();
-  </script>
   <style>
-    body {
-      margin: 0;
-      background: #09090f;
+    #auth-overlay {
+      position: fixed; inset: 0; background: #0a0a0f; z-index: 9999;
       display: flex; align-items: center; justify-content: center;
-      min-height: 100vh;
-      font-family: 'Inter', sans-serif;
+      transition: opacity 0.5s ease, visibility 0.5s;
     }
+    #auth-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
     .loader {
-      width: 48px; height: 48px;
-      border: 3px solid rgba(255,255,255,0.1);
-      border-top-color: #6366f1;
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+      width: 48px; height: 48px; border: 3px solid rgba(99,102,241,0.1);
+      border-top-color: #6366f1; border-radius: 50%; animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Landing specific styles to override main.css for hero impact */
+    .landing-nav {
+      position: fixed; top: 0; left: 0; right: 0; height: 80px;
+      display: flex; align-items: center; padding: 0 5%; z-index: 1000;
+      transition: background 0.3s, backdrop-filter 0.3s;
+    }
+    .landing-nav.scrolled { background: rgba(10,10,15,0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); height: 64px; }
+    
+    .hero-section {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 120px 5% 80px; text-align: center; position: relative;
+    }
+    .hero-content { max-width: 900px; z-index: 1; }
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px;
+      background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.2);
+      border-radius: 99px; font-size: 0.75rem; font-weight: 700; color: var(--primary-light);
+      text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 32px;
+    }
+    .hero-title { margin-bottom: 24px; line-height: 1.1; }
+    .hero-subtitle { font-size: 1.25rem; max-width: 600px; margin: 0 auto 48px; line-height: 1.7; }
+    
+    .feature-card { padding: 40px; text-align: left; }
+    .feature-icon { font-size: 2rem; margin-bottom: 24px; display: block; }
+    
+    .phone-mockup {
+      width: 280px; height: 560px; background: #000; border: 8px solid #1a1a2e;
+      border-radius: 40px; position: relative; overflow: hidden;
+      box-shadow: 0 0 50px rgba(99,102,241,0.2);
+    }
   </style>
 </head>
-<body>
-  <div class="loader"></div>
+<body class="landing-body">
+  <!-- Auth State Overlay -->
+  <div id="auth-overlay">
+    <div class="loader"></div>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="landing-nav" id="nav">
+    <div style="display: flex; align-items: center; gap: 12px; font-family: var(--font-display); font-weight: 800; font-size: 1.2rem;">
+      <div style="width: 32px; height: 32px; background: var(--gradient-hero); border-radius: 8px;"></div>
+      AR Menu
+    </div>
+    <div style="margin-left: auto; display: flex; gap: 32px; align-items: center;">
+      <a href="#features" class="nav-link" style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary);">Features</a>
+      <a href="#pricing" class="nav-link" style="font-size: 0.9rem; font-weight: 500; color: var(--text-secondary);">Pricing</a>
+      <a href="/login.html" class="btn btn-secondary btn-sm">Login</a>
+      <a href="/signup.html" class="btn btn-primary btn-sm">Get Started</a>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <div class="hero-badge animate-in">
+        <span style="width: 6px; height: 6px; background: var(--primary); border-radius: 50%;"></span>
+        The Future of Dining is Here
+      </div>
+      <h1 class="hero-title animate-in-delay-1">
+        Experience Menus in <span class="gradient-text">Augmented Reality</span>
+      </h1>
+      <p class="hero-subtitle animate-in-delay-2">
+        Let your customers see dishes in 3D right on their table. No app downloads required. Increase engagement and sales with immersive digital menus.
+      </p>
+      <div class="animate-in-delay-3" style="display: flex; gap: 16px; justify-content: center;">
+        <a href="/signup.html" class="btn btn-primary btn-lg">Start Free Trial</a>
+        <a href="#features" class="btn btn-secondary btn-lg">Explore Features</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="page-content" style="padding: 100px 5%;">
+    <div style="text-align: center; margin-bottom: 80px;">
+      <h2 style="margin-bottom: 16px;">Everything You Need</h2>
+      <p style="max-width: 600px; margin: 0 auto;">Powerful tools to manage your restaurant's digital presence and AR assets.</p>
+    </div>
+    
+    <div class="grid-3">
+      <div class="card feature-card glass">
+        <span class="feature-icon">🚀</span>
+        <h3>Zero App Install</h3>
+        <p>Uses WebXR technology to run directly in mobile browsers. Customers just scan a QR code and they're in.</p>
+      </div>
+      <div class="card feature-card glass">
+        <span class="feature-icon">✨</span>
+        <h3>Realistic 3D</h3>
+        <p>High-quality .glb model support with realistic lighting and shadows. Dishes look good enough to eat.</p>
+      </div>
+      <div class="card feature-card glass">
+        <span class="feature-icon">📊</span>
+        <h3>Admin Dashboard</h3>
+        <p>A central control panel to manage multiple restaurants, subscriptions, and analytics.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- AR Visual Demo -->
+  <section style="padding: 100px 5%; background: rgba(255,255,255,0.01);">
+    <div style="display: flex; align-items: center; gap: 80px; max-width: 1200px; margin: 0 auto; flex-wrap: wrap;">
+      <div style="flex: 1; min-width: 300px;">
+        <h2 style="margin-bottom: 24px;">Works Like Magic</h2>
+        <p style="margin-bottom: 32px; font-size: 1.1rem;">Our platform handles the complex AR technology so you don't have to. Simply upload your 3D models and we generate the experience instantly.</p>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 16px;">
+          <li style="display: flex; gap: 12px; align-items: center; color: var(--text-primary);">
+            <span style="color: var(--success);">✓</span> iOS and Android Compatible
+          </li>
+          <li style="display: flex; gap: 12px; align-items: center; color: var(--text-primary);">
+            <span style="color: var(--success);">✓</span> One-Click "View in AR"
+          </li>
+          <li style="display: flex; gap: 12px; align-items: center; color: var(--text-primary);">
+            <span style="color: var(--success);">✓</span> Dynamic QR Code Generation
+          </li>
+        </ul>
+      </div>
+      <div style="flex: 1; display: flex; justify-content: center; min-width: 300px;">
+        <div class="phone-mockup">
+           <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #1a1a2e 0%, #0a0a0f 100%); display: flex; align-items: center; justify-content: center;">
+              <div style="text-align: center;">
+                <div style="font-size: 5rem; margin-bottom: 20px; filter: drop-shadow(0 0 20px rgba(99,102,241,0.5));">🥘</div>
+                <div class="badge badge-primary">Viewing in AR</div>
+              </div>
+           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" style="padding: 100px 5%; text-align: center;">
+    <h2 style="margin-bottom: 50px;">Simple, Transparent Pricing</h2>
+    <div class="grid-2" style="max-width: 900px; margin: 0 auto;">
+      <div class="card glass" style="padding: 48px;">
+        <h3 style="margin-bottom: 8px;">Basic</h3>
+        <div style="font-size: 3rem; font-weight: 800; margin-bottom: 24px;">₹249<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+        <ul style="list-style: none; text-align: left; margin-bottom: 40px; display: flex; flex-direction: column; gap: 12px;">
+          <li>✓ Up to 20 menu items</li>
+          <li>✓ Standard AR Viewing</li>
+          <li>✓ QR Code Generation</li>
+        </ul>
+        <a href="/signup.html" class="btn btn-secondary btn-full">Choose Basic</a>
+      </div>
+      <div class="card glass" style="padding: 48px; border-color: var(--primary);">
+        <div style="position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: var(--primary); padding: 4px 16px; border-radius: 20px; font-size: 0.7rem; font-weight: 800; color: #fff; text-transform: uppercase;">Most Popular</div>
+        <h3 style="margin-bottom: 8px;">Professional</h3>
+        <div style="font-size: 3rem; font-weight: 800; margin-bottom: 24px;">₹449<span style="font-size: 1rem; color: var(--text-muted);">/mo</span></div>
+        <ul style="list-style: none; text-align: left; margin-bottom: 40px; display: flex; flex-direction: column; gap: 12px;">
+          <li>✓ Unlimited menu items</li>
+          <li>✓ Priority AR Processing</li>
+          <li>✓ Analytics Dashboard</li>
+          <li>✓ Custom Branding</li>
+        </ul>
+        <a href="/signup.html" class="btn btn-primary btn-full">Choose Pro</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer style="padding: 60px 5%; border-top: 1px solid var(--border); text-align: center;">
+    <p style="font-size: 0.9rem;">&copy; 2026 AR Menu Platform. All rights reserved.</p>
+  </footer>
+
+  <script type="module">
+    import { authManager } from './js/auth.js';
+
+    // 1. Auth Guard Logic
+    async function checkAuth() {
+      const overlay = document.getElementById('auth-overlay');
+      try {
+        const session = await authManager.getSession();
+        
+        if (session) {
+          const profile = authManager.currentProfile;
+          
+          if (!profile) {
+            window.location.href = '/pending.html';
+            return;
+          }
+
+          if (authManager.isAdmin()) {
+            window.location.href = '/admin/index.html';
+            return;
+          } else if (authManager.isRestaurant()) {
+            if (!profile.restaurant_id) {
+              window.location.href = '/pending.html';
+            } else {
+              window.location.href = '/restaurant/index.html';
+            }
+            return;
+          } else {
+            window.location.href = '/pending.html';
+            return;
+          }
+        }
+        
+        // No session, show landing page
+        overlay.classList.add('hidden');
+      } catch (err) {
+        console.error('Auth check failed:', err);
+        overlay.classList.add('hidden');
+      }
+    }
+
+    // 2. UI Interactivity
+    window.addEventListener('scroll', () => {
+      const nav = document.getElementById('nav');
+      if (window.scrollY > 50) {
+        nav.classList.add('scrolled');
+      } else {
+        nav.classList.remove('scrolled');
+      }
+    });
+
+    // Run auth check on load
+    checkAuth();
+  </script>
 </body>
 </html>
