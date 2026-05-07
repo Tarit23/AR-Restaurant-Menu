@@ -206,6 +206,7 @@
 
   <script type="module">
     import { supabase } from '../js/supabase-config.js';
+    import { authManager } from '../js/auth.js';
     import { restaurantsAPI as api } from '../js/api.js';
     import { showToast, formatDate, getStatusBadge, debounce } from '../js/utils.js';
 
@@ -228,12 +229,21 @@
       document.getElementById('sidebar').classList.remove('open');
       document.getElementById('sidebarOverlay').classList.remove('open');
     });
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-      if (confirm('Sign out?')) {
-        await supabase.auth.signOut();
-        window.location.href = window.location.origin + '/login.html';
-      }
-    });
+            const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async (e) => {
+        e.preventDefault();
+        if (confirm('Are you sure you want to sign out?')) {
+          try {
+            await authManager.signOut();
+            window.location.href = '/login.html';
+          } catch (err) {
+            console.error('Sign out error:', err);
+            window.location.href = '/login.html';
+          }
+        }
+      });
+    }
 
     let allRestaurants = [];
     let editingId = null;

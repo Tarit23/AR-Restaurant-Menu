@@ -232,6 +232,7 @@
   .tabs::-webkit-scrollbar { display: none; }
   .menu-grid { grid-template-columns: 1fr; }
   .qr-grid   { grid-template-columns: 1fr; }
+}
 
 /* ── Logout button ── */
 .logout-btn {

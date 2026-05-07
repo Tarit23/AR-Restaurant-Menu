@@ -104,6 +104,7 @@
 
   <script type="module">
     import { supabase } from '../js/supabase-config.js';
+    import { authManager } from '../js/auth.js';
     import { showToast, formatDate, getStatusBadge, animateCount } from '../js/utils.js';
 
     const { data: { session } } = await supabase.auth.getSession();
