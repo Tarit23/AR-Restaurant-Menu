@@ -8,6 +8,18 @@
   <link rel="stylesheet" href="../css/dashboard.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+  <style id="critical-logout-styles">
+    .sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); }
+    .btn-logout { 
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; 
+      padding: 10px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); 
+      border-radius: var(--radius-md); color: #ef4444; font-size: 0.85rem; font-weight: 600; 
+      cursor: pointer; transition: all 0.2s; 
+    }
+    .btn-logout:hover { background: #ef4444; color: #fff; border-color: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+  </style>
+
 </head>
 <body class="dashboard-layout">
 
@@ -91,27 +103,47 @@
   </style>
 
   <script type="module">
-    import { authManager } from '../js/auth.js';
-    import { supabase } from '../js/supabase-config.js';
-    
-    // Immediate logout listener attachment
-    setTimeout(() => {
-      const logoutBtn = document.getElementById('logoutBtn');
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', async (e) => {
-          e.preventDefault();
-          if (confirm('Are you sure you want to sign out?')) {
-            try {
-              await authManager.signOut();
-              window.location.href = '/login.html';
-            } catch (err) {
-              console.error('Sign out error:', err);
-              window.location.href = '/login.html';
-            }
-          }
-        });
+
+  // --- EXPLICIT GLOBAL LOGOUT ---
+  window.handleLogout = async () => {
+    if (!confirm('Are you sure you want to sign out?')) return;
+    try {
+      // Direct call to avoid any authManager dependency issues
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) await supabase.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = window.location.origin + '/login.html';
+    } catch (err) {
+      console.error('Logout failed:', err);
+      window.location.href = window.location.origin + '/login.html';
+    }
+  };
+  
+  import { supabase } from "../js/supabase-config.js";
+  import { authManager } from "../js/auth.js";
+
+  // Global Logout Handler
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('#logoutBtn');
+    if (btn) {
+      e.preventDefault();
+      if (confirm('Are you sure you want to sign out?')) {
+        try {
+          await supabase.auth.signOut();
+          window.location.href = window.location.origin + '/login.html';
+        } catch (err) {
+          console.error('Logout failed:', err);
+          window.location.href = window.location.origin + '/login.html';
+        }
       }
-    }, 0);
+    }
+  });
+  
+    
+    
+    
+    
   
     import { supabase, RAZORPAY_KEY_ID, APP_CONFIG } from '../js/supabase-config.js';
     import { formatDate, showToast } from '../js/utils.js';
