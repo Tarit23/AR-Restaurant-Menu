@@ -193,11 +193,22 @@
         const session = await authManager.getSession();
         
         if (session) {
-          const profile = authManager.currentProfile;
+          let profile = authManager.currentProfile;
           
+          if (!profile) {
+            console.log('Profile missing on landing, initializing...');
+            await authManager.ensureProfile();
+            profile = await authManager.loadProfile(session.user.id);
+          }
+
           if (!profile) {
             window.location.href = '/pending.html';
             return;
+          }
+
+          // Trigger login notification if not already done (for professional feel)
+          if (profile.role === 'restaurant') {
+            authManager.notifyLogin(session.user.email);
           }
 
           if (authManager.isAdmin()) {
@@ -205,10 +216,15 @@
             return;
           } else if (authManager.isRestaurant()) {
             if (!profile.restaurant_id) {
-              window.location.href = '/pending.html';
-            } else {
-              window.location.href = '/restaurant/index.html';
+              // Try one last time to init
+              await authManager.ensureProfile();
+              profile = await authManager.loadProfile(session.user.id);
+              if (!profile?.restaurant_id) {
+                window.location.href = '/pending.html';
+                return;
+              }
             }
+            window.location.href = '/restaurant/index.html';
             return;
           } else {
             window.location.href = '/pending.html';

@@ -125,17 +125,21 @@
     const passwordInput = document.getElementById('password');
 
     // Check if already logged in
-    authManager.getSession().then((session) => {
+    authManager.getSession().then(async (session) => {
       if (session) {
-        const profile = authManager.currentProfile;
+        let profile = authManager.currentProfile;
         
+        if (!profile) {
+          await authManager.ensureProfile();
+          profile = await authManager.loadProfile(session.user.id);
+        }
+
         // Handle redirection based on profile/role
         if (profile?.role === 'super_admin') {
           window.location.href = '/admin/index.html';
         } else if (profile?.restaurant_id) {
           window.location.href = '/restaurant/index.html';
         } else {
-          // No profile or no restaurant_id yet
           window.location.href = '/pending.html';
         }
       }
@@ -177,7 +181,12 @@
       errorBanner.classList.add('hidden');
 
       try {
-        const { profile } = await authManager.signIn(email, password);
+        let { profile } = await authManager.signIn(email, password);
+
+        if (!profile) {
+          await authManager.ensureProfile();
+          profile = await authManager.loadProfile(authManager.currentUser.id);
+        }
 
         showToast('Welcome back! Redirecting…', 'success');
         setTimeout(() => {

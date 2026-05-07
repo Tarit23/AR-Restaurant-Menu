@@ -68,9 +68,27 @@ class AuthManager {
     const { data: { session } } = await supabase.auth.getSession();
     if (session) {
       this.currentUser = session.user;
-      await this.loadProfile(session.user.id);
+      const profile = await this.loadProfile(session.user.id);
+      
+      // If profile is still missing after retries, try to initialize it
+      if (!profile) {
+        console.log('Profile missing after load, attempting initialization...');
+        await this.ensureProfile();
+        await this.loadProfile(session.user.id);
+      }
     }
     return session;
+  }
+
+  async ensureProfile() {
+    try {
+      const { data, error } = await supabase.functions.invoke('init-user-profile');
+      if (error) throw error;
+      return data;
+    } catch (err) {
+      console.error('Failed to ensure profile:', err);
+      return null;
+    }
   }
 
   async requireAuth(role = null) {
