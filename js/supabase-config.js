@@ -9,7 +9,7 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 // =====================================================
 // RAZORPAY CONFIGURATION
 // =====================================================
-const RAZORPAY_KEY_ID = 'rzp_live_SmVRJqtNiMuDqP';
+const RAZORPAY_KEY_ID = 'rzp_live_SokTE2LinaGHUt';
 
 // =====================================================
 // APP CONFIGURATION

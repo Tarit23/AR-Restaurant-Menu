@@ -141,6 +141,11 @@
     </div>
   </div>
 
+  <div id="loadingOverlay" style="position:fixed; inset:0; background:var(--bg-surface); z-index:9999; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;">
+    <div class="loader"></div>
+    <div style="color:var(--text-secondary); font-weight:500;">Loading your dashboard...</div>
+  </div>
+
   <script type="module">
     import "/js/logout-handler.js";
     import { supabase } from "/js/supabase-config.js";
@@ -149,11 +154,13 @@
     import { APP_CONFIG } from '/js/supabase-config.js';
 
     async function initDashboard() {
+      const loader = document.getElementById('loadingOverlay');
       try {
         const { data: { session }, error: sErr } = await supabase.auth.getSession();
         if (sErr) throw sErr;
         if (!session) { window.location.href = '../login.html'; return; }
 
+        // Fetch profile and restaurants with a slight retry or check
         const { data: profile, error: pErr } = await supabase
           .from('users')
           .select('*, restaurants(*)')
@@ -162,13 +169,18 @@
 
         if (pErr) throw pErr;
         
-        // Ensure restaurant exists
-        const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
-        if (!restaurant) {
-          console.warn('No restaurant found for user. Redirecting...');
+        // Robust restaurant check
+        const restaurantData = profile.restaurants;
+        const restaurant = Array.isArray(restaurantData) ? restaurantData[0] : restaurantData;
+
+        if (!restaurant || !restaurant.id) {
+          console.warn('No restaurant found for user. Redirecting to pending page...');
           window.location.href = '../pending.html';
           return;
         }
+
+        // Hide loader once we have the data
+        if (loader) loader.style.display = 'none';
 
         // Populate Header UI
         document.getElementById('restaurantName').textContent = restaurant.name;
@@ -182,23 +194,25 @@
 
         // Subscription Banner
         const banner = document.getElementById('subBanner');
+        const status = restaurant.subscription_status || 'pending';
         const now = new Date();
         const nextPay = restaurant.next_payment_date ? new Date(restaurant.next_payment_date) : null;
         const diffDays = nextPay ? Math.ceil((nextPay - now) / (1000 * 60 * 60 * 24)) : null;
 
-        if (restaurant.subscription_status === 'active') {
-          if (diffDays !== null && diffDays <= 3) {
+        if (status === 'active') {
+          if (diffDays !== null && diffDays <= 3 && diffDays > 0) {
             banner.innerHTML = `<div class="sub-banner-warning" style="background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); border-radius:var(--radius-lg); padding:var(--space-4) var(--space-5); color:var(--warning); font-weight:600;">⚠ Plan renewing in ${diffDays} day(s). Ensure your UPI Autopay is ready.</div>`;
           } else {
             banner.innerHTML = `<div class="sub-banner-active">✓ Subscription Active — Next renewal: ${formatDate(restaurant.next_payment_date)}</div>`;
           }
           banner.style.display = 'block';
-        } else if (restaurant.subscription_status === 'expired') {
+        } else if (status === 'expired') {
           banner.innerHTML = `<div class="sub-banner-expired">! Subscription expired — AR features are disabled. <a href="subscription.html">Renew now</a></div>`;
           banner.style.display = 'block';
-        } else if (restaurant.subscription_status === 'pending' || !restaurant.plan) {
+        } else {
+          // Pending or no plan
           banner.innerHTML = `<div class="card glass" style="border-left:4px solid var(--primary); padding:var(--space-4); margin-bottom:var(--space-6); display:flex; justify-content:space-between; align-items:center;">
-            <div><div style="font-weight:700; color:#fff;">Welcome! Activate your AR Menu</div><div style="font-size:0.85rem; color:var(--text-muted);">Choose a plan to enable 3D viewing.</div></div>
+            <div><div style="font-weight:700; color:#fff;">Activate your AR Menu</div><div style="font-size:0.85rem; color:var(--text-muted);">Your status is ${status.toUpperCase()}. Choose a plan to enable all features.</div></div>
             <a href="subscription.html" class="btn btn-primary btn-sm">Get Started</a>
           </div>`;
           banner.style.display = 'flex';
@@ -266,6 +280,7 @@
 
       } catch (err) {
         console.error('Dashboard Init Error:', err);
+        if (loader) loader.style.display = 'none';
         showToast(err.message || 'Failed to load dashboard', 'error');
       }
     }
@@ -282,6 +297,8 @@
     });
 
     initDashboard();
+  </script>
+
   </script>
 </body>
 </html>

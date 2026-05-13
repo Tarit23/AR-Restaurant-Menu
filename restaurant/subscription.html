@@ -134,9 +134,14 @@
 
       const { data: prof } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
       profile = prof;
-      restaurant = prof.restaurants;
+      // Handle Supabase returning restaurants as an array or object
+      restaurant = Array.isArray(prof.restaurants) ? prof.restaurants[0] : prof.restaurants;
 
-      if (!restaurant) { window.location.href = '../pending.html'; return; }
+      if (!restaurant) {
+        console.error('No restaurant found for user:', session.user.id);
+        showToast('Restaurant record not found. Please contact support.', 'error');
+        return;
+      }
 
       updateUI();
       renderPlans();
@@ -179,10 +184,10 @@
             <ul class="feature-list">
               ${plan.features.map(f => `<li>${f}</li>`).join('')}
             </ul>
-            <button class="btn ${isCurrent ? 'btn-ghost' : 'btn-primary'} btn-full" 
-                    ${isCurrent ? 'disabled' : ''} 
+            <button class="btn ${isCurrent && restaurant.autopay_enabled ? 'btn-ghost' : 'btn-primary'} btn-full" 
+                    ${isCurrent && restaurant.autopay_enabled ? 'disabled' : ''} 
                     onclick="window.startSubscription('${key}')">
-              ${isCurrent ? 'Current Plan' : 'Select Plan & Set Autopay'}
+              ${isCurrent && restaurant.autopay_enabled ? 'Current Plan (Autopay Active)' : isCurrent ? 'Setup Autopay' : 'Select Plan & Set Autopay'}
             </button>
           </div>
         `;
@@ -215,11 +220,18 @@
 
         if (error) {
           console.error('Edge Function Error:', error);
-          throw new Error(error.message || 'Failed to create subscription on server');
+          let msg = error.message || 'Failed to create subscription on server';
+          if (error.context && typeof error.context.json === 'function') {
+            try {
+              const body = await error.context.json();
+              if (body && body.error) msg = body.error;
+            } catch (e) {}
+          }
+          throw new Error(msg);
         }
         
         if (data.error) throw new Error(data.error);
-        if (!data.id) throw new Error('No subscription ID returned from server');
+        if (!data.id) throw new Error('No subscription ID returned from server. Check Edge Function logs.');
 
         console.log('Subscription created:', data.id);
 
@@ -230,32 +242,17 @@
           name: APP_CONFIG.name,
           description: `${APP_CONFIG.plans[planKey].name} Plan — AR Menu`,
           image: 'https://ar-restaurant-menu-eta.vercel.app/favicon.ico',
-          config: {
-            display: {
-              blocks: {
-                banks: {
-                  name: 'UPI Autopay (Recommended)',
-                  instruments: [
-                    {
-                      method: 'upi'
-                    }
-                  ]
-                }
-              },
-              sequence: ['block.banks'],
-              preferences: {
-                show_default_blocks: true
-              }
+          modal: {
+            ondismiss: function() {
+              if (document.body.contains(overlay)) document.body.removeChild(overlay);
             }
           },
           handler: function (response) {
             console.log('Razorpay Response:', response);
             showToast('UPI Mandate Authorized! Activating your plan...', 'success');
             
-            // Show a nice success state
             overlay.innerHTML = '<div style="text-align:center;"><div class="loader" style="margin:0 auto 20px;"></div><h3 style="color:#fff;">Activation in progress...</h3><p style="color:rgba(255,255,255,0.7);">We are verifying your UPI mandate and setting up your dashboard.</p></div>';
             
-            // Wait for webhook to process, then redirect
             setTimeout(() => {
               window.location.href = '/restaurant/index.html';
             }, 4000);
@@ -263,7 +260,7 @@
           prefill: {
             name: restaurant.name,
             email: currentSession.user.email,
-            contact: '' // Add contact if you have it
+            contact: '' 
           },
           notes: {
             restaurant_id: restaurant.id,

@@ -9,9 +9,6 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
-    const { restaurantId, plan, email, name } = await req.json()
-    console.log(`[Subscription] Creating request for ${name} (${email}) - Plan: ${plan}`)
-    
     const RAZORPAY_KEY_ID = Deno.env.get('RAZORPAY_KEY_ID')
     const RAZORPAY_KEY_SECRET = Deno.env.get('RAZORPAY_KEY_SECRET')
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
@@ -24,43 +21,77 @@ Deno.serve(async (req) => {
     const auth = btoa(`${RAZORPAY_KEY_ID}:${RAZORPAY_KEY_SECRET}`)
     const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY)
 
-    // 1. Create or Get Razorpay Customer
-    let customerId;
-    try {
-      const customerRes = await fetch('https://api.razorpay.com/v1/customers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Basic ${auth}`
-        },
-        body: JSON.stringify({
-          name,
-          email,
-          fail_existing: 0
-        })
-      })
-      const customerData = await customerRes.json()
-      if (customerData.error) throw new Error(customerData.error.description)
-      customerId = customerData.id
-      console.log(`[Subscription] Customer ID: ${customerId}`)
-    } catch (err) {
-      console.error('[Subscription] Customer Error:', err)
-      throw new Error(`Failed to create Razorpay customer: ${err.message}`)
+    // 1. Verify User Session (Manual JWT Check)
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) throw new Error('Missing Authorization header')
+    
+    const { data: { user }, error: authError } = await supabase.auth.getUser(authHeader.replace('Bearer ', ''))
+    if (authError || !user) throw new Error('Invalid or expired session. Please log in again.')
+
+    const { restaurantId, plan, email, name } = await req.json()
+    console.log(`[Subscription] Request: ${name} (${email}) - Plan: ${plan}, RestID: ${restaurantId}`)
+
+    // 2. Security: Verify restaurant ownership
+    const { data: profile, error: profileError } = await supabase
+      .from('users')
+      .select('restaurant_id')
+      .eq('id', user.id)
+      .single()
+
+    if (profileError || profile.restaurant_id !== restaurantId) {
+      console.error('[Subscription] Security breach attempt or config error:', { userId: user.id, restaurantId })
+      throw new Error('You do not have permission to manage this restaurant.')
     }
 
-    // 2. Define Plan IDs
+    // 3. Get or Create Razorpay Customer
+    const { data: restaurant } = await supabase
+      .from('restaurants')
+      .select('razorpay_customer_id')
+      .eq('id', restaurantId)
+      .single()
+
+    let customerId = restaurant?.razorpay_customer_id
+
+    if (!customerId) {
+      console.log(`[Subscription] No customer ID found, creating new one for ${email}...`)
+      try {
+        const customerRes = await fetch('https://api.razorpay.com/v1/customers', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Basic ${auth}`
+          },
+          body: JSON.stringify({
+            name,
+            email,
+            fail_existing: 0 // Will return existing if email matches
+          })
+        })
+        const customerData = await customerRes.json()
+        if (customerData.error) throw new Error(customerData.error.description)
+        customerId = customerData.id
+        console.log(`[Subscription] Customer ID obtained: ${customerId}`)
+      } catch (err) {
+        console.error('[Subscription] Customer Error:', err)
+        throw new Error(`Failed to initialize Razorpay customer: ${err.message}`)
+      }
+    } else {
+      console.log(`[Subscription] Reusing existing customer ID: ${customerId}`)
+    }
+
+    // 4. Define Plan IDs
     const PLAN_IDS = {
-      'basic': Deno.env.get('RAZORPAY_PLAN_BASIC_ID'),
-      'pro': Deno.env.get('RAZORPAY_PLAN_PRO_ID')
+      'basic': Deno.env.get('RAZORPAY_PLAN_BASIC_ID') || 'plan_SmVN9PPiUNaOxG',
+      'pro': Deno.env.get('RAZORPAY_PLAN_PRO_ID') || 'plan_SmVOECOgOcpnix'
     }
 
     const planId = PLAN_IDS[plan]
     if (!planId) {
-      throw new Error(`Plan ID for "${plan}" not configured in environment (RAZORPAY_PLAN_${plan.toUpperCase()}_ID).`)
+      throw new Error(`Plan ID for "${plan}" not found. Ensure RAZORPAY_PLAN_${plan.toUpperCase()}_ID is set.`)
     }
 
-    // 3. Create Subscription
-    console.log(`[Subscription] Creating subscription for plan ${planId}`)
+    // 5. Create Subscription
+    console.log(`[Subscription] Creating sub for plan ${planId}...`)
     const subRes = await fetch('https://api.razorpay.com/v1/subscriptions', {
       method: 'POST',
       headers: {
@@ -70,12 +101,13 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         plan_id: planId,
         customer_id: customerId,
-        total_count: 12, // 1 year
+        total_count: 120, // 10 years (effectively infinite for monthly)
         quantity: 1,
         customer_notify: 1,
         notes: {
           restaurant_id: restaurantId,
-          plan: plan
+          plan: plan,
+          user_id: user.id
         }
       })
     })
@@ -87,9 +119,9 @@ Deno.serve(async (req) => {
       throw new Error(`Razorpay Error: ${subData.error.description}`)
     }
 
-    console.log(`[Subscription] Subscription ID: ${subData.id}`)
+    console.log(`[Subscription] Created successfully: ${subData.id}`)
 
-    // 4. Update Restaurant in DB
+    // 6. Update Restaurant Record
     const { error: updateError } = await supabase
       .from('restaurants')
       .update({
@@ -102,14 +134,12 @@ Deno.serve(async (req) => {
 
     if (updateError) {
       console.error('[Subscription] DB Update Error:', updateError)
-      throw new Error(`Failed to update restaurant record: ${updateError.message}`)
+      throw new Error(`Database update failed: ${updateError.message}`)
     }
 
     return new Response(JSON.stringify({
       id: subData.id,
       customer_id: customerId,
-      entity: subData.entity,
-      plan_id: subData.plan_id,
       status: subData.status
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

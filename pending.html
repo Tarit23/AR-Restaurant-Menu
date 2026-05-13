@@ -61,33 +61,63 @@
 
     <div class="action-row">
       <button id="logoutBtn" class="btn btn-secondary">Sign Out</button>
+      <button id="checkStatusBtn" class="btn btn-ghost">Check Status</button>
       <a href="mailto:support@armenu.app" class="btn btn-primary">Contact Support</a>
     </div>
   </div>
 
   <script type="module">
     import "./js/logout-handler.js";
-    import { authManager } from './js/auth.js';
+    import { supabase } from './js/supabase-config.js';
+    import { showToast } from './js/utils.js';
 
-    // Auto-check if profile was updated while user is waiting
-    setInterval(async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return;
+    async function checkStatus(isManual = false) {
+      if (isManual) {
+        const btn = document.getElementById('checkStatusBtn');
+        btn.textContent = 'Checking...';
+        btn.disabled = true;
+      }
 
-      const { data: profile } = await supabase
-        .from('users')
-        .select('*, restaurants(*)')
-        .eq('id', session.user.id)
-        .single();
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) return;
 
-      if (profile) {
-        if (profile.role === 'super_admin') {
-          window.location.href = '/admin/index.html';
-        } else if (profile.restaurants && (Array.isArray(profile.restaurants) ? profile.restaurants.length > 0 : !!profile.restaurants)) {
-          window.location.href = '/restaurant/index.html';
+        const { data: profile, error } = await supabase
+          .from('users')
+          .select('*, restaurants(*)')
+          .eq('id', session.user.id)
+          .single();
+
+        if (error) throw error;
+
+        if (profile) {
+          const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+          
+          if (profile.role === 'super_admin') {
+            window.location.href = '/admin/index.html';
+          } else if (restaurant && restaurant.id) {
+            console.log('Restaurant found! Redirecting to dashboard...');
+            window.location.href = '/restaurant/index.html';
+          } else if (isManual) {
+            showToast('No restaurant dashboard found for this account yet.', 'info');
+          }
+        }
+      } catch (err) {
+        console.error('Status check failed:', err);
+        if (isManual) showToast('Check failed. Please try again.', 'error');
+      } finally {
+        if (isManual) {
+          const btn = document.getElementById('checkStatusBtn');
+          btn.textContent = 'Check Status';
+          btn.disabled = false;
         }
       }
-    }, 5000);
+    }
+
+    document.getElementById('checkStatusBtn').onclick = () => checkStatus(true);
+
+    // Auto-check every 10 seconds (less aggressive than 5s)
+    setInterval(() => checkStatus(false), 10000);
   </script>
 </body>
 </html>
