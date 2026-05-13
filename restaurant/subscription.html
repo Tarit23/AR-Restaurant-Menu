@@ -247,6 +247,24 @@
               if (document.body.contains(overlay)) document.body.removeChild(overlay);
             }
           },
+          config: {
+            display: {
+              blocks: {
+                banks: {
+                  name: 'UPI Autopay (GPay, PhonePe, etc.)',
+                  instruments: [
+                    {
+                      method: 'upi'
+                    }
+                  ]
+                }
+              },
+              sequence: ['block.banks'],
+              preferences: {
+                show_default_blocks: true
+              }
+            }
+          },
           handler: function (response) {
             console.log('Razorpay Response:', response);
             showToast('UPI Mandate Authorized! Activating your plan...', 'success');
