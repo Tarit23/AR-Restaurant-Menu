@@ -1,4 +1,4 @@
-import { supabase, APP_CONFIG } from './supabase-config.js';
+import { supabase, APP_CONFIG } from './supabase-config.js?v=2';
 import { uploadFile } from './utils.js';
 
 // =====================================================

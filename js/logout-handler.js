@@ -1,4 +1,4 @@
-import { supabase } from './supabase-config.js';
+import { supabase } from './supabase-config.js?v=2';
 
 /**
  * Robust logout handler that clears session and redirects to login.
