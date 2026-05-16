@@ -319,7 +319,7 @@
           return;
         }
 
-        if (!item.model_url) {
+        if (!item.model_url && !item.usdz_url) {
           showError('No AR Model', 'This dish does not have a 3D model for AR viewing.', menuUrl);
           return;
         }
@@ -349,7 +349,12 @@
 
         // Load model
         const viewer = document.getElementById('modelViewer');
-        viewer.src = item.model_url;
+        if (item.model_url) {
+          viewer.src = item.model_url;
+        }
+        if (item.usdz_url) {
+          viewer.setAttribute('ios-src', item.usdz_url);
+        }
 
         // Detect platform for chip
         const isIOS     = /iPad|iPhone|iPod/.test(navigator.userAgent);

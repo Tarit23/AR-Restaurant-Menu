@@ -163,6 +163,11 @@ export const menuAPI = {
     return uploadFile(supabase, 'menu-models', file, path);
   },
 
+  async uploadUsdzModel(file, restaurantId) {
+    const path = `${restaurantId}/models/${Date.now()}.usdz`;
+    return uploadFile(supabase, 'menu-models', file, path);
+  },
+
   async toggleAvailability(id, currentState) {
     return menuAPI.update(id, { is_available: !currentState });
   }

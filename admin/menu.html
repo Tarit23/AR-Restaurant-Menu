@@ -138,6 +138,20 @@
               <div id="modelFileText" style="margin-top:var(--space-2); font-size:0.75rem; color:var(--text-muted);"></div>
             </div>
           </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">iOS AR Model (USDZ) - Optional</label>
+              <div class="upload-zone" id="usdzUploadZone" onclick="document.getElementById('dishUsdzFile').click()">
+                <div class="upload-icon">Upload USDZ Model</div>
+                <div class="upload-text">Click or drag .usdz file</div>
+                <input type="file" id="dishUsdzFile" hidden accept=".usdz" />
+              </div>
+              <div id="usdzFileText" style="margin-top:var(--space-2); font-size:0.75rem; color:var(--text-muted);"></div>
+            </div>
+            <div class="form-group">
+              <!-- Balanced spacing -->
+            </div>
+          </div>
           <div class="form-group">
             <label class="toggle-wrapper" style="margin-top:8px;">
               <label class="toggle">
@@ -255,7 +269,9 @@
               <div class="dish-price">₹${item.price?.toLocaleString('en-IN')}</div>
               <div class="dish-meta">
                 ${item.is_available ? '<span class="badge badge-success">Available</span>' : '<span class="badge badge-danger">Unavailable</span>'}
-                ${item.model_url ? '<span class="badge badge-info">AR Model</span>' : '<span class="badge badge-secondary">No AR</span>'}
+                ${item.model_url ? '<span class="badge badge-info">Android AR</span>' : ''}
+                ${item.usdz_url ? '<span class="badge badge-info" style="background:rgba(147,51,234,0.1); color:#a855f7;">iOS AR</span>' : ''}
+                ${(!item.model_url && !item.usdz_url) ? '<span class="badge badge-secondary">No AR</span>' : ''}
               </div>
             </div>
             <div class="dish-actions">
@@ -269,12 +285,13 @@
     }
 
     window.openAddDish = () => {
-      editingDishId = null;
       document.getElementById('dishForm').reset();
       document.getElementById('editDishId').value = '';
       document.getElementById('dCategory').value = '';
       document.getElementById('imagePreview').style.display = 'none';
       document.getElementById('modelFileText').textContent = '';
+      document.getElementById('usdzFileText').textContent = '';
+      document.getElementById('dishUsdzFile').value = '';
       document.getElementById('modalTitle').textContent = 'Add New Dish';
       document.getElementById('dishModal').classList.add('open');
     }
@@ -291,6 +308,8 @@
         document.getElementById('imagePreviewImg').src = data.image_url;
         document.getElementById('imagePreview').style.display = 'block';
       }
+      document.getElementById('modelFileText').textContent = data.model_url ? 'Existing GLB model loaded' : '';
+      document.getElementById('usdzFileText').textContent = data.usdz_url ? 'Existing USDZ model loaded' : '';
       document.getElementById('modalTitle').textContent = 'Edit Dish';
       document.getElementById('dishModal').classList.add('open');
     }
@@ -310,6 +329,7 @@
       const avail = document.getElementById('dAvail').checked;
       const imageFile = document.getElementById('dishImageFile').files[0];
       const modelFile = document.getElementById('dishModelFile').files[0];
+      const usdzFile = document.getElementById('dishUsdzFile').files[0];
 
       if (!name || isNaN(price)) return showToast('Please fill required fields.', 'error');
 
@@ -318,11 +338,13 @@
       try {
         let imageUrl = editingDishId ? (await supabase.from('menu_items').select('image_url').eq('id', editingDishId).single()).data.image_url : null;
         let modelUrl = editingDishId ? (await supabase.from('menu_items').select('model_url').eq('id', editingDishId).single()).data.model_url : null;
+        let usdzUrl = editingDishId ? (await supabase.from('menu_items').select('usdz_url').eq('id', editingDishId).single()).data.usdz_url : null;
 
         if (imageFile) imageUrl = await menuAPI.uploadImage(imageFile, currentRestaurantId);
         if (modelFile) modelUrl = await menuAPI.uploadModel(modelFile, currentRestaurantId);
+        if (usdzFile) usdzUrl = await menuAPI.uploadUsdzModel(usdzFile, currentRestaurantId);
 
-        const payload = { name, price, category, image_url: imageUrl, model_url: modelUrl, is_available: avail, restaurant_id: currentRestaurantId };
+        const payload = { name, price, category, image_url: imageUrl, model_url: modelUrl, usdz_url: usdzUrl, is_available: avail, restaurant_id: currentRestaurantId };
         if (editingDishId) await menuAPI.update(editingDishId, payload);
         else await menuAPI.create(payload);
 
@@ -351,6 +373,16 @@
         document.getElementById('imagePreview').style.display = 'block';
       };
       reader.readAsDataURL(file);
+    });
+
+    document.getElementById('dishModelFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      document.getElementById('modelFileText').textContent = file ? `Selected GLB: ${file.name}` : '';
+    });
+
+    document.getElementById('dishUsdzFile').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      document.getElementById('usdzFileText').textContent = file ? `Selected USDZ: ${file.name}` : '';
     });
 
     init();

@@ -497,16 +497,20 @@
 
       grid.innerHTML = items.map((item, i) => {
         let arUrl = `./ar.html?restaurant=${item.restaurant_id}&dish=${item.id}`;
-        const arBtnEnabled = arEnabled && item.model_url;
+        const arBtnEnabled = arEnabled && (item.model_url || item.usdz_url);
 
-        // 1-Tap AR Intent for Android
+        // Platform specific optimizations
         const isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || window.opera);
+        const isIOS = /ipad|iphone|ipod/i.test(navigator.userAgent || navigator.vendor || window.opera) && !window.MSStream;
+
         if (isAndroid && item.model_url) {
             try {
               const absModelUrl = new URL(item.model_url, window.location.href).href;
               const fallbackUrl = encodeURIComponent(new URL(arUrl, window.location.href).href);
               arUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(absModelUrl)}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${fallbackUrl};end;`;
             } catch(e) {}
+        } else if (isIOS && item.usdz_url) {
+            arUrl = item.usdz_url;
         }
 
         return `
@@ -516,7 +520,7 @@
                 ? `<img class="dish-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />`
                 : `<div class="dish-img-placeholder"></div>`
               }
-              ${item.model_url ? `<div class="dish-ar-badge">AR</div>` : ''}
+              ${(item.model_url || item.usdz_url) ? `<div class="dish-ar-badge">AR</div>` : ''}
               ${!item.is_available ? `
                 <div class="dish-unavail-overlay">
                   <div class="dish-unavail-label">Unavailable</div>
@@ -529,9 +533,9 @@
             </div>
             <div class="dish-footer">
               <div class="ui-dish-price">₹${item.price.toLocaleString('en-IN')}</div>
-              ${item.model_url
+              ${(item.model_url || item.usdz_url)
                 ? arBtnEnabled
-                  ? `<a class="btn-ar" href="${arUrl}" title="View in AR">View in AR</a>`
+                  ? `<a class="btn-ar" href="${arUrl}" title="View in AR" ${isIOS && item.usdz_url ? 'rel="ar"' : ''}>View in AR</a>`
                   : `<button class="btn-ar disabled" title="Subscription expired — AR unavailable" disabled>AR Unavailable</button>`
                 : `<span style="font-size:.75rem;color:var(--text-muted);">No AR model</span>`
               }
