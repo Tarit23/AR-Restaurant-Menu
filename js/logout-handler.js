@@ -4,8 +4,6 @@ import { supabase } from './supabase-config.js?v=2';
  * Robust logout handler that clears session and redirects to login.
  */
 export async function handleLogout() {
-  if (!confirm('Are you sure you want to sign out?')) return;
-  
   try {
     // Show a loading state on the button if possible
     const logoutBtns = document.querySelectorAll('#logoutBtn');

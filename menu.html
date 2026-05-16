@@ -496,8 +496,18 @@
       }
 
       grid.innerHTML = items.map((item, i) => {
-        const arUrl = `./ar.html?restaurant=${item.restaurant_id}&dish=${item.id}`;
+        let arUrl = `./ar.html?restaurant=${item.restaurant_id}&dish=${item.id}`;
         const arBtnEnabled = arEnabled && item.model_url;
+
+        // 1-Tap AR Intent for Android
+        const isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || window.opera);
+        if (isAndroid && item.model_url) {
+            try {
+              const absModelUrl = new URL(item.model_url, window.location.href).href;
+              const fallbackUrl = encodeURIComponent(new URL(arUrl, window.location.href).href);
+              arUrl = `intent://arvr.google.com/scene-viewer/1.0?file=${encodeURIComponent(absModelUrl)}&mode=ar_only#Intent;scheme=https;package=com.google.ar.core;action=android.intent.action.VIEW;S.browser_fallback_url=${fallbackUrl};end;`;
+            } catch(e) {}
+        }
 
         return `
           <div class="dish-card" style="animation-delay:${i * 0.04}s;">
