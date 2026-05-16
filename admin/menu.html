@@ -112,6 +112,12 @@
           </div>
           <div class="form-row">
             <div class="form-group">
+              <label class="form-label" for="dCategory">Category</label>
+              <input type="text" id="dCategory" class="form-control" placeholder="e.g. Starters, Mains (Optional)" />
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
               <label class="form-label">Dish Image</label>
               <div class="upload-zone" id="imageUploadZone" onclick="document.getElementById('dishImageFile').click()">
                 <div class="upload-icon">Upload Image</div>
@@ -245,6 +251,7 @@
             ${item.image_url ? `<img class="dish-img" src="${item.image_url}" alt="${item.name}" />` : '<div class="dish-img-placeholder">No Image</div>'}
             <div class="dish-body">
               <div class="dish-name">${item.name}</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">${item.category || 'No Category'}</div>
               <div class="dish-price">₹${item.price?.toLocaleString('en-IN')}</div>
               <div class="dish-meta">
                 ${item.is_available ? '<span class="badge badge-success">Available</span>' : '<span class="badge badge-danger">Unavailable</span>'}
@@ -265,6 +272,7 @@
       editingDishId = null;
       document.getElementById('dishForm').reset();
       document.getElementById('editDishId').value = '';
+      document.getElementById('dCategory').value = '';
       document.getElementById('imagePreview').style.display = 'none';
       document.getElementById('modelFileText').textContent = '';
       document.getElementById('modalTitle').textContent = 'Add New Dish';
@@ -277,6 +285,7 @@
       const { data } = await supabase.from('menu_items').select('*').eq('id', id).single();
       document.getElementById('dName').value = data.name;
       document.getElementById('dPrice').value = data.price;
+      document.getElementById('dCategory').value = data.category || '';
       document.getElementById('dAvail').checked = data.is_available;
       if (data.image_url) {
         document.getElementById('imagePreviewImg').src = data.image_url;
@@ -297,6 +306,7 @@
     document.getElementById('saveDishBtn').addEventListener('click', async () => {
       const name = document.getElementById('dName').value.trim();
       const price = parseFloat(document.getElementById('dPrice').value);
+      const category = document.getElementById('dCategory').value.trim();
       const avail = document.getElementById('dAvail').checked;
       const imageFile = document.getElementById('dishImageFile').files[0];
       const modelFile = document.getElementById('dishModelFile').files[0];
@@ -312,7 +322,7 @@
         if (imageFile) imageUrl = await menuAPI.uploadImage(imageFile, currentRestaurantId);
         if (modelFile) modelUrl = await menuAPI.uploadModel(modelFile, currentRestaurantId);
 
-        const payload = { name, price, image_url: imageUrl, model_url: modelUrl, is_available: avail, restaurant_id: currentRestaurantId };
+        const payload = { name, price, category, image_url: imageUrl, model_url: modelUrl, is_available: avail, restaurant_id: currentRestaurantId };
         if (editingDishId) await menuAPI.update(editingDishId, payload);
         else await menuAPI.create(payload);
 

@@ -100,6 +100,10 @@
             </div>
           </div>
           <div class="form-group">
+            <label class="form-label" for="editCategory">Category</label>
+            <input type="text" id="editCategory" class="form-control" placeholder="e.g. Starters, Mains (Optional)" />
+          </div>
+          <div class="form-group">
             <label class="toggle-wrapper">
               <label class="toggle">
                 <input type="checkbox" id="editAvailable" />
@@ -176,6 +180,7 @@
           ${item.image_url ? `<img class="dish-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />` : '<div class="dish-img-ph">No Image</div>'}
           <div class="dish-body">
             <div class="dish-name">${item.name}</div>
+            <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:4px;">${item.category || 'No Category'}</div>
             <div class="dish-price">₹${item.price?.toLocaleString('en-IN')}</div>
             <div class="dish-meta">
               ${item.is_available ? '<span class="badge badge-success">Available</span>' : '<span class="badge badge-danger">Unavailable</span>'}
@@ -183,7 +188,7 @@
             </div>
           </div>
           <div class="dish-actions">
-            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openEdit('${item.id}','${item.name}',${item.price},${item.is_available})">Edit</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openEdit('${item.id}','${item.name.replace(/'/g, "\\'")}',${item.price},${item.is_available}, '${(item.category || '').replace(/'/g, "\\'")}')">Edit</button>
             <button class="btn ${item.is_available ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleAvail('${item.id}',${item.is_available})">
               ${item.is_available ? 'Mark Unavailable' : 'Mark Available'}
             </button>
@@ -192,10 +197,11 @@
       `).join('');
     }
 
-    window.openEdit = (id, name, price, available) => {
+    window.openEdit = (id, name, price, available, category) => {
       document.getElementById('editId').value = id;
       document.getElementById('editName').value = name;
       document.getElementById('editPrice').value = price;
+      document.getElementById('editCategory').value = category || '';
       document.getElementById('editAvailable').checked = available;
       document.getElementById('editModal').classList.add('open');
     };
@@ -212,6 +218,7 @@
       const id    = document.getElementById('editId').value;
       const name  = document.getElementById('editName').value.trim();
       const price = parseFloat(document.getElementById('editPrice').value);
+      const category = document.getElementById('editCategory').value.trim();
       const avail = document.getElementById('editAvailable').checked;
 
       if (!name || isNaN(price)) { showToast('Fill in all fields.', 'warning'); return; }
@@ -219,7 +226,7 @@
       const btn = document.getElementById('saveEditBtn');
       btn.classList.add('loading');
       try {
-        await menuAPI.update(id, { name, price, is_available: avail });
+        await menuAPI.update(id, { name, price, category, is_available: avail });
         showToast('Dish updated!', 'success');
         document.getElementById('editModal').classList.remove('open');
         loadMenu();

@@ -429,12 +429,18 @@
           return;
         }
 
-        // Category pills (simplified — All + Available)
-        document.getElementById('categoryBar').innerHTML = `
+        const categories = [...new Set(items.map(i => (i.category || '').trim()).filter(Boolean))];
+
+        let categoryHtml = `
           <button class="cat-pill active" data-filter="all">All (${items.length})</button>
           <button class="cat-pill" data-filter="available">Available (${availableItems.length})</button>
           ${items.some(i => i.model_url) ? `<button class="cat-pill" data-filter="ar">AR Dishes</button>` : ''}
         `;
+        categories.forEach(cat => {
+            const catItems = items.filter(i => (i.category || '').trim() === cat);
+            categoryHtml += `<button class="cat-pill" data-filter="cat:${cat}">${cat} (${catItems.length})</button>`;
+        });
+        document.getElementById('categoryBar').innerHTML = categoryHtml;
 
         window._allItems   = items;
         window._arEnabled  = arEnabled;
@@ -469,7 +475,11 @@
       
       let filtered = window._allItems;
       if (filter === 'available') filtered = filtered.filter(i => i.is_available);
-      if (filter === 'ar')        filtered = filtered.filter(i => i.model_url);
+      else if (filter === 'ar')   filtered = filtered.filter(i => i.model_url);
+      else if (filter.startsWith('cat:')) {
+          const catName = filter.substring(4);
+          filtered = filtered.filter(i => (i.category || '').trim() === catName);
+      }
       
       if (query) {
         filtered = filtered.filter(i => i.name.toLowerCase().includes(query));
@@ -505,6 +515,7 @@
             </div>
             <div class="dish-body">
               <div class="dish-name">${item.name}</div>
+              ${item.category ? `<div style="font-size:0.8rem; color:var(--text-muted);">${item.category}</div>` : ''}
             </div>
             <div class="dish-footer">
               <div class="ui-dish-price">₹${item.price.toLocaleString('en-IN')}</div>

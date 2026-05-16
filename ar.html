@@ -363,6 +363,15 @@
           document.getElementById('loadingState').style.display = 'none';
           document.getElementById('arTopbar').style.display = 'flex';
           document.getElementById('viewerWrapper').style.display = 'flex';
+          
+          // Auto-launch AR to reduce taps
+          try {
+            if (viewer.canActivateAR) {
+              viewer.activateAR();
+            }
+          } catch(e) {
+            console.log('Auto-launch AR blocked by browser:', e);
+          }
         });
 
         // Timeout fallback if model doesn't load
