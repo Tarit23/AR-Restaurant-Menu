@@ -34,7 +34,7 @@ const FOOD_DB = {
   pakora:        { taste:'golden, crispy & perfectly spiced', ingr:'Chickpea Batter, Onion/Spinach/Paneer, Cumin, Chilli, Coriander', cal:220, type:'snack' },
   chips:         { taste:'crunchy, salty & irresistibly moreish', ingr:'Potatoes, Sunflower Oil, Sea Salt, Natural Seasonings', cal:180, type:'snack' },
   nachos:        { taste:'crispy, cheesy & flavour-packed', ingr:'Corn Tortillas, Cheddar Cheese, Jalapeños, Sour Cream, Salsa, Guacamole', cal:420, type:'snack' },
-  spring roll:   { taste:'crispy outside, juicy filling & light', ingr:'Rice Wrappers, Mixed Vegetables, Noodles, Soy Sauce, Sesame Oil', cal:200, type:'snack' },
+  'spring roll': { taste:'crispy outside, juicy filling & light', ingr:'Rice Wrappers, Mixed Vegetables, Noodles, Soy Sauce, Sesame Oil', cal:200, type:'snack' },
   'french fries':{ taste:'golden, crispy & perfectly salted', ingr:'Premium Potatoes, Sunflower Oil, Sea Salt, Seasoning Blend', cal:310, type:'snack' },
   /* ─── Mains ─── */
   biryani:       { taste:'aromatic, spiced & deeply satisfying', ingr:'Basmati Rice, Chicken/Mutton/Veg, Whole Spices, Saffron, Caramelised Onion, Mint, Yogurt', cal:550, type:'main' },
@@ -55,7 +55,7 @@ const FOOD_DB = {
   brownie:       { taste:'fudgy, intensely chocolatey & decadent', ingr:'Dark Chocolate, Butter, Eggs, Sugar, Cocoa Powder, Vanilla', cal:350, type:'dessert' },
   cheesecake:    { taste:'creamy, tangy & irresistibly smooth', ingr:'Cream Cheese, Graham Cracker Crust, Sugar, Eggs, Vanilla, Fruit Topping', cal:420, type:'dessert' },
   cupcake:       { taste:'light, fluffy & beautifully frosted', ingr:'Flour, Butter, Eggs, Sugar, Vanilla, Butter-cream Frosting', cal:280, type:'dessert' },
-  gulab jamun:   { taste:'melt-in-mouth, fragrant & syrup-soaked', ingr:'Khoya, Maida, Rose Syrup, Cardamom, Saffron, Pistachios', cal:310, type:'dessert' },
+  'gulab jamun': { taste:'melt-in-mouth, fragrant & syrup-soaked', ingr:'Khoya, Maida, Rose Syrup, Cardamom, Saffron, Pistachios', cal:310, type:'dessert' },
   kheer:         { taste:'creamy, fragrant & delicately sweet', ingr:'Full-fat Milk, Basmati Rice, Sugar, Cardamom, Saffron, Almonds, Rose Water', cal:230, type:'dessert' },
   pastry:        { taste:'buttery, flaky & elegantly sweet', ingr:'Puff Pastry, Cream, Fresh Fruits, Chocolate, Icing Sugar', cal:320, type:'dessert' },
   'halwa':       { taste:'rich, ghee-laden & warmly aromatic', ingr:'Semolina/Gajar, Ghee, Sugar, Milk, Cardamom, Cashews, Raisins', cal:380, type:'dessert' },
