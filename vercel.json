@@ -6,7 +6,7 @@
     { "source": "/home",          "destination": "/home.html" },
     { "source": "/admin",         "destination": "/admin/index.html" },
     { "source": "/admin/restaurants", "destination": "/admin/restaurants.html" },
-    { "source": "/admin/menu",    "destination": "/admin/menu.html" },
+    { "source": "/admin/menu",    "destination": "/admin/menu-management.html" },
     { "source": "/admin/qr",      "destination": "/admin/qr.html" },
     { "source": "/admin/payments","destination": "/admin/payments.html" },
     { "source": "/restaurant",    "destination": "/restaurant/index.html" },

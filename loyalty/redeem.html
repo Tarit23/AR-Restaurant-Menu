@@ -215,8 +215,8 @@
 </div>
 
 <script type="module">
-  import { supabase } from '../js/supabase-config.js';
-  import { loyaltyActivityAPI, loyaltyCustomersAPI } from '../js/loyalty-api.js';
+  import { supabase } from '../js/supabase-config.js?v=3';
+  import { loyaltyActivityAPI, loyaltyCustomersAPI } from '../js/loyalty-api.js?v=3';
 
   const params = new URLSearchParams(location.search);
   const voucherId = params.get('voucher');

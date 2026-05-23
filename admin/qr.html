@@ -116,14 +116,11 @@
 
   <script type="module">
 
-  import "../js/logout-handler.js";
-  import { supabase } from "../js/supabase-config.js";
-  
-    
-    
-    import { restaurantsAPI } from '../js/api.js';
-    import { showToast, generateQRUrl, getStatusBadge } from '../js/utils.js';
-    import { APP_CONFIG } from '../js/supabase-config.js';
+  import "../js/logout-handler.js?v=3";
+  import { supabase } from "../js/supabase-config.js?v=3";
+  import { restaurantsAPI } from '../js/api.js?v=3';
+  import { showToast, generateQRUrl, getStatusBadge } from '../js/utils.js?v=3';
+  import { APP_CONFIG } from '../js/supabase-config.js?v=3';
 
     // Auth guard
     (async function initAuth() {
