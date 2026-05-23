@@ -206,32 +206,28 @@
   import { showToast } from '/js/utils.js';
   import { generateAIDescription } from '/js/ai-description.js';
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.href = '../login.html';
-    return;
-  }
+  let restaurant = null;
 
-  const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
-  if (!profile) {
-    window.location.href = '../login.html';
-    return;
-  }
-  if (profile.role === 'super_admin') {
-    window.location.href = '../admin/index.html';
-    return;
-  }
+  (async function initAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return window.location.href = '../login.html';
+    const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+    if (!profile) return window.location.href = '../login.html';
+    if (profile.role === 'super_admin') return window.location.href = '../admin/index.html';
 
-  const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
-  document.getElementById('restaurantName').textContent   = restaurant.name;
-  document.getElementById('restNameSub').textContent      = restaurant.name.substring(0, 16);
-  document.getElementById('topbarRestName').textContent   = restaurant.name;
-  document.getElementById('avatarInitial').textContent    = restaurant.name[0].toUpperCase();
+    restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+    document.getElementById('restaurantName').textContent   = restaurant.name;
+    document.getElementById('restNameSub').textContent      = restaurant.name.substring(0, 16);
+    document.getElementById('topbarRestName').textContent   = restaurant.name;
+    document.getElementById('avatarInitial').textContent    = restaurant.name[0].toUpperCase();
 
-  document.getElementById('menuToggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebarOverlay').classList.toggle('open');
-  });
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    });
+
+    loadMenu();
+  })();
 
   /* ── Character counter for edit modal ── */
   document.getElementById('editDescription').addEventListener('input', updateEditCharCount);
@@ -356,7 +352,7 @@
     finally { btn.classList.remove('loading'); }
   });
 
-  loadMenu();
+
   </script>
 </body>
 </html>

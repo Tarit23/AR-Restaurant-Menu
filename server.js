@@ -78,6 +78,7 @@ const server = http.createServer((req, res) => {
     // Add CORS headers for AR/model-viewer compatibility
     res.writeHead(200, {
       'Content-Type': contentType,
+      'Cache-Control': 'no-cache, no-store, must-revalidate',
       'Access-Control-Allow-Origin': '*',
       'Cross-Origin-Opener-Policy': urlPath.startsWith('/ar') ? 'same-origin' : 'unsafe-none',
       'Cross-Origin-Embedder-Policy': urlPath.startsWith('/ar') ? 'require-corp' : 'unsafe-none',

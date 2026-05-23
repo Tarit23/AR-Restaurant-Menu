@@ -32,7 +32,7 @@
       <a class="nav-item" href="/admin/loyalty">Platform Loyalty</a>
       <div class="sidebar-section-label">Management</div>
       <a class="nav-item" href="/admin/restaurants">Restaurants</a>
-      <a class="nav-item" href="/admin/menu">Menu Management</a>
+      <a class="nav-item" href="/admin/menu-management.html">Menu Management</a>
       <a class="nav-item" href="/admin/qr">QR Generator</a>
       <div class="sidebar-section-label">Billing</div>
       <a class="nav-item active" href="/admin/payments">Payments</a>
@@ -124,23 +124,22 @@
     
     import { showToast, formatDate, getStatusBadge, animateCount } from '../js/utils.js';
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      window.location.href = '../login.html';
-      return;
-    }
-    const { data: p, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
-    if (error || !p || p.role !== 'super_admin') {
-      window.location.href = '../login.html';
-      return;
-    }
-    document.getElementById('adminName').textContent = p.email ? p.email.split('@')[0] : 'Admin';
-    document.getElementById('avatarInitial').textContent = p.email ? p.email[0].toUpperCase() : 'A';
+    (async function initAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: p, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+      if (error || !p || p.role !== 'super_admin') return window.location.href = '../login.html';
 
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('open');
-    });
+      document.getElementById('adminName').textContent = p.email ? p.email.split('@')[0] : 'Admin';
+      document.getElementById('avatarInitial').textContent = p.email ? p.email[0].toUpperCase() : 'A';
+
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+
+      load();
+    })();
 
     let allData = [];
     async function load() {
@@ -198,7 +197,7 @@
         load();
       } catch (e) { showToast('Error: ' + e.message, 'error'); }
     };
-    load();
+
   </script>
 </body>
 </html>

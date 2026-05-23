@@ -73,7 +73,7 @@
       <a class="nav-item" href="/admin/loyalty">Platform Loyalty</a>
       <div class="sidebar-section-label">Management</div>
       <a class="nav-item" href="/admin/restaurants">Restaurants</a>
-      <a class="nav-item active" href="/admin/menu">Menu Management</a>
+      <a class="nav-item active" href="/admin/menu-management.html">Menu Management</a>
       <a class="nav-item" href="/admin/qr">QR Generator</a>
       <div class="sidebar-section-label">Billing</div>
       <a class="nav-item" href="/admin/payments">Payments</a>
@@ -263,30 +263,36 @@
     .badge-ai { background: rgba(168,85,247,0.1); color: #c084fc; }
   </style>
 
+  <script>
+    window.addEventListener('error', function(e) {
+      alert("SCRIPT ERROR: " + e.message + "\nLine: " + e.lineno);
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      alert("PROMISE ERROR: " + (e.reason && e.reason.message ? e.reason.message : e.reason));
+    });
+  </script>
   <script type="module">
-  import "../js/logout-handler.js";
-  import { supabase } from "../js/supabase-config.js";
-  import { menuAPI, restaurantsAPI } from '../js/api.js';
-  import { showToast } from '../js/utils.js';
-  import { generateAIDescription } from '../js/ai-description.js';
+  import "/js/logout-handler.js";
+  import { supabase } from "/js/supabase-config.js?v=2";
+  import { menuAPI, restaurantsAPI } from '/js/api.js';
+  import { showToast } from '/js/utils.js';
+  import { generateAIDescription } from '/js/ai-description.js';
 
   let currentRestaurantId = null;
   let editingDishId = null;
   let deletingDishId = null;
   window._menuItems = [];
 
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.href = '../login.html';
-    return;
-  }
-  const { data: p, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
-  if (error || !p || p.role !== 'super_admin') {
-    window.location.href = '../login.html';
-    return;
-  }
-  document.getElementById('adminName').textContent = p.email ? p.email.split('@')[0] : 'Admin';
-  document.getElementById('avatarInitial').textContent = p.email ? p.email[0].toUpperCase() : 'A';
+  (async function initAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return window.location.href = '../login.html';
+    const { data: p, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+    if (error || !p || p.role !== 'super_admin') return window.location.href = '../login.html';
+
+    document.getElementById('adminName').textContent = p.email ? p.email.split('@')[0] : 'Admin';
+    document.getElementById('avatarInitial').textContent = p.email ? p.email[0].toUpperCase() : 'A';
+    init();
+  })();
 
   document.getElementById('menuToggle').addEventListener('click', () => {
     document.getElementById('sidebar').classList.toggle('open');
@@ -338,15 +344,25 @@
     try {
       const restaurants = await restaurantsAPI.getAll();
       const selector = document.getElementById('restaurantSelector');
+      
+      selector.innerHTML = '<option value="" disabled selected>Select a restaurant...</option>';
+      
       restaurants.forEach(r => {
         const opt = document.createElement('option');
         opt.value = r.id; opt.textContent = r.name;
         selector.appendChild(opt);
       });
+      
       selector.addEventListener('change', (e) => {
         currentRestaurantId = e.target.value;
         loadMenu();
       });
+
+      if (restaurants.length > 0) {
+        selector.value = restaurants[0].id;
+        currentRestaurantId = restaurants[0].id;
+        loadMenu();
+      }
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
   }
 
@@ -520,8 +536,6 @@
     const file = e.target.files[0];
     document.getElementById('usdzFileText').textContent = file ? `Selected USDZ: ${file.name}` : '';
   });
-
-  init();
   </script>
 </body>
 </html>

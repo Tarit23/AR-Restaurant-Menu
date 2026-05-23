@@ -33,7 +33,7 @@
       <a class="nav-item" href="/admin/loyalty">Platform Loyalty</a>
       <div class="sidebar-section-label">Management</div>
       <a class="nav-item" href="/admin/restaurants">Restaurants</a>
-      <a class="nav-item" href="/admin/menu">Menu Management</a>
+      <a class="nav-item" href="/admin/menu-management.html">Menu Management</a>
       <a class="nav-item active" href="/admin/qr">QR Generator</a>
       <div class="sidebar-section-label">Billing</div>
       <a class="nav-item" href="/admin/payments">Payments</a>
@@ -126,28 +126,29 @@
     import { APP_CONFIG } from '../js/supabase-config.js';
 
     // Auth guard
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      window.location.href = '../login.html';
-      return;
-    }
-    const { data: p, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
-    if (error || !p || p.role !== 'super_admin') {
-      window.location.href = '../login.html';
-      return;
-    }
-    document.getElementById('adminName').textContent = p.email ? p.email.split('@')[0] : 'Admin';
-    document.getElementById('avatarInitial').textContent = p.email ? p.email[0].toUpperCase() : 'A';
+    (async function initAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: p, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+      if (error || !p || p.role !== 'super_admin') return window.location.href = '../login.html';
 
-    // Sidebar
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('open');
-    });
-    document.getElementById('sidebarOverlay').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('open');
-    });
+      document.getElementById('adminName').textContent = p.email ? p.email.split('@')[0] : 'Admin';
+      document.getElementById('avatarInitial').textContent = p.email ? p.email[0].toUpperCase() : 'A';
+
+      // Sidebar
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+      document.getElementById('sidebarOverlay').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('open');
+      });
+
+      loadQRCodes();
+    })();
+
+
             async function loadQRCodes() {
       const grid = document.getElementById('qrGrid');
       try {
@@ -181,7 +182,7 @@
       navigator.clipboard.writeText(url).then(() => showToast('URL copied!', 'success'));
     };
 
-    loadQRCodes();
+
   </script>
 </body>
 </html>

@@ -164,7 +164,7 @@
       <a class="nav-item" href="/admin/restaurants" id="nav-restaurants">
         Restaurants
       </a>
-      <a class="nav-item" href="/admin/menu" id="nav-menu">
+      <a class="nav-item" href="/admin/menu-management.html" id="nav-menu">
         Menu Management
       </a>
       <a class="nav-item" href="/admin/qr" id="nav-qr">
@@ -318,28 +318,27 @@
     import { showToast, formatDate, getStatusBadge, animateCount } from '/js/utils.js';
 
     // --- Auth Guard ---
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      window.location.href = '../login.html';
-      return;
-    }
-    const { data: profile, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
-    if (error || !profile || profile.role !== 'super_admin') {
-      window.location.href = '../login.html';
-      return;
-    }
-    document.getElementById('adminName').textContent = profile.email ? profile.email.split('@')[0] : 'Admin';
-    document.getElementById('avatarInitial').textContent = profile.email ? profile.email[0].toUpperCase() : 'A';
+    (async function initAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: profile, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+      if (error || !profile || profile.role !== 'super_admin') return window.location.href = '../login.html';
 
-    // --- Sidebar Toggle ---
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('open');
-    });
-    document.getElementById('sidebarOverlay').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('open');
-    });
+      document.getElementById('adminName').textContent = profile.email ? profile.email.split('@')[0] : 'Admin';
+      document.getElementById('avatarInitial').textContent = profile.email ? profile.email[0].toUpperCase() : 'A';
+
+      // --- Sidebar Toggle ---
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+      document.getElementById('sidebarOverlay').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('open');
+      });
+
+      loadData();
+    })();
 
     let globalStats = {};
     let restaurantAdoption = [];
@@ -537,7 +536,7 @@
 
     document.getElementById('refreshBtn').addEventListener('click', loadData);
 
-    loadData();
+
   </script>
 </body>
 </html>

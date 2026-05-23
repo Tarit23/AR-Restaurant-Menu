@@ -526,32 +526,30 @@
   let currentSearch = '';
   let openCustomer  = null;
   let settings      = null;
+  let restaurant    = null;
 
   /* ── Auth ── */
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.href = '../login.html';
-    return;
-  }
+  (async function initAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) return window.location.href = '../login.html';
+    const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+    if (!profile) return window.location.href = '../login.html';
 
-  const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
-  if (!profile) {
-    window.location.href = '../login.html';
-    return;
-  }
+    restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+    restaurantId = restaurant.id;
 
-  const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
-  restaurantId = restaurant.id;
+    document.getElementById('restaurantName').textContent = restaurant.name;
+    document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
+    document.getElementById('topRestName').textContent    = restaurant.name;
+    document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
 
-  document.getElementById('restaurantName').textContent = restaurant.name;
-  document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
-  document.getElementById('topRestName').textContent    = restaurant.name;
-  document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    });
 
-  document.getElementById('menuToggle').addEventListener('click', () => {
-    document.getElementById('sidebar').classList.toggle('open');
-    document.getElementById('sidebarOverlay').classList.toggle('open');
-  });
+    loadAll();
+  })();
 
   /* ── Load data ── */
   async function loadAll() {
@@ -908,7 +906,7 @@
     showToast('📥 CSV downloaded!', 'success');
   };
 
-  loadAll();
+
   </script>
 </body>
 </html>

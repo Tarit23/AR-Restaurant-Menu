@@ -153,58 +153,54 @@
   import { APP_CONFIG } from '/js/supabase-config.js';
   import { showToast } from '/js/utils.js';
 
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      window.location.href = '../login.html';
-      return;
-    }
+    let menuUrl = null;
 
-    const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
-    if (!profile) {
-      window.location.href = '../login.html';
-      return;
-    }
-    if (profile.role === 'super_admin') {
-      window.location.href = '../admin/index.html';
-      return;
-    }
+    (async function initAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+      if (!profile) return window.location.href = '../login.html';
+      if (profile.role === 'super_admin') return window.location.href = '../admin/index.html';
 
-    const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+      const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
 
-    document.getElementById('restaurantName').textContent = restaurant.name;
-    document.getElementById('restNameSub').textContent = restaurant.name.substring(0,16);
-    document.getElementById('topbarRestName').textContent = restaurant.name;
-    document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
-    document.getElementById('qrRestName').textContent  = restaurant.name;
+      document.getElementById('restaurantName').textContent = restaurant.name;
+      document.getElementById('restNameSub').textContent = restaurant.name.substring(0,16);
+      document.getElementById('topbarRestName').textContent = restaurant.name;
+      document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+      document.getElementById('qrRestName').textContent  = restaurant.name;
 
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('open');
-    });
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
 
-    const menuUrl = `${APP_CONFIG.domain}/menu.html?restaurant=${restaurant.id}`;
-    const qrUrl   = generateQRUrl(menuUrl, 220);
+      menuUrl = `${APP_CONFIG.domain}/menu.html?restaurant=${restaurant.id}`;
+      const qrUrl   = generateQRUrl(menuUrl, 220);
 
-    document.getElementById('menuUrl').textContent = menuUrl;
-    document.getElementById('qrImage').src = qrUrl;
-    document.getElementById('downloadQR').href = qrUrl;
-    document.getElementById('downloadQR').download = `qr-${restaurant.name.replace(/ /g,'-').toLowerCase()}.png`;
+      document.getElementById('menuUrl').textContent = menuUrl;
+      document.getElementById('qrImage').src = qrUrl;
+      document.getElementById('downloadQR').href = qrUrl;
+      document.getElementById('downloadQR').download = `qr-${restaurant.name.replace(/ /g,'-').toLowerCase()}.png`;
 
-    const arStatus = document.getElementById('arStatus');
-    if (restaurant.subscription_status === 'active') {
-      arStatus.innerHTML = `
-        <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:var(--radius-lg);">
-          <div style="font-weight:700;color:var(--success);">✓ AR Enabled</div>
-        </div>`;
-    } else {
-      arStatus.innerHTML = `
-        <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-lg);">
-          <div style="font-weight:700;color:var(--danger);">(!) AR Disabled</div>
-        </div>`;
-    }
+      const arStatus = document.getElementById('arStatus');
+      if (restaurant.subscription_status === 'active') {
+        arStatus.innerHTML = `
+          <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4);background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);border-radius:var(--radius-lg);">
+            <div style="font-weight:700;color:var(--success);">✓ AR Enabled</div>
+          </div>`;
+      } else {
+        arStatus.innerHTML = `
+          <div style="display:flex;align-items:center;gap:var(--space-3);padding:var(--space-4);background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);border-radius:var(--radius-lg);">
+            <div style="font-weight:700;color:var(--danger);">(!) AR Disabled</div>
+          </div>`;
+      }
+    })();
 
     window.copyMenuUrl = () => {
-      navigator.clipboard.writeText(menuUrl).then(() => showToast('URL copied!', 'success'));
+      if (menuUrl) {
+        navigator.clipboard.writeText(menuUrl).then(() => showToast('URL copied!', 'success'));
+      }
     };
   </script>
 </body>

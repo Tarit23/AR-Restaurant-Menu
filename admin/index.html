@@ -46,7 +46,7 @@
       <a class="nav-item" href="/admin/restaurants" id="nav-restaurants">
         Restaurants
       </a>
-      <a class="nav-item" href="/admin/menu" id="nav-menu">
+      <a class="nav-item" href="/admin/menu-management.html" id="nav-menu">
         Menu Management
       </a>
       <a class="nav-item" href="/admin/qr" id="nav-qr">
@@ -162,7 +162,7 @@
                 <div class="quick-action-text">Add Restaurant</div>
                 <span style="font-size:0.8rem; opacity:0.5;">→</span>
               </button>
-              <a class="quick-action-btn" href="/admin/menu">
+              <a class="quick-action-btn" href="/admin/menu-management.html">
                 <span class="quick-action-icon" style="background:rgba(6,182,212,0.1); color:var(--accent);">M</span>
                 <div class="quick-action-text">Manage Menus</div>
                 <span style="font-size:0.8rem; opacity:0.5;">→</span>
@@ -293,28 +293,27 @@
   import { showToast, formatDate, getStatusBadge, animateCount } from '/js/utils.js';
 
     // --- Auth guard ---
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      window.location.href = '../login.html';
-      return;
-    }
-    const { data: profile, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
-    if (error || !profile || profile.role !== 'super_admin') {
-      window.location.href = '../login.html';
-      return;
-    }
-    document.getElementById('adminName').textContent = profile.email ? profile.email.split('@')[0] : 'Admin';
-    document.getElementById('avatarInitial').textContent = profile.email ? profile.email[0].toUpperCase() : 'A';
+    (async function initAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: profile, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+      if (error || !profile || profile.role !== 'super_admin') return window.location.href = '../login.html';
 
-    // --- Sidebar toggle ---
-    document.getElementById('menuToggle').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('sidebarOverlay').classList.toggle('open');
-    });
-    document.getElementById('sidebarOverlay').addEventListener('click', () => {
-      document.getElementById('sidebar').classList.remove('open');
-      document.getElementById('sidebarOverlay').classList.remove('open');
-    });
+      document.getElementById('adminName').textContent = profile.email ? profile.email.split('@')[0] : 'Admin';
+      document.getElementById('avatarInitial').textContent = profile.email ? profile.email[0].toUpperCase() : 'A';
+
+      // --- Sidebar toggle ---
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+      document.getElementById('sidebarOverlay').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('open');
+      });
+
+      loadDashboard();
+    })();
 
     // --- Sign out ---
         // --- Load dashboard data ---
@@ -480,8 +479,6 @@
     document.getElementById('addRestaurantModal').addEventListener('click', (e) => {
       if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
     });
-
-    loadDashboard();
   </script>
 </body>
 </html>
