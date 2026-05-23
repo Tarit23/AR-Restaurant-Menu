@@ -31,6 +31,7 @@
       <div class="sidebar-section-label">My Restaurant</div>
       <a class="nav-item" href="/restaurant">Dashboard</a>
       <a class="nav-item" href="/restaurant/menu">My Menu</a>
+      <a class="nav-item" href="/restaurant/loyalty-crm">Loyalty CRM</a>
       <a class="nav-item" href="/restaurant/subscription">Subscription</a>
       <a class="nav-item active" href="/restaurant/qr">QR Code</a>
     </nav>
@@ -160,7 +161,7 @@
 
     const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
 
-    document.getElementById('restName').textContent    = restaurant.name;
+    document.getElementById('restaurantName').textContent = restaurant.name;
     document.getElementById('restNameSub').textContent = restaurant.name.substring(0,16);
     document.getElementById('topbarRestName').textContent = restaurant.name;
     document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();

@@ -238,5 +238,124 @@ export const EMAIL_TEMPLATES = {
       </div>
     </body>
     </html>
-  `
+  `,
+
+  loyaltyBirthdayReward: (data: { customerName: string, restaurantName: string, voucherCode: string, voucherValue: string, voucherDesc: string, expiryDate: string }) => `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #09090f; color: #f1f5f9; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #111118; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .header { padding: 40px 20px; text-align: center; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+        .header h1 { margin: 0; font-size: 26px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.1em; }
+        .content { padding: 40px; text-align: center; }
+        .content h2 { font-size: 24px; font-weight: 700; margin-bottom: 10px; color: #ffffff; }
+        .content p { line-height: 1.6; color: #94a3b8; margin-bottom: 25px; }
+        .gift-box { font-size: 4rem; margin: 20px 0; }
+        .voucher-card { background: linear-gradient(135deg, rgba(245,158,11,0.15) 0%, rgba(217,119,6,0.05) 100%); border: 2px dashed #f59e0b; border-radius: 16px; padding: 25px; margin: 30px 0; position: relative; }
+        .voucher-title { color: #f59e0b; font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+        .voucher-value { color: #ffffff; font-size: 28px; font-weight: 800; margin: 10px 0; }
+        .voucher-code { background-color: #1e1b18; color: #f59e0b; font-family: monospace; font-size: 20px; font-weight: 700; padding: 8px 16px; border-radius: 8px; display: inline-block; border: 1px solid rgba(245,158,11,0.2); margin: 10px 0; }
+        .voucher-expiry { color: #64748b; font-size: 12px; margin-top: 10px; }
+        .btn { display: inline-block; padding: 14px 32px; background-color: #f59e0b; color: #ffffff !important; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 15px; box-shadow: 0 4px 15px rgba(245,158,11,0.3); }
+        .footer { padding: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: #475569; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Happy Birthday! 🎂</h1>
+        </div>
+        <div class="content">
+          <h2>Dear ${data.customerName || 'Loyal Member'},</h2>
+          <p>We wish you a wonderful year filled with happiness, success, and delicious food! To celebrate your special day, <strong>${data.restaurantName}</strong> has sent you a birthday gift.</p>
+          
+          <div class="gift-box">🎁</div>
+
+          <div class="voucher-card">
+            <div class="voucher-title">Birthday Gift Voucher</div>
+            <div class="voucher-value">${data.voucherValue}</div>
+            <div style="font-size: 14px; color: #94a3b8; margin-bottom: 10px;">${data.voucherDesc}</div>
+            <div class="voucher-code">${data.voucherCode}</div>
+            <div class="voucher-expiry">Valid until: ${data.expiryDate}</div>
+          </div>
+
+          <div style="margin: 25px 0;">
+            <a href="https://ar-restaurant-menu-eta.vercel.app/loyalty/dashboard" class="btn">View on Dashboard</a>
+          </div>
+
+          <p style="font-size: 13px; color: #64748b; margin-top: 30px;">Present this voucher code to the staff during your next visit to redeem your gift.</p>
+        </div>
+        <div class="footer">
+          &copy; 2026 ${data.restaurantName} Rewards Program.<br>
+          You received this email because you opted into rewards from ${data.restaurantName}.
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
+
+  loyaltyWeeklyPromo: (data: { customerName: string, restaurantName: string, subject?: string, promoMessage?: string, buttonText?: string, buttonUrl?: string, points?: number, offers?: string[] }) => {
+    let offersHtml = '';
+    if (data.offers && data.offers.length > 0) {
+      offersHtml = data.offers.map(o => `<li style="padding:6px 0;">${o}</li>`).join('');
+    }
+    const pointsText = data.points !== undefined ? `You have <strong style="color:#f59e0b;">${data.points} reward points</strong> waiting for you! Come visit us this weekend and enjoy:` : '';
+    const contentHtml = data.promoMessage || `
+      <p>Hi ${data.customerName || 'there'},</p>
+      <p>${pointsText}</p>
+      <ul style="background:rgba(99,102,241,.08);border-radius:12px;padding:16px 16px 16px 36px;line-height:1.8;text-align:left;">${offersHtml}</ul>
+    `;
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #09090f; color: #f1f5f9; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #111118; border: 1px solid rgba(255,255,255,0.08); border-radius: 20px; overflow: hidden; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .header { padding: 40px 20px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.1em; }
+        .content { padding: 40px; }
+        .content h2 { font-size: 22px; font-weight: 700; margin-bottom: 15px; color: #ffffff; }
+        .content p { line-height: 1.6; color: #94a3b8; margin-bottom: 20px; }
+        .promo-box { background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.15); border-radius: 16px; padding: 25px; margin: 25px 0; }
+        .promo-text { font-size: 15px; color: #e2e8f0; line-height: 1.7; }
+        .btn-box { text-align: center; margin: 25px 0; }
+        .btn { display: inline-block; padding: 14px 32px; background-color: #6366f1; color: #ffffff !important; text-decoration: none; border-radius: 10px; font-weight: 700; font-size: 14px; box-shadow: 0 4px 15px rgba(99,102,241,0.3); }
+        .footer { padding: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: #475569; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>${data.restaurantName} Rewards</h1>
+        </div>
+        <div class="content">
+          <h2>Hello ${data.customerName || 'Loyal Member'},</h2>
+          <p>Here is your weekly update and exclusive offers from <strong>${data.restaurantName}</strong>!</p>
+          
+          <div class="promo-box">
+            <div class="promo-text">${contentHtml}</div>
+          </div>
+
+          <div class="btn-box">
+            <a href="${data.buttonUrl || 'https://ar-restaurant-menu-eta.vercel.app/loyalty/dashboard'}" class="btn">${data.buttonText || 'Open Dashboard'}</a>
+          </div>
+
+          <p style="font-size: 13px; color: #64748b; text-align: center; margin-top: 30px;">We look forward to serving you soon!</p>
+        </div>
+        <div class="footer">
+          &copy; 2026 ${data.restaurantName} Loyalty Club.<br>
+          You received this email because you opted into rewards from ${data.restaurantName}.
+        </div>
+      </div>
+    </body>
+    </html>
+    `
+  }
 };

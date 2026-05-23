@@ -12,7 +12,12 @@
     { "source": "/restaurant",    "destination": "/restaurant/index.html" },
     { "source": "/restaurant/menu",         "destination": "/restaurant/menu.html" },
     { "source": "/restaurant/subscription", "destination": "/restaurant/subscription.html" },
-    { "source": "/restaurant/qr",           "destination": "/restaurant/qr.html" }
+    { "source": "/restaurant/qr",           "destination": "/restaurant/qr.html" },
+    { "source": "/loyalty",                 "destination": "/loyalty/index.html" },
+    { "source": "/loyalty/dashboard",       "destination": "/loyalty/dashboard.html" },
+    { "source": "/loyalty/redeem",          "destination": "/loyalty/redeem.html" },
+    { "source": "/restaurant/loyalty-crm",  "destination": "/restaurant/loyalty-crm.html" },
+    { "source": "/admin/loyalty",           "destination": "/admin/loyalty.html" }
   ],
   "cleanUrls": true,
   "trailingSlash": false,
@@ -44,7 +49,21 @@
     },
     {
       "source": "/css/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600, stale-while-revalidate=86400" }]
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400, stale-while-revalidate=604800" }]
+    },
+    {
+      "source": "/(.*)\\.glb",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    },
+    {
+      "source": "/(.*)\\.usdz",
+      "headers": [
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
     }
   ]
 }

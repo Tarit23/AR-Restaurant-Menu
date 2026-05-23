@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <title>Redeem Reward — AR Menu</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6366f1;
+      --gold:    #f59e0b;
+      --bg:      #07070f;
+      --card:    rgba(255,255,255,.04);
+      --border:  rgba(255,255,255,.08);
+      --text:    #f1f5f9;
+      --muted:   #64748b;
+      --radius:  20px;
+      --font:    'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,.2), transparent),
+                  radial-gradient(ellipse 50% 50% at 90% 90%, rgba(168,85,247,.1), transparent);
+      pointer-events: none; z-index: 0;
+    }
+
+    .container {
+      width: 100%; max-width: 420px;
+      position: relative; z-index: 1;
+      text-align: center;
+    }
+
+    .header-nav {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; width: 100%;
+    }
+    .btn-back {
+      padding: 10px 16px; border-radius: 12px;
+      background: var(--card); border: 1px solid var(--border);
+      color: var(--text); font-family: inherit; font-size: .82rem; font-weight: 600;
+      cursor: pointer; display: flex; align-items: center; gap: 6px;
+      transition: all .2s; text-decoration: none;
+    }
+    .btn-back:hover { border-color: var(--primary); background: rgba(99,102,241,.1); }
+
+    .brand-title {
+      font-size: 1rem; font-weight: 800; letter-spacing: -.01em;
+    }
+    .brand-title span { color: var(--gold); }
+
+    /* Redeem Card */
+    .card {
+      background: #0e0e1c;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      box-shadow: 0 20px 40px rgba(0,0,0,.4);
+      position: relative; overflow: hidden;
+      transition: all .3s ease;
+    }
+    .card::before {
+      content: '';
+      position: absolute; inset: 0;
+      opacity: .15;
+      background: radial-gradient(circle at top, var(--voucher-theme-color, var(--primary)), transparent 70%);
+      pointer-events: none;
+    }
+
+    .voucher-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 99px; padding: 6px 16px;
+      font-size: .72rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .08em;
+      border: 1px solid; background: rgba(0,0,0,.3);
+      color: var(--voucher-theme-color, var(--primary));
+      border-color: var(--voucher-theme-border, rgba(99,102,241,.3));
+      margin-bottom: 20px;
+    }
+
+    .voucher-title {
+      font-size: 1.8rem; font-weight: 900; letter-spacing: -.02em;
+      color: var(--voucher-theme-color, #fff);
+      margin-bottom: 8px;
+    }
+    .voucher-desc {
+      font-size: .9rem; opacity: .7; margin-bottom: 24px; line-height: 1.5;
+    }
+
+    #qrCanvas {
+      display: block; margin: 0 auto 20px;
+      border-radius: 16px; padding: 12px;
+      background: #fff;
+      box-shadow: 0 10px 30px rgba(0,0,0,.3);
+      transition: opacity 0.3s;
+    }
+
+    .voucher-code {
+      font-size: 1.5rem; font-weight: 900; letter-spacing: .25em;
+      background: rgba(0,0,0,.4); border: 1px dashed var(--border);
+      padding: 12px 24px; border-radius: 12px; display: inline-block;
+      margin-bottom: 24px; color: #fff;
+    }
+
+    .expiry-text {
+      font-size: .78rem; color: var(--muted); margin-bottom: 24px;
+    }
+
+    .btn-redeem {
+      width: 100%; padding: 16px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      color: #fff; border: none; border-radius: 12px;
+      font-family: inherit; font-size: .95rem; font-weight: 700;
+      cursor: pointer; transition: all .2s;
+      box-shadow: 0 0 24px rgba(99,102,241,.35);
+    }
+    .btn-redeem:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(99,102,241,.5); }
+    .btn-redeem:disabled { opacity: .6; cursor: not-allowed; }
+
+    /* Used Overlay / Success States */
+    .success-container {
+      display: none;
+      animation: scaleIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+    }
+    .success-icon {
+      font-size: 4.5rem; color: #34d399; margin-bottom: 20px;
+      display: inline-block; animation: pulseSuccess 2s infinite;
+    }
+    @keyframes pulseSuccess {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    .success-title { font-size: 1.6rem; font-weight: 800; margin-bottom: 10px; color: #34d399; }
+    .success-desc { font-size: .9rem; color: var(--muted); line-height: 1.5; margin-bottom: 24px; }
+
+    @keyframes scaleIn {
+      from { transform: scale(0.85); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .error-card {
+      display: none;
+      padding: 40px 20px;
+    }
+    .error-icon { font-size: 3rem; color: #ef4444; margin-bottom: 16px; }
+    .error-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+    .error-desc { font-size: .88rem; color: var(--muted); line-height: 1.5; }
+
+    .loading-pulse {
+      background: rgba(255,255,255,.03);
+      animation: pulse 1.5s ease infinite;
+      border-radius: var(--radius);
+      height: 400px; width: 100%;
+    }
+    @keyframes pulse { 0%,100% { opacity: .6; } 50% { opacity: 1; } }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header-nav">
+    <a href="#" class="btn-back" id="backBtn">← Dashboard</a>
+    <div class="brand-title" id="brandTitle">AR <span>Rewards</span></div>
+    <div style="width: 80px;"></div>
+  </div>
+
+  <div id="loading" class="loading-pulse"></div>
+
+  <div id="errorCard" class="card error-card">
+    <div class="error-icon">❌</div>
+    <div class="error-title">Voucher Not Found</div>
+    <div class="error-desc" id="errorMsg">This voucher code is invalid or has expired. Please check your rewards dashboard.</div>
+    <a href="#" class="btn-back" id="errorBackBtn" style="margin-top: 24px; display: inline-flex; justify-content: center; width: 100%;">Return to Dashboard</a>
+  </div>
+
+  <div id="voucherCard" class="card" style="display: none;">
+    <!-- Active Voucher View -->
+    <div id="activeView">
+      <div class="voucher-badge" id="voucherBadge">Voucher</div>
+      <h2 class="voucher-title" id="voucherTitle">Reward</h2>
+      <p class="voucher-desc" id="voucherDesc">Voucher description</p>
+      
+      <canvas id="qrCanvas" width="200" height="200"></canvas>
+      
+      <div class="voucher-code" id="voucherCode">——</div>
+      <p class="expiry-text" id="expiryText">Expires: —</p>
+
+      <button class="btn-redeem" id="redeemBtn" onclick="confirmRedeem()">
+        Confirm Redemption (Staff Use Only)
+      </button>
+    </div>
+
+    <!-- Success View -->
+    <div id="successView" class="success-container">
+      <div class="success-icon">🎉</div>
+      <h3 class="success-title">Successfully Redeemed!</h3>
+      <p class="success-desc" id="successDesc">The voucher has been marked as used. Thank you for dining with us!</p>
+      <a href="#" class="btn-back" id="successBackBtn" style="display: inline-flex; justify-content: center; width: 100%;">Return to Dashboard</a>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { supabase } from '../js/supabase-config.js';
+  import { loyaltyActivityAPI, loyaltyCustomersAPI } from '../js/loyalty-api.js';
+
+  const params = new URLSearchParams(location.search);
+  const voucherId = params.get('voucher');
+  const restaurantId = params.get('restaurant');
+
+  const backLink = `/loyalty/dashboard?restaurant=${restaurantId}`;
+  document.getElementById('backBtn').href = backLink;
+  document.getElementById('errorBackBtn').href = backLink;
+  document.getElementById('successBackBtn').href = backLink;
+
+  let voucher = null;
+
+  const typeStyles = {
+    discount_flat:    { color: '#a78bfa', border: 'rgba(99,102,241,.4)',  label: 'Flat Discount' },
+    discount_percent: { color: '#22d3ee', border: 'rgba(6,182,212,.4)',   label: '% Discount' },
+    free_item:        { color: '#34d399', border: 'rgba(16,185,129,.4)',  label: 'Free Item' },
+    birthday:         { color: '#f59e0b', border: 'rgba(245,158,11,.4)',  label: 'Birthday Reward' },
+    vip:              { color: '#f472b6', border: 'rgba(236,72,153,.4)',  label: 'VIP Reward' },
+    visit_reward:     { color: '#c084fc', border: 'rgba(139,92,246,.4)',  label: 'Visit Reward' },
+  };
+
+  async function init() {
+    if (!voucherId || !restaurantId) {
+      showError('Missing parameters. Please scan the QR code again.');
+      return;
+    }
+
+    try {
+      // Fetch restaurant name
+      const { data: rest } = await supabase.from('restaurants').select('name').eq('id', restaurantId).single();
+      if (rest) {
+        document.getElementById('brandTitle').innerHTML = `${rest.name.split(' ')[0]} <span>Rewards</span>`;
+      }
+
+      // Fetch voucher details
+      const { data: v, error } = await supabase
+        .from('loyalty_vouchers')
+        .select('*, loyalty_customers(name, email)')
+        .eq('id', voucherId)
+        .eq('restaurant_id', restaurantId)
+        .single();
+
+      if (error || !v) {
+        showError('Voucher not found or invalid.');
+        return;
+      }
+
+      voucher = v;
+
+      // Check if already used or expired
+      if (voucher.is_used) {
+        showSuccessView('This voucher has already been redeemed.', voucher.used_at);
+        document.getElementById('loading').style.display = 'none';
+        return;
+      }
+
+      if (voucher.expires_at && new Date(voucher.expires_at) < new Date()) {
+        showError('This voucher has expired.');
+        return;
+      }
+
+      // Render Active Voucher
+      renderVoucherData();
+      
+    } catch (err) {
+      showError(err.message || 'An error occurred while loading details.');
+    }
+  }
+
+  function renderVoucherData() {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('voucherCard').style.display = 'block';
+
+    const style = typeStyles[voucher.type] || typeStyles.free_item;
+    document.documentElement.style.setProperty('--voucher-theme-color', style.color);
+    document.documentElement.style.setProperty('--voucher-theme-border', style.border);
+
+    document.getElementById('voucherBadge').textContent = style.label;
+    
+    let valDisp = voucher.value;
+    if (voucher.type === 'discount_flat') valDisp = `₹${voucher.value} Off`;
+    else if (voucher.type === 'discount_percent') valDisp = `${voucher.value}% Off`;
+
+    document.getElementById('voucherTitle').textContent = valDisp;
+    document.getElementById('voucherDesc').textContent = voucher.description || '';
+    document.getElementById('voucherCode').textContent = voucher.code;
+
+    const expiry = voucher.expires_at 
+      ? new Date(voucher.expires_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })
+      : 'Never';
+    document.getElementById('expiryText').textContent = `Valid Until: ${expiry}`;
+
+    // Renders QR code containing the voucher code + verification
+    QRCode.toCanvas(document.getElementById('qrCanvas'),
+      JSON.stringify({ voucher_id: voucher.id, code: voucher.code, restaurant_id: restaurantId }),
+      { width: 200, margin: 2, color: { dark: '#0e0e1c', light: '#ffffff' } }
+    );
+  }
+
+  function showError(msg) {
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('voucherCard').style.display = 'none';
+    document.getElementById('errorCard').style.display = 'block';
+    document.getElementById('errorMsg').textContent = msg;
+  }
+
+  function showSuccessView(message, timestamp) {
+    document.getElementById('voucherCard').style.display = 'block';
+    document.getElementById('activeView').style.display = 'none';
+    document.getElementById('successView').style.display = 'block';
+    document.getElementById('successTitle').textContent = 'Already Redeemed';
+    
+    const date = new Date(timestamp).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'
+    });
+    document.getElementById('successDesc').textContent = `${message}\nRedeemed on: ${date}`;
+  }
+
+  window.confirmRedeem = async function() {
+    if (!voucher) return;
+    if (!confirm('Are you sure you want to redeem this voucher? Staff should verify the offer description before confirming.')) return;
+
+    const btn = document.getElementById('redeemBtn');
+    btn.disabled = true;
+    btn.textContent = 'Processing...';
+
+    try {
+      // Mark as used in database
+      const { error } = await supabase
+        .from('loyalty_vouchers')
+        .update({
+          is_used: true,
+          used_at: new Date().toISOString()
+        })
+        .eq('id', voucher.id);
+
+      if (error) throw error;
+
+      // Log redemption activity
+      await loyaltyActivityAPI.log(restaurantId, voucher.customer_id, 'voucher_redeemed',
+        `🎟️ Voucher Redeemed`,
+        `Redeemed voucher ${voucher.code} (${voucher.description})`,
+        '✅', 0, { voucher_id: voucher.id, code: voucher.code }
+      );
+
+      // Show success container
+      document.getElementById('activeView').style.display = 'none';
+      document.getElementById('successTitle').textContent = 'Successfully Redeemed!';
+      document.getElementById('successDesc').textContent = `Voucher ${voucher.code} is marked as used. Inform the staff to apply the reward to the bill.`;
+      document.getElementById('successView').style.display = 'block';
+
+    } catch (err) {
+      alert('Redemption failed: ' + err.message);
+      btn.disabled = false;
+      btn.textContent = 'Confirm Redemption (Staff Use Only)';
+    }
+  };
+
+  init();
+</script>
+</body>
+</html>

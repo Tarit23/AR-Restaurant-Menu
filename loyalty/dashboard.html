@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+  <title>My Rewards Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --primary: #6366f1;
+      --gold:    #f59e0b;
+      --bronze:  #cd7f32;
+      --silver:  #94a3b8;
+      --platinum:#e2e8f0;
+      --bg:      #07070f;
+      --card:    rgba(255,255,255,.04);
+      --border:  rgba(255,255,255,.08);
+      --text:    #f1f5f9;
+      --muted:   #64748b;
+      --radius:  16px;
+      --font:    'Plus Jakarta Sans', system-ui, sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      padding-bottom: 100px;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,.2), transparent),
+                  radial-gradient(ellipse 50% 50% at 90% 90%, rgba(168,85,247,.1), transparent);
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(7,7,15,.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px;
+    }
+    .topbar-logo { font-weight: 800; font-size: 1rem; letter-spacing: -.01em; }
+    .topbar-logo span { color: var(--gold); }
+    .topbar-actions { display: flex; gap: 10px; align-items: center; }
+    .btn-icon {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: var(--card); border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .9rem; cursor: pointer; transition: all .2s;
+    }
+    .btn-icon:hover { border-color: var(--primary); background: rgba(99,102,241,.1); }
+
+    .content { max-width: 430px; margin: 0 auto; padding: 0 16px; position: relative; z-index: 1; }
+
+    /* ── Tier Hero Card ── */
+    .hero-card {
+      margin: 20px 0;
+      border-radius: 24px;
+      padding: 28px 24px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid;
+    }
+    .hero-card::before {
+      content: '';
+      position: absolute; inset: 0;
+      opacity: .15;
+      background: radial-gradient(ellipse at top right, currentColor, transparent 60%);
+    }
+    .hero-tier-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      border-radius: 99px; padding: 5px 14px;
+      font-size: .72rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: .08em;
+      border: 1px solid; backdrop-filter: blur(8px);
+      background: rgba(0,0,0,.3);
+      margin-bottom: 16px;
+    }
+    .hero-name { font-size: 1.6rem; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; }
+    .hero-email { font-size: .8rem; margin-top: 4px; opacity: .6; }
+    .points-display {
+      margin-top: 24px; display: flex; align-items: baseline; gap: 8px;
+    }
+    .points-number {
+      font-size: 3.5rem; font-weight: 900; letter-spacing: -.04em; line-height: 1;
+    }
+    .points-label { font-size: .875rem; opacity: .7; }
+    .tier-progress-wrap { margin-top: 20px; }
+    .tier-progress-label {
+      display: flex; justify-content: space-between;
+      font-size: .72rem; opacity: .7; margin-bottom: 8px;
+    }
+    .tier-progress-bar {
+      height: 6px; border-radius: 99px;
+      background: rgba(0,0,0,.4);
+    }
+    .tier-progress-fill {
+      height: 100%; border-radius: 99px;
+      transition: width 1s cubic-bezier(.4,0,.2,1);
+    }
+    .hero-vip-badge {
+      position: absolute; top: 20px; right: 20px;
+      background: linear-gradient(135deg, #f59e0b, #ec4899);
+      color: #fff; font-size: .65rem; font-weight: 900;
+      padding: 4px 10px; border-radius: 99px;
+      text-transform: uppercase; letter-spacing: .1em;
+    }
+
+    /* ── Quick Stats Row ── */
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 24px; }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 16px 12px; text-align: center;
+    }
+    .stat-val { font-size: 1.6rem; font-weight: 800; }
+    .stat-lab { font-size: .65rem; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+
+    /* ── Section headers ── */
+    .section-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 14px;
+    }
+    .section-title { font-size: 1rem; font-weight: 700; }
+    .section-link { font-size: .78rem; color: var(--primary); cursor: pointer; }
+
+    /* ── Voucher Cards ── */
+    .vouchers-scroll { overflow-x: auto; display: flex; gap: 12px; padding-bottom: 6px; scrollbar-width: none; }
+    .vouchers-scroll::-webkit-scrollbar { display: none; }
+    .voucher-card {
+      min-width: 220px; border-radius: 18px; padding: 20px;
+      border: 1px solid; position: relative; overflow: hidden;
+      flex-shrink: 0; cursor: pointer; transition: transform .2s;
+    }
+    .voucher-card:hover { transform: translateY(-2px); }
+    .voucher-type-tag {
+      font-size: .65rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: .1em; margin-bottom: 10px; opacity: .8;
+    }
+    .voucher-value { font-size: 1.5rem; font-weight: 900; }
+    .voucher-desc { font-size: .78rem; opacity: .7; margin-top: 4px; line-height: 1.4; }
+    .voucher-code {
+      margin-top: 12px; font-size: .7rem; font-weight: 700;
+      letter-spacing: .15em; background: rgba(0,0,0,.4);
+      padding: 6px 10px; border-radius: 8px; display: inline-block;
+    }
+    .voucher-expiry { font-size: .67rem; opacity: .5; margin-top: 8px; }
+    .voucher-used-overlay {
+      position: absolute; inset: 0; background: rgba(0,0,0,.7);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .8rem; font-weight: 700; color: #94a3b8;
+      backdrop-filter: blur(4px); border-radius: 18px;
+    }
+
+    /* ── Redeem options ── */
+    .redeem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 28px; }
+    .redeem-card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 18px; padding: 20px; cursor: pointer;
+      transition: all .2s; text-align: center; position: relative;
+    }
+    .redeem-card:hover { border-color: var(--primary); background: rgba(99,102,241,.08); transform: translateY(-2px); }
+    .redeem-card.disabled { opacity: .4; cursor: not-allowed; }
+    .redeem-card.disabled:hover { transform: none; border-color: var(--border); background: var(--card); }
+    .redeem-icon { font-size: 1.8rem; margin-bottom: 10px; }
+    .redeem-pts  { font-size: 1rem; font-weight: 800; }
+    .redeem-desc { font-size: .72rem; color: var(--muted); margin-top: 4px; line-height: 1.4; }
+    .redeem-badge {
+      position: absolute; top: 10px; right: 10px;
+      background: rgba(245,158,11,.15); color: var(--gold);
+      font-size: .6rem; font-weight: 700; padding: 2px 8px; border-radius: 99px;
+      border: 1px solid rgba(245,158,11,.25);
+    }
+
+    /* ── Activity timeline ── */
+    .activity-list { display: flex; flex-direction: column; gap: 2px; }
+    .activity-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 14px; background: var(--card); border: 1px solid var(--border);
+      border-radius: 14px; transition: border-color .2s;
+    }
+    .activity-item:hover { border-color: rgba(99,102,241,.3); }
+    .activity-icon-wrap {
+      width: 36px; height: 36px; border-radius: 10px;
+      background: rgba(99,102,241,.12); display: flex;
+      align-items: center; justify-content: center; font-size: 1rem;
+      flex-shrink: 0;
+    }
+    .activity-body { flex: 1; min-width: 0; }
+    .activity-title { font-size: .875rem; font-weight: 600; }
+    .activity-desc  { font-size: .75rem; color: var(--muted); margin-top: 2px; }
+    .activity-time  { font-size: .67rem; color: var(--muted); margin-top: 3px; }
+    .activity-pts   { font-size: .8rem; font-weight: 700; flex-shrink: 0; }
+
+    /* ── Birthday Card ── */
+    .birthday-card {
+      border-radius: 20px; padding: 24px;
+      background: linear-gradient(135deg, rgba(245,158,11,.15), rgba(236,72,153,.12));
+      border: 1px solid rgba(245,158,11,.3);
+      display: flex; gap: 16px; align-items: center;
+      margin-bottom: 24px;
+    }
+    .birthday-icon { font-size: 2.5rem; }
+    .birthday-body { flex: 1; }
+    .birthday-title { font-size: 1rem; font-weight: 700; }
+    .birthday-desc  { font-size: .78rem; color: var(--muted); margin-top: 4px; line-height: 1.5; }
+    .btn-claim {
+      margin-top: 12px; padding: 8px 20px;
+      background: linear-gradient(135deg, #f59e0b, #ec4899);
+      color: #fff; border: none; border-radius: 10px;
+      font-family: var(--font); font-size: .8rem; font-weight: 700;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-claim:hover { transform: scale(1.04); }
+
+    /* ── Birthday setup ── */
+    .birthday-setup {
+      background: rgba(99,102,241,.06); border: 1px solid rgba(99,102,241,.15);
+      border-radius: 18px; padding: 20px; margin-bottom: 24px;
+    }
+    .birthday-setup h3 { font-size: .95rem; font-weight: 700; margin-bottom: 6px; }
+    .birthday-setup p  { font-size: .78rem; color: var(--muted); margin-bottom: 14px; line-height: 1.5; }
+    .form-row { display: flex; gap: 10px; }
+    .form-input {
+      flex: 1; padding: 11px 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid var(--border); border-radius: 10px;
+      color: var(--text); font-family: var(--font); font-size: .875rem;
+    }
+    .form-input:focus { outline: none; border-color: var(--primary); }
+    .btn-sm {
+      padding: 11px 18px; border-radius: 10px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      color: #fff; border: none; font-family: var(--font);
+      font-size: .8rem; font-weight: 700; cursor: pointer;
+    }
+
+    /* ── QR Modal ── */
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,.8); backdrop-filter: blur(8px);
+      display: none; align-items: flex-end; justify-content: center;
+      padding: 20px;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: #0e0e1c; border: 1px solid var(--border);
+      border-radius: 24px 24px 0 0; width: 100%; max-width: 420px;
+      padding: 28px 24px 48px;
+    }
+    .modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 99px; margin: 0 auto 20px; }
+    .modal-title  { font-size: 1.1rem; font-weight: 700; margin-bottom: 6px; text-align: center; }
+    .modal-sub    { font-size: .8rem; color: var(--muted); text-align: center; margin-bottom: 24px; }
+    #qrCanvas     { display: block; margin: 0 auto 20px; border-radius: 12px; }
+    .modal-code   { text-align: center; font-size: 1.4rem; font-weight: 900; letter-spacing: .2em; color: var(--gold); margin-bottom: 8px; }
+    .modal-hint   { text-align: center; font-size: .75rem; color: var(--muted); }
+    .modal-close-btn {
+      display: block; width: 100%; margin-top: 20px; padding: 14px;
+      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
+      color: var(--muted); font-family: var(--font); font-size: .875rem; cursor: pointer;
+    }
+
+    /* ── Bottom nav ── */
+    .bottom-nav {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
+      background: rgba(7,7,15,.92); backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border);
+      display: flex; justify-content: space-around; padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+    }
+    .nav-item-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 3px;
+      font-size: .6rem; font-weight: 600; color: var(--muted);
+      cursor: pointer; transition: color .2s; background: none; border: none;
+      padding: 4px 16px;
+    }
+    .nav-item-btn.active { color: var(--primary); }
+    .nav-item-btn .nav-icon { font-size: 1.3rem; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+      background: #1e1b4b; border: 1px solid var(--primary); border-radius: 12px;
+      padding: 12px 20px; font-size: .85rem; font-weight: 600;
+      opacity: 0; transition: all .3s; z-index: 200; white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* Animations */
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-up { animation: fadeUp .5s ease both; }
+    @keyframes countUp { from { opacity: 0; } to { opacity: 1; } }
+    .loading-pulse { background: rgba(255,255,255,.06); border-radius: 12px; animation: pulse 1.5s ease infinite; }
+    @keyframes pulse { 0%,100% { opacity: .6; } 50% { opacity: 1; } }
+
+    section { margin-bottom: 28px; }
+  </style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <div class="topbar-logo">🏆 <span id="restShortName">Rewards</span></div>
+  <div class="topbar-actions">
+    <a id="viewMenuBtn" href="#" class="btn-icon" title="View Menu" style="text-decoration:none;">🍽️</a>
+    <div class="btn-icon" onclick="openQR()" title="Show QR / ID">📱</div>
+    <div class="btn-icon" onclick="logout()" title="Sign out">↩️</div>
+  </div>
+</div>
+
+<div class="content">
+
+  <!-- Hero Tier Card -->
+  <div class="hero-card fade-up" id="heroCard" style="color:#cd7f32;border-color:rgba(205,127,50,.35);background:linear-gradient(135deg,rgba(205,127,50,.1),rgba(99,102,241,.08));">
+    <div class="hero-tier-badge" id="tierBadge" style="color:#cd7f32;border-color:rgba(205,127,50,.4);">
+      🥉 Bronze
+    </div>
+    <div id="vipBadge" class="hero-vip-badge" style="display:none;">👑 VIP</div>
+    <div class="hero-name" id="heroName">Loading...</div>
+    <div class="hero-email" id="heroEmail"></div>
+    <div class="points-display">
+      <div class="points-number" id="pointsNum" style="color:#cd7f32;">0</div>
+      <div class="points-label">points</div>
+    </div>
+    <div class="tier-progress-wrap">
+      <div class="tier-progress-label">
+        <span id="progressLabel">Progress to Silver</span>
+        <span id="progressPts">0 / 500 pts</span>
+      </div>
+      <div class="tier-progress-bar">
+        <div class="tier-progress-fill" id="progressFill" style="width:0%;background:#cd7f32;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="stats-row fade-up">
+    <div class="stat-card">
+      <div class="stat-val" id="statVisits">—</div>
+      <div class="stat-lab">Total Visits</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statEarned">—</div>
+      <div class="stat-lab">Points Earned</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" id="statVouchers">—</div>
+      <div class="stat-lab">Active Vouchers</div>
+    </div>
+  </div>
+
+  <!-- Birthday card (shown if birthday set + birthday week) -->
+  <div id="birthdayClaimCard" class="birthday-card" style="display:none;">
+    <div class="birthday-icon">🎂</div>
+    <div class="birthday-body">
+      <div class="birthday-title">Happy Birthday! 🎉</div>
+      <div class="birthday-desc" id="birthdayRewardDesc">Your free birthday reward is waiting!</div>
+      <button class="btn-claim" onclick="claimBirthday()">Claim Free Reward →</button>
+    </div>
+  </div>
+
+  <!-- Birthday setup (if birthday not set) -->
+  <div id="birthdaySetupCard" class="birthday-setup" style="display:none;">
+    <h3>🎂 Add Your Birthday</h3>
+    <p>Add your birthday once to unlock a special birthday reward every year. <strong>Cannot be changed later.</strong></p>
+    <div class="form-row">
+      <input type="date" id="birthdayInput" class="form-input"/>
+      <button class="btn-sm" onclick="saveBirthday()">Save</button>
+    </div>
+  </div>
+
+  <!-- Vouchers -->
+  <section id="vouchersSection">
+    <div class="section-hdr">
+      <div class="section-title">🎟️ My Vouchers</div>
+    </div>
+    <div class="vouchers-scroll" id="vouchersScroll">
+      <div class="loading-pulse" style="min-width:220px;height:140px;border-radius:18px;"></div>
+    </div>
+  </section>
+
+  <!-- Redeem Points -->
+  <section>
+    <div class="section-hdr">
+      <div class="section-title">💫 Redeem Points</div>
+    </div>
+    <div class="redeem-grid" id="redeemGrid">
+      <div class="redeem-card" id="redeemDiscount" onclick="redeemDiscount()">
+        <div class="redeem-icon">💸</div>
+        <div class="redeem-pts" id="discountPtsLabel">100 pts</div>
+        <div class="redeem-desc">₹50 Flat Discount Voucher</div>
+        <div class="redeem-badge">Popular</div>
+      </div>
+      <div class="redeem-card" id="redeemFree" onclick="redeemFreeItem()">
+        <div class="redeem-icon">🍕</div>
+        <div class="redeem-pts" id="freeItemPtsLabel">500 pts</div>
+        <div class="redeem-desc" id="freeItemDesc">Free Burger / Pizza / Drink</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Activity Timeline -->
+  <section>
+    <div class="section-hdr">
+      <div class="section-title">📋 Activity</div>
+    </div>
+    <div class="activity-list" id="activityList">
+      <div class="loading-pulse" style="height:60px;border-radius:14px;"></div>
+      <div class="loading-pulse" style="height:60px;border-radius:14px;margin-top:2px;"></div>
+    </div>
+  </section>
+</div>
+
+<!-- Bottom nav -->
+<div class="bottom-nav">
+  <button class="nav-item-btn active" onclick="scrollTo(0,0)">
+    <span class="nav-icon">🏠</span>Home
+  </button>
+  <button class="nav-item-btn" onclick="openQR()">
+    <span class="nav-icon">📱</span>My QR
+  </button>
+  <button class="nav-item-btn" onclick="document.getElementById('vouchersSection').scrollIntoView({behavior:'smooth'})">
+    <span class="nav-icon">🎟️</span>Vouchers
+  </button>
+  <button class="nav-item-btn" onclick="window.location.href=location.pathname.replace('dashboard','index')+location.search">
+    <span class="nav-icon">⚙️</span>Account
+  </button>
+</div>
+
+<!-- QR Modal -->
+<div class="modal-overlay" id="qrModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">My Loyalty ID</div>
+    <div class="modal-sub">Show this to restaurant staff to earn points or redeem rewards</div>
+    <canvas id="qrCanvas" width="200" height="200"></canvas>
+    <div class="modal-code" id="qrCode">——</div>
+    <div class="modal-hint">Customer ID · <span id="qrEmail"></span></div>
+    <button class="modal-close-btn" onclick="document.getElementById('qrModal').classList.remove('open')">Close</button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script type="module">
+import {
+  loyaltySession, loyaltyCustomersAPI, loyaltyVouchersAPI,
+  loyaltySettingsAPI, loyaltyBirthdayAPI, loyaltyActivityAPI,
+  redeemPointsForDiscount, redeemPointsForFreeItem, TIERS, getNextTier
+} from '../js/loyalty-api.js';
+
+const params       = new URLSearchParams(location.search);
+const restaurantId = params.get('restaurant');
+const sess         = loyaltySession.is(restaurantId);
+
+if (!sess) { location.href = `/loyalty?restaurant=${restaurantId}`; }
+
+let customer  = null;
+let settings  = null;
+let vouchers  = [];
+
+/* ── Toast ── */
+window.showToast = function(msg, duration = 2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+};
+
+/* ── Tier styling ── */
+function applyTier(tier, c) {
+  const t = TIERS[tier] || TIERS.bronze;
+  const card = document.getElementById('heroCard');
+  card.style.color       = t.color;
+  card.style.borderColor = t.shadow;
+  card.style.background  = `linear-gradient(135deg, ${t.bg}, rgba(99,102,241,.06))`;
+  document.getElementById('tierBadge').textContent = `${t.icon} ${t.label}`;
+  document.getElementById('tierBadge').style.color = t.color;
+  document.getElementById('tierBadge').style.borderColor = t.shadow;
+  document.getElementById('pointsNum').style.color = t.color;
+  document.getElementById('progressFill').style.background = t.color;
+  if (c.is_vip) document.getElementById('vipBadge').style.display = 'block';
+}
+
+/* ── Progress bar ── */
+function updateProgress(customer, settings) {
+  const s    = settings || {};
+  const next = getNextTier(customer.tier, s);
+  if (!next) {
+    document.getElementById('progressLabel').textContent = '✨ Maximum Tier Reached!';
+    document.getElementById('progressPts').textContent   = 'Platinum';
+    document.getElementById('progressFill').style.width  = '100%';
+    return;
+  }
+  const [nextName, nextMin] = next;
+  const curMin = TIERS[customer.tier]?.min || 0;
+  const earned = customer.total_points_earned || 0;
+  const pct = Math.min(100, ((earned - curMin) / (nextMin - curMin)) * 100);
+  document.getElementById('progressLabel').textContent = `Progress to ${TIERS[nextName]?.label}`;
+  document.getElementById('progressPts').textContent   = `${earned} / ${nextMin} pts`;
+  document.getElementById('progressFill').style.width  = pct + '%';
+}
+
+/* ── Points counter animation ── */
+function animateCounter(el, target, duration = 1200) {
+  let start = 0; const step = target / (duration / 16);
+  const timer = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = Math.floor(start).toLocaleString('en-IN');
+    if (start >= target) clearInterval(timer);
+  }, 16);
+}
+
+/* ── Render vouchers ── */
+function renderVouchers(vouchers) {
+  const scroll = document.getElementById('vouchersScroll');
+  const active = vouchers.filter(v => !v.is_used && (!v.expires_at || new Date(v.expires_at) > new Date()));
+
+  document.getElementById('statVouchers').textContent = active.length;
+
+  if (!active.length) {
+    scroll.innerHTML = '<div style="color:var(--muted);font-size:.85rem;padding:20px 4px;">No active vouchers yet. Earn points to redeem rewards!</div>';
+    return;
+  }
+
+  const typeColors = {
+    discount_flat:    { bg: 'rgba(99,102,241,.15)',  border: 'rgba(99,102,241,.4)',  color: '#a78bfa', label: 'Flat Discount' },
+    discount_percent: { bg: 'rgba(6,182,212,.15)',   border: 'rgba(6,182,212,.4)',   color: '#22d3ee', label: '% Discount'   },
+    free_item:        { bg: 'rgba(16,185,129,.15)',  border: 'rgba(16,185,129,.4)',  color: '#34d399', label: 'Free Item'    },
+    birthday:         { bg: 'rgba(245,158,11,.15)',  border: 'rgba(245,158,11,.4)',  color: '#f59e0b', label: 'Birthday'     },
+    vip:              { bg: 'rgba(236,72,153,.15)',  border: 'rgba(236,72,153,.4)',  color: '#f472b6', label: 'VIP Reward'   },
+    visit_reward:     { bg: 'rgba(139,92,246,.15)',  border: 'rgba(139,92,246,.4)',  color: '#c084fc', label: 'Visit Reward' },
+  };
+
+  scroll.innerHTML = active.map(v => {
+    const style   = typeColors[v.type] || typeColors.free_item;
+    const expiry  = v.expires_at ? new Date(v.expires_at).toLocaleDateString('en-IN', { day:'numeric', month:'short' }) : '—';
+    const valDisp = v.type === 'discount_flat' ? `₹${v.value} Off` : v.type === 'discount_percent' ? `${v.value}% Off` : v.value;
+    return `
+    <div class="voucher-card" style="background:${style.bg};border-color:${style.border};color:${style.color};" onclick="showVoucherDetail('${v.id}')">
+      <div class="voucher-type-tag">${style.label}</div>
+      <div class="voucher-value">${valDisp}</div>
+      <div class="voucher-desc" style="color:var(--text);">${v.description || ''}</div>
+      <div class="voucher-code">${v.code}</div>
+      <div class="voucher-expiry">Expires: ${expiry}</div>
+    </div>`;
+  }).join('');
+}
+
+window.showVoucherDetail = function(voucherId) {
+  window.location.href = `/loyalty/redeem?voucher=${voucherId}&restaurant=${restaurantId}`;
+};
+
+/* ── Activity ── */
+function renderActivity(activities) {
+  const list = document.getElementById('activityList');
+  if (!activities.length) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:.85rem;padding:16px;">No activity yet.</div>';
+    return;
+  }
+  list.innerHTML = activities.map(a => {
+    const ptsHtml = a.points_delta !== 0
+      ? `<div class="activity-pts" style="color:${a.points_delta > 0 ? '#34d399' : '#f87171'};">${a.points_delta > 0 ? '+' : ''}${a.points_delta}</div>`
+      : '';
+    const when = new Date(a.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+    return `
+    <div class="activity-item">
+      <div class="activity-icon-wrap">${a.icon || '⭐'}</div>
+      <div class="activity-body">
+        <div class="activity-title">${a.title}</div>
+        ${a.description ? `<div class="activity-desc">${a.description}</div>` : ''}
+        <div class="activity-time">${when}</div>
+      </div>
+      ${ptsHtml}
+    </div>`;
+  }).join('');
+}
+
+/* ── Birthday handling ── */
+async function checkBirthday() {
+  if (!customer) return;
+  if (customer.birthday_set && customer.birthday) {
+    const inWeek = loyaltyBirthdayAPI.isBirthdayWeek(customer.birthday);
+    if (inWeek) {
+      const already = await loyaltyBirthdayAPI.hasClaimedThisYear(customer.id);
+      if (!already) {
+        document.getElementById('birthdayClaimCard').style.display = 'flex';
+        if (settings?.birthday_reward_description)
+          document.getElementById('birthdayRewardDesc').textContent = settings.birthday_reward_description;
+      }
+    }
+  } else {
+    document.getElementById('birthdaySetupCard').style.display = 'block';
+  }
+}
+
+window.saveBirthday = async function() {
+  const val = document.getElementById('birthdayInput').value;
+  if (!val) { showToast('Pick your birthday date.'); return; }
+  try {
+    await loyaltyCustomersAPI.setBirthday(customer.id, val);
+    document.getElementById('birthdaySetupCard').style.display = 'none';
+    customer.birthday = val; customer.birthday_set = true;
+    showToast('🎂 Birthday saved! You\'ll get a special reward on your big day.');
+  } catch (e) { showToast(e.message); }
+};
+
+window.claimBirthday = async function() {
+  try {
+    const v = await loyaltyBirthdayAPI.claim(restaurantId, customer.id, settings);
+    showToast(`🎂 Birthday voucher ${v.code} issued! Show to staff.`);
+    document.getElementById('birthdayClaimCard').style.display = 'none';
+    await loadData();
+  } catch (e) { showToast(e.message); }
+};
+
+/* ── Redeem ── */
+window.redeemDiscount = async function() {
+  const ptsNeeded = settings?.points_for_50_discount || 100;
+  if ((customer.points || 0) < ptsNeeded) {
+    showToast(`Need ${ptsNeeded} pts. You have ${customer.points}.`); return;
+  }
+  if (!confirm(`Redeem ${ptsNeeded} points for a ₹50 discount voucher?`)) return;
+  try {
+    const v = await redeemPointsForDiscount(restaurantId, customer.id, settings);
+    showToast(`✅ Voucher ${v.code} ready! Show to staff.`, 3000);
+    await loadData();
+  } catch (e) { showToast(e.message); }
+};
+
+window.redeemFreeItem = async function() {
+  const ptsNeeded = settings?.points_for_free_item || 500;
+  if ((customer.points || 0) < ptsNeeded) {
+    showToast(`Need ${ptsNeeded} pts. You have ${customer.points}.`); return;
+  }
+  if (!confirm(`Redeem ${ptsNeeded} points for ${settings?.free_item_description || 'a free item'}?`)) return;
+  try {
+    const v = await redeemPointsForFreeItem(restaurantId, customer.id, settings);
+    showToast(`🎁 Voucher ${v.code} ready! Show to staff.`, 3000);
+    await loadData();
+  } catch (e) { showToast(e.message); }
+};
+
+/* ── QR ── */
+window.openQR = function() {
+  document.getElementById('qrModal').classList.add('open');
+  document.getElementById('qrCode').textContent = customer?.id?.slice(0, 8).toUpperCase() || '——';
+  document.getElementById('qrEmail').textContent = sess.email;
+  QRCode.toCanvas(document.getElementById('qrCanvas'),
+    JSON.stringify({ customer_id: customer?.id, restaurant_id: restaurantId, email: sess.email }),
+    { width: 200, margin: 2, color: { dark: '#fff', light: '#0e0e1c' } }
+  );
+};
+
+/* ── Logout ── */
+window.logout = function() {
+  loyaltySession.clear();
+  location.href = `/loyalty?restaurant=${restaurantId}`;
+};
+
+/* ── Load all data ── */
+async function loadData() {
+  [settings, customer, vouchers] = await Promise.all([
+    loyaltySettingsAPI.get(restaurantId),
+    loyaltyCustomersAPI.getById(sess.customer_id),
+    loyaltyVouchersAPI.getByCustomer(sess.customer_id, restaurantId)
+  ]);
+
+  const activities = await loyaltyActivityAPI.getByCustomer(sess.customer_id);
+
+  // Hero card
+  applyTier(customer.tier, customer);
+  document.getElementById('heroName').textContent  = customer.name || customer.email.split('@')[0];
+  document.getElementById('heroEmail').textContent = customer.email;
+  animateCounter(document.getElementById('pointsNum'), customer.points || 0);
+  updateProgress(customer, settings);
+
+  // Stats
+  document.getElementById('statVisits').textContent = customer.visit_count || 0;
+  document.getElementById('statEarned').textContent  = customer.total_points_earned || 0;
+
+  // Redeem cards
+  const dp = settings?.points_for_50_discount || 100;
+  const fp = settings?.points_for_free_item   || 500;
+  document.getElementById('discountPtsLabel').textContent = `${dp} pts`;
+  document.getElementById('freeItemPtsLabel').textContent = `${fp} pts`;
+  document.getElementById('freeItemDesc').textContent     = settings?.free_item_description || 'Free Burger / Pizza / Drink';
+  document.getElementById('redeemDiscount').classList.toggle('disabled', (customer.points || 0) < dp);
+  document.getElementById('redeemFree').classList.toggle('disabled', (customer.points || 0) < fp);
+
+  renderVouchers(vouchers);
+  renderActivity(activities);
+  checkBirthday();
+
+  // Track visit from QR param
+  if (params.get('visit') === '1') {
+    const newCount = await loyaltyCustomersAPI.incrementVisit(restaurantId, customer.id);
+    const earnedPts = Math.floor(10); // Base visit points
+    await loyaltyCustomersAPI.addPoints(restaurantId, customer.id, earnedPts,
+      `Visit #${newCount} — points earned`, 'earn');
+    const newVouchers = await loyaltyVouchersAPI.checkVisitRewards(restaurantId, customer.id, newCount, settings);
+    if (newVouchers.length) showToast(`🎉 ${newVouchers[0].description}`, 3500);
+    else showToast(`✅ Visit checked in! +${earnedPts} pts`, 2000);
+    // Remove ?visit=1 from URL
+    history.replaceState(null, '', `/loyalty/dashboard?restaurant=${restaurantId}`);
+  }
+
+  // Restaurant name in topbar
+  const { createClient } = window.supabase;
+  const sb = createClient(
+    'https://fuezcrbfswgghawhfxrv.supabase.co',
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ1ZXpjcmJmc3dnZ2hhd2hmeHJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYyMTMzNzIsImV4cCI6MjA5MTc4OTM3Mn0.wIhnSy1L-U9s-BH4UB7KE6Wf3nt-PyGyaKutMMsv0tk'
+  );
+  const { data: rest } = await sb.from('restaurants').select('name').eq('id', restaurantId).single();
+  if (rest) document.getElementById('restShortName').textContent = rest.name.split(' ')[0];
+
+  const viewMenuBtn = document.getElementById('viewMenuBtn');
+  if (viewMenuBtn) {
+    viewMenuBtn.href = `/menu?restaurant=${restaurantId}`;
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>

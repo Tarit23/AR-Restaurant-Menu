@@ -5,3 +5,9 @@ verify_jwt = false
 
 [functions.create-subscription]
 verify_jwt = false
+
+[functions.loyalty-birthday-rewards]
+verify_jwt = false
+
+[functions.loyalty-weekly-promos]
+verify_jwt = false

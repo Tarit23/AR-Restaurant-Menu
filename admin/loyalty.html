@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Platform Loyalty Analytics — AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
+  <style id="critical-logout-styles">
+    .sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); }
+    .btn-logout { 
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; 
+      padding: 10px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); 
+      border-radius: var(--radius-md); color: #ef4444; font-size: 0.85rem; font-weight: 600; 
+      cursor: pointer; transition: all 0.2s; 
+    }
+    .btn-logout:hover { background: #ef4444; color: #fff; border-color: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+  </style>
+
+  <style>
+    /* Tier distribution progress styling */
+    .tier-distribution-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: var(--space-4);
+    }
+    .tier-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.85rem;
+    }
+    .tier-name {
+      width: 80px;
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+    .tier-bar-wrapper {
+      flex: 1;
+      height: 8px;
+      background: var(--bg-elevated);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .tier-bar {
+      height: 100%;
+      border-radius: 99px;
+      transition: width 0.8s ease-out;
+    }
+    .tier-count {
+      width: 45px;
+      text-align: right;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+    
+    /* Tier color tokens matching loyalty dashboard style */
+    .tier-bronze-bar { background: #cd7f32; box-shadow: 0 0 8px rgba(205,127,50,0.4); }
+    .tier-silver-bar { background: #94a3b8; box-shadow: 0 0 8px rgba(148,163,184,0.4); }
+    .tier-gold-bar { background: #f59e0b; box-shadow: 0 0 8px rgba(245,158,11,0.4); }
+    .tier-platinum-bar { background: #e2e8f0; box-shadow: 0 0 8px rgba(226,232,240,0.4); }
+
+    .tier-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 10px; border-radius: 99px; font-size: .68rem; font-weight: 700;
+      border: 1px solid;
+    }
+    .tier-bronze   { color:#cd7f32;border-color:rgba(205,127,50,.4); background:rgba(205,127,50,.1); }
+    .tier-silver   { color:#94a3b8;border-color:rgba(148,163,184,.4);background:rgba(148,163,184,.1);}
+    .tier-gold     { color:#f59e0b;border-color:rgba(245,158,11,.4); background:rgba(245,158,11,.1); }
+    .tier-platinum { color:#e2e8f0;border-color:rgba(226,232,240,.4);background:rgba(226,232,240,.08);}
+    .vip-badge     { color:#f472b6;border-color:rgba(244,114,182,.3);background:rgba(244,114,182,.1);font-size:.62rem; }
+
+    /* Search bar styling */
+    .search-bar {
+      display: flex; gap: 10px; align-items: center; margin-bottom: 20px;
+    }
+    .search-input {
+      flex: 1; padding: 10px 16px;
+      background: var(--bg-elevated); border: 1px solid var(--border);
+      border-radius: var(--radius-md); color: var(--text-primary);
+      font-family: inherit; font-size: .875rem;
+    }
+    .search-input:focus { outline: none; border-color: var(--primary); }
+
+    .activity-feed-compact {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .activity-item-compact {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .activity-item-compact:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+    .activity-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: rgba(99,102,241,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .activity-details {
+      flex: 1;
+      min-width: 0;
+    }
+    .activity-title {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .activity-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+    .activity-time {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body class="dashboard-layout">
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"></div>
+      <div>
+        <div class="sidebar-logo-text">AR Menu</div>
+        <div class="sidebar-logo-sub">SUPER ADMIN</div>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Overview</div>
+      <a class="nav-item" href="/admin" id="nav-overview">
+        Dashboard
+      </a>
+      <a class="nav-item active" href="/admin/loyalty" id="nav-loyalty">
+        Platform Loyalty
+      </a>
+
+      <div class="sidebar-section-label">Management</div>
+      <a class="nav-item" href="/admin/restaurants" id="nav-restaurants">
+        Restaurants
+      </a>
+      <a class="nav-item" href="/admin/menu" id="nav-menu">
+        Menu Management
+      </a>
+      <a class="nav-item" href="/admin/qr" id="nav-qr">
+        QR Generator
+      </a>
+
+      <div class="sidebar-section-label">Billing</div>
+      <a class="nav-item" href="/admin/payments" id="nav-payments">
+        Payments
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">A</div>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="adminName">Loading...</div>
+          <div class="user-role">Super Admin</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Sign Out
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sidebar overlay (mobile) -->
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <!-- Main content -->
+  <div class="main-content">
+    <!-- Topbar -->
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
+      <div class="topbar-breadcrumb">
+        <span>Admin</span>
+        <span>/</span>
+        <span class="current">Loyalty Program</span>
+      </div>
+      <div class="topbar-actions">
+        <button class="topbar-btn" id="refreshBtn">
+          Refresh
+        </button>
+      </div>
+    </header>
+
+    <!-- Page Content -->
+    <div class="page-content">
+      <div class="page-header animate-in">
+        <div class="page-header-text">
+          <h1 class="gradient-text">Platform Loyalty Analytics</h1>
+          <p>Global metrics, loyalty settings, and performance statistics across all restaurants</p>
+        </div>
+        <div class="page-header-actions">
+          <span id="lastUpdated" class="badge badge-secondary" style="font-size:0.7rem;">Updating...</span>
+        </div>
+      </div>
+
+      <!-- Stat Cards -->
+      <div class="grid-4" id="statsGrid">
+        <div class="stat-card blue skeleton" style="min-height:130px;"></div>
+        <div class="stat-card green skeleton" style="min-height:130px;"></div>
+        <div class="stat-card purple skeleton" style="min-height:130px;"></div>
+        <div class="stat-card amber skeleton" style="min-height:130px;"></div>
+      </div>
+
+      <!-- Content Split Section -->
+      <div style="display:grid; grid-template-columns: 1fr 380px; gap:var(--space-8); margin-top:var(--space-8);">
+        
+        <!-- Left Side: Restaurant Loyalty Table -->
+        <div class="card glass animate-in animate-in-delay-2" style="padding:0; overflow:hidden;">
+          <div class="card-header" style="padding:var(--space-6) var(--space-6) 0;">
+            <div>
+              <div class="card-title">Restaurant Performance</div>
+              <div class="card-subtitle">Loyalty metrics and adoption per restaurant partner</div>
+            </div>
+          </div>
+          
+          <div style="padding:var(--space-4) var(--space-6) 0;">
+            <div class="search-bar">
+              <input type="text" class="search-input" id="searchInput" placeholder="Search restaurant name..." />
+            </div>
+          </div>
+
+          <div class="table-wrapper" style="border:none; border-radius:0; border-top:1px solid var(--border);">
+            <table>
+              <thead>
+                <tr>
+                  <th>Restaurant</th>
+                  <th>Members</th>
+                  <th>Visits</th>
+                  <th>Total Points</th>
+                  <th>Vouchers Issued</th>
+                  <th>Redeemed</th>
+                  <th>Conv. Rate</th>
+                </tr>
+              </thead>
+              <tbody id="restaurantsBody">
+                <tr><td colspan="7"><div class="skeleton" style="height:48px; margin:12px; border-radius:8px;"></div></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right Side: Tier Distribution and Activity -->
+        <div style="display:flex; flex-direction:column; gap:var(--space-8);">
+          
+          <!-- Tier Distribution Card -->
+          <div class="card glass animate-in animate-in-delay-2">
+            <div class="card-header" style="padding:0 0 var(--space-3); border-bottom:1px solid var(--border);">
+              <div>
+                <div class="card-title">Member Tier Distribution</div>
+                <div class="card-subtitle">Tier distribution across the whole platform</div>
+              </div>
+            </div>
+            <div class="tier-distribution-container" id="tierDistribution">
+              <div class="skeleton" style="height:32px; border-radius:8px;"></div>
+              <div class="skeleton" style="height:32px; border-radius:8px;"></div>
+              <div class="skeleton" style="height:32px; border-radius:8px;"></div>
+              <div class="skeleton" style="height:32px; border-radius:8px;"></div>
+            </div>
+          </div>
+
+          <!-- Platform Activity Feed -->
+          <div class="card glass animate-in animate-in-delay-3">
+            <div class="card-header" style="padding:0 0 var(--space-3); border-bottom:1px solid var(--border);">
+              <div>
+                <div class="card-title">Recent Loyalty Activity</div>
+                <div class="card-subtitle">Latest platform-wide member events</div>
+              </div>
+            </div>
+            <div id="activityFeed" class="activity-feed-compact" style="margin-top:var(--space-4);">
+              <div class="skeleton" style="height:50px; border-radius:8px;"></div>
+              <div class="skeleton" style="height:50px; border-radius:8px;"></div>
+              <div class="skeleton" style="height:50px; border-radius:8px;"></div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import "/js/logout-handler.js";
+    import { supabase } from "/js/supabase-config.js?v=2";
+    import { showToast, formatDate, getStatusBadge, animateCount } from '/js/utils.js';
+
+    // --- Auth Guard ---
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = '../login.html';
+    } else {
+      const { data: profile } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+      if (profile?.role !== 'super_admin') {
+        window.location.href = '../login.html';
+      }
+      document.getElementById('adminName').textContent = profile.email.split('@')[0];
+      document.getElementById('avatarInitial').textContent = profile.email[0].toUpperCase();
+    }
+
+    // --- Sidebar Toggle ---
+    document.getElementById('menuToggle').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    });
+    document.getElementById('sidebarOverlay').addEventListener('click', () => {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    });
+
+    let globalStats = {};
+    let restaurantAdoption = [];
+
+    // --- Load platform loyalty data ---
+    async function loadData() {
+      try {
+        const [
+          { data: restaurants },
+          { data: customers },
+          { data: visits },
+          { data: vouchers },
+          { data: activities }
+        ] = await Promise.all([
+          supabase.from('restaurants').select('id, name, created_at'),
+          supabase.from('loyalty_customers').select('*'),
+          supabase.from('loyalty_visits').select('*'),
+          supabase.from('loyalty_vouchers').select('*'),
+          supabase.from('loyalty_activity').select('*, restaurants(name), loyalty_customers(email)').order('created_at', { ascending: false }).limit(6)
+        ]);
+
+        if (!restaurants) return;
+
+        // Platform-wide aggregate numbers
+        const totalCustomers = customers ? customers.length : 0;
+        const totalVisits = visits ? visits.length : 0;
+        const totalPointsEarned = customers ? customers.reduce((sum, c) => sum + (c.total_points_earned || 0), 0) : 0;
+        const totalVouchersIssued = vouchers ? vouchers.length : 0;
+        const totalVouchersRedeemed = vouchers ? vouchers.filter(v => v.is_used).length : 0;
+
+        // Display KPI stats
+        document.getElementById('statsGrid').innerHTML = `
+          <div class="stat-card blue animate-in">
+            <div class="stat-icon blue">👥</div>
+            <div class="stat-value" id="statMembers">0</div>
+            <div class="stat-label">Total Members</div>
+          </div>
+          <div class="stat-card green animate-in animate-in-delay-1">
+            <div class="stat-icon green">🚶</div>
+            <div class="stat-value" id="statVisits">0</div>
+            <div class="stat-label">Total Check-in Visits</div>
+          </div>
+          <div class="stat-card purple animate-in animate-in-delay-2">
+            <div class="stat-icon red">🎟️</div>
+            <div class="stat-value" id="statRedeemed">0</div>
+            <div class="stat-label">Vouchers Redeemed</div>
+          </div>
+          <div class="stat-card amber animate-in animate-in-delay-3">
+            <div class="stat-icon amber">⭐</div>
+            <div class="stat-value" id="statPoints">0</div>
+            <div class="stat-label">Total Points Earned</div>
+          </div>
+        `;
+
+        animateCount(document.getElementById('statMembers'), totalCustomers);
+        animateCount(document.getElementById('statVisits'), totalVisits);
+        animateCount(document.getElementById('statRedeemed'), totalVouchersRedeemed);
+        animateCount(document.getElementById('statPoints'), totalPointsEarned);
+
+        // Tier distribution calculation
+        const tiers = { bronze: 0, silver: 0, gold: 0, platinum: 0 };
+        if (customers) {
+          customers.forEach(c => {
+            if (tiers[c.tier] !== undefined) tiers[c.tier]++;
+          });
+        }
+
+        const tierLabels = { bronze: 'Bronze 🥉', silver: 'Silver 🥈', gold: 'Gold 🥇', platinum: 'Platinum 💎' };
+        const tierClasses = { bronze: 'tier-bronze-bar', silver: 'tier-silver-bar', gold: 'tier-gold-bar', platinum: 'tier-platinum-bar' };
+        
+        const tierDistHtml = Object.keys(tiers).map(t => {
+          const count = tiers[t];
+          const pct = totalCustomers > 0 ? (count / totalCustomers) * 100 : 0;
+          return `
+            <div class="tier-row">
+              <span class="tier-name">${tierLabels[t]}</span>
+              <div class="tier-bar-wrapper">
+                <div class="tier-bar ${tierClasses[t]}" style="width: ${pct}%"></div>
+              </div>
+              <span class="tier-count">${count}</span>
+            </div>
+          `;
+        }).join('');
+        document.getElementById('tierDistribution').innerHTML = tierDistHtml;
+
+        // Per-restaurant aggregation
+        const restStats = {};
+        restaurants.forEach(r => {
+          restStats[r.id] = {
+            id: r.id,
+            name: r.name,
+            members: 0,
+            visits: 0,
+            points: 0,
+            vouchersIssued: 0,
+            vouchersRedeemed: 0
+          };
+        });
+
+        if (customers) {
+          customers.forEach(c => {
+            const s = restStats[c.restaurant_id];
+            if (s) {
+              s.members++;
+              s.points += (c.total_points_earned || 0);
+            }
+          });
+        }
+
+        if (visits) {
+          visits.forEach(v => {
+            const s = restStats[v.restaurant_id];
+            if (s) s.visits++;
+          });
+        }
+
+        if (vouchers) {
+          vouchers.forEach(v => {
+            const s = restStats[v.restaurant_id];
+            if (s) {
+              s.vouchersIssued++;
+              if (v.is_used) s.vouchersRedeemed++;
+            }
+          });
+        }
+
+        restaurantAdoption = Object.values(restStats);
+        renderTable(restaurantAdoption);
+
+        // Activity Feed rendering
+        const activityContainer = document.getElementById('activityFeed');
+        if (!activities || !activities.length) {
+          activityContainer.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted); font-size:0.8rem;">No recent activities logged</div>';
+        } else {
+          activityContainer.innerHTML = activities.map(act => {
+            const dateStr = act.created_at ? new Date(act.created_at).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
+            const restName = act.restaurants?.name || 'Platform';
+            const userEmail = act.loyalty_customers?.email || 'User';
+            return `
+              <div class="activity-item-compact">
+                <div class="activity-avatar">${act.icon || '⭐'}</div>
+                <div class="activity-details">
+                  <div class="activity-title">${act.title}</div>
+                  <div class="activity-desc">${restName} · ${userEmail} · ${act.description || ''}</div>
+                </div>
+                <div class="activity-time">${dateStr}</div>
+              </div>
+            `;
+          }).join('');
+        }
+
+        document.getElementById('lastUpdated').textContent = `Updated ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        showToast('Error loading platform stats: ' + err.message, 'error');
+      }
+    }
+
+    function renderTable(list) {
+      const tbody = document.getElementById('restaurantsBody');
+      if (!list.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">No restaurants found</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = list.map(r => {
+        const rate = r.vouchersIssued > 0 ? ((r.vouchersRedeemed / r.vouchersIssued) * 100).toFixed(1) : '0.0';
+        return `
+          <tr>
+            <td class="td-primary">${r.name}</td>
+            <td style="font-weight:700;">${r.members}</td>
+            <td>${r.visits}</td>
+            <td style="color:var(--primary-light);">${r.points.toLocaleString('en-IN')}</td>
+            <td>${r.vouchersIssued}</td>
+            <td style="color:var(--success);">${r.vouchersRedeemed}</td>
+            <td>
+              <span class="badge ${parseFloat(rate) >= 30 ? 'badge-success' : 'badge-secondary'}">
+                ${rate}%
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // --- Search Filtering ---
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase().trim();
+      const filtered = restaurantAdoption.filter(r => r.name.toLowerCase().includes(q));
+      render(filtered);
+    });
+
+    function render(list) {
+      renderTable(list);
+    }
+
+    document.getElementById('refreshBtn').addEventListener('click', loadData);
+
+    loadData();
+  </script>
+</body>
+</html>
