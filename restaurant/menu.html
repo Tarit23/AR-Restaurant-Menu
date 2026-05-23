@@ -264,10 +264,12 @@
     }
   };
 
+  window._menuItems = [];
   async function loadMenu() {
     const grid = document.getElementById('menuGrid');
     grid.innerHTML = '<div class="skeleton" style="height:280px;border-radius:var(--radius-xl);"></div>';
     const items = await menuAPI.getByRestaurant(restaurant.id);
+    window._menuItems = items;
 
     if (!items.length) {
       grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="empty-state-title">No dishes yet</div><div class="empty-state-text">Your admin will add dishes to your menu.</div></div>`;
@@ -291,7 +293,7 @@
           </div>
         </div>
         <div class="dish-actions">
-          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openEdit('${item.id}','${item.name.replace(/'/g, "\\'")}',${item.price},${item.is_available}, '${(item.category || '').replace(/'/g, "\\'")}', '${(item.description || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/\n/g, ' ')}')">✏️ Edit</button>
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openEdit('${item.id}')">✏️ Edit</button>
           <button class="btn ${item.is_available ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleAvail('${item.id}',${item.is_available})">
             ${item.is_available ? 'Mark Unavailable' : 'Mark Available'}
           </button>
@@ -300,14 +302,16 @@
     `).join('');
   }
 
-  window.openEdit = (id, name, price, available, category, description) => {
-    document.getElementById('editId').value = id;
-    document.getElementById('editName').value = name;
-    document.getElementById('editPrice').value = price;
-    document.getElementById('editCategory').value = category || '';
-    document.getElementById('editDescription').value = description || '';
-    document.getElementById('editAvailable').checked = available;
-    document.getElementById('editGenBtnText').textContent = description ? 'Regenerate AI Description' : 'Generate AI Description';
+  window.openEdit = (id) => {
+    const item = window._menuItems.find(i => i.id === id);
+    if (!item) return;
+    document.getElementById('editId').value = item.id;
+    document.getElementById('editName').value = item.name;
+    document.getElementById('editPrice').value = item.price;
+    document.getElementById('editCategory').value = item.category || '';
+    document.getElementById('editDescription').value = item.description || '';
+    document.getElementById('editAvailable').checked = item.is_available;
+    document.getElementById('editGenBtnText').textContent = item.description ? 'Regenerate AI Description' : 'Generate AI Description';
     updateEditCharCount();
     document.getElementById('editModal').classList.add('open');
   };

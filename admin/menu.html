@@ -273,6 +273,7 @@
   let currentRestaurantId = null;
   let editingDishId = null;
   let deletingDishId = null;
+  window._menuItems = [];
 
   const { data: { session } } = await supabase.auth.getSession();
   if (!session) { window.location.href = '../login.html'; }
@@ -354,6 +355,7 @@
     container.innerHTML = '<div class="skeleton" style="height:200px; border-radius:12px;"></div>';
     try {
       const items = await menuAPI.getByRestaurant(currentRestaurantId);
+      window._menuItems = items;
       if (!items.length) {
         container.innerHTML = `
           <div class="empty-state">
@@ -382,7 +384,7 @@
           </div>
           <div class="dish-actions">
             <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openEditDish('${item.id}')">Edit</button>
-            <button class="btn btn-danger btn-sm" onclick="openDeleteDish('${item.id}', '${item.name.replace(/'/g, "\\'")}')">Delete</button>
+            <button class="btn btn-danger btn-sm" onclick="openDeleteDish('${item.id}')">Delete</button>
           </div>
         </div>`).join('')}</div>
       <div style="margin-top:2rem; text-align:center;">
@@ -429,9 +431,10 @@
     document.getElementById('dishModal').classList.add('open');
   };
 
-  window.openDeleteDish = (id, name) => {
+  window.openDeleteDish = (id) => {
     deletingDishId = id;
-    document.getElementById('deleteDishName').textContent = name;
+    const item = window._menuItems.find(i => i.id === id);
+    document.getElementById('deleteDishName').textContent = item ? item.name : '';
     document.getElementById('deleteDishModal').classList.add('open');
   };
 
@@ -456,9 +459,17 @@
     const btn = document.getElementById('saveDishBtn');
     btn.classList.add('loading');
     try {
-      let imageUrl = editingDishId ? (await supabase.from('menu_items').select('image_url').eq('id', editingDishId).single()).data.image_url : null;
-      let modelUrl = editingDishId ? (await supabase.from('menu_items').select('model_url').eq('id', editingDishId).single()).data.model_url : null;
-      let usdzUrl  = editingDishId ? (await supabase.from('menu_items').select('usdz_url').eq('id', editingDishId).single()).data.usdz_url : null;
+      let imageUrl = null;
+      let modelUrl = null;
+      let usdzUrl  = null;
+      if (editingDishId) {
+        const { data: existing } = await supabase.from('menu_items').select('image_url, model_url, usdz_url').eq('id', editingDishId).single();
+        if (existing) {
+          imageUrl = existing.image_url;
+          modelUrl = existing.model_url;
+          usdzUrl  = existing.usdz_url;
+        }
+      }
 
       if (imageFile) imageUrl = await menuAPI.uploadImage(imageFile, currentRestaurantId);
       if (modelFile) modelUrl = await menuAPI.uploadModel(modelFile, currentRestaurantId);
