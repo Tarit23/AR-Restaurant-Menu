@@ -125,13 +125,17 @@
     import { showToast, formatDate, getStatusBadge, animateCount } from '../js/utils.js';
 
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { window.location.href = '../login.html'; }
-    else {
-      const { data: p } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
-      if (p?.role !== 'super_admin') window.location.href = '../login.html';
-      document.getElementById('adminName').textContent = p.email.split('@')[0];
-      document.getElementById('avatarInitial').textContent = p.email[0].toUpperCase();
+    if (!session) {
+      window.location.href = '../login.html';
+      return;
     }
+    const { data: p, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+    if (error || !p || p.role !== 'super_admin') {
+      window.location.href = '../login.html';
+      return;
+    }
+    document.getElementById('adminName').textContent = p.email ? p.email.split('@')[0] : 'Admin';
+    document.getElementById('avatarInitial').textContent = p.email ? p.email[0].toUpperCase() : 'A';
 
     document.getElementById('menuToggle').addEventListener('click', () => {
       document.getElementById('sidebar').classList.toggle('open');

@@ -294,13 +294,17 @@
 
     // --- Auth guard ---
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { window.location.href = '../login.html'; }
-    else {
-      const { data: profile } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
-      if (profile?.role !== 'super_admin') window.location.href = '../login.html';
-      document.getElementById('adminName').textContent = profile.email.split('@')[0];
-      document.getElementById('avatarInitial').textContent = profile.email[0].toUpperCase();
+    if (!session) {
+      window.location.href = '../login.html';
+      return;
     }
+    const { data: profile, error } = await supabase.from('users').select('role,email').eq('id', session.user.id).single();
+    if (error || !profile || profile.role !== 'super_admin') {
+      window.location.href = '../login.html';
+      return;
+    }
+    document.getElementById('adminName').textContent = profile.email ? profile.email.split('@')[0] : 'Admin';
+    document.getElementById('avatarInitial').textContent = profile.email ? profile.email[0].toUpperCase() : 'A';
 
     // --- Sidebar toggle ---
     document.getElementById('menuToggle').addEventListener('click', () => {

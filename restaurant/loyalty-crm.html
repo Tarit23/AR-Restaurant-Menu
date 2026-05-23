@@ -529,10 +529,16 @@
 
   /* ── Auth ── */
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) { window.location.href = '../login.html'; }
+  if (!session) {
+    window.location.href = '../login.html';
+    return;
+  }
 
   const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
-  if (!profile) { window.location.href = '../login.html'; }
+  if (!profile) {
+    window.location.href = '../login.html';
+    return;
+  }
 
   const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
   restaurantId = restaurant.id;
