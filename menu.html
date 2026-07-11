@@ -6,7 +6,7 @@
   <title>Our Menu — AR Menu Platform</title>
   <meta name="description" content="Browse our menu and view dishes in augmented reality. Try the Lucky Spin Wheel for an AI-powered recommendation!" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 
   <!--
@@ -659,12 +659,401 @@
       .sw-cat-grid { grid-template-columns: repeat(2, 1fr); }
       #spinCanvas { width: 260px !important; height: 260px !important; }
     }
+
+    /* ─── TEMPLATE OVERRIDES ─── */
+    body.theme-preset-2 {
+      --bg: #faf7f0;
+      --bg-card: #ffffff;
+      --bg-elevated: #faf7f0;
+      --bg-glass: rgba(250, 247, 240, 0.95);
+      --border: 1px solid #d4c5b9;
+      --text: #1a1a1a;
+      --text-sec: #5c554e;
+      --text-muted: #8c8276;
+      --font: 'Playfair Display', Georgia, serif;
+      --font-display: 'Playfair Display', Georgia, serif;
+      --radius-sm: 0px;
+      --radius-md: 0px;
+      --radius-lg: 0px;
+      --radius-xl: 0px;
+      --radius-2xl: 0px;
+    }
+    body.theme-preset-2 .dish-card {
+      border: 1px solid #d4c5b9;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    body.theme-preset-2 .btn-ar, body.theme-preset-2 .btn-primary {
+      background: #1a1a1a !important;
+      color: #faf7f0 !important;
+      border-radius: 0 !important;
+    }
+
+    body.theme-preset-3 {
+      --bg: #ffffff;
+      --bg-card: #ffffff;
+      --bg-elevated: #f1f5f9;
+      --bg-glass: rgba(255, 255, 255, 0.95);
+      --border: 2px solid #0f172a;
+      --text: #0f172a;
+      --text-sec: #334155;
+      --text-muted: #64748b;
+      --font: 'Courier New', Courier, monospace;
+      --font-display: 'Courier New', Courier, monospace;
+      --radius-sm: 0px;
+      --radius-md: 0px;
+      --radius-lg: 0px;
+      --radius-xl: 0px;
+      --radius-2xl: 0px;
+    }
+    body.theme-preset-3 .dish-card {
+      border: 2px solid #0f172a;
+      border-radius: 0;
+      box-shadow: none;
+    }
+    body.theme-preset-3 .btn-ar, body.theme-preset-3 .btn-primary {
+      background: #0f172a !important;
+      color: #ffffff !important;
+      border: 2px solid #0f172a;
+      border-radius: 0 !important;
+    }
+
+    body.theme-preset-4 {
+      --bg: linear-gradient(135deg, #fff5f5, #fffbeb);
+      --bg-card: #ffffff;
+      --bg-elevated: #fef3c7;
+      --bg-glass: rgba(255, 255, 255, 0.9);
+      --border: rgba(245, 158, 11, 0.15);
+      --text: #451a03;
+      --text-sec: #78350f;
+      --text-muted: #b45309;
+      --font: 'Outfit', sans-serif;
+      --font-display: 'Outfit', sans-serif;
+      --radius-sm: 10px;
+      --radius-md: 16px;
+      --radius-lg: 22px;
+      --radius-xl: 30px;
+      --radius-2xl: 40px;
+    }
+    body.theme-preset-4 .dish-card {
+      border: 1px solid rgba(245, 158, 11, 0.15);
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.05);
+    }
+    body.theme-preset-4 .btn-ar, body.theme-preset-4 .btn-primary {
+      background: linear-gradient(135deg, #f59e0b, #e11d48) !important;
+      color: #ffffff !important;
+      border: none;
+      border-radius: 30px !important;
+    }
+
+    body.theme-preset-5 {
+      --bg: #000000;
+      --bg-card: #000000;
+      --bg-elevated: #0a0a0a;
+      --bg-glass: rgba(0, 0, 0, 0.9);
+      --border: 1px solid #ff007f;
+      --text: #00ffcc;
+      --text-sec: #ff007f;
+      --text-muted: #008877;
+      --font: 'Courier New', Courier, monospace;
+      --font-display: 'Courier New', Courier, monospace;
+      --radius-sm: 0px;
+      --radius-md: 4px;
+      --radius-lg: 6px;
+      --radius-xl: 8px;
+      --radius-2xl: 10px;
+      --border-glow: rgba(0, 255, 204, 0.5);
+    }
+    body.theme-preset-5 .dish-card {
+      border: 1px solid #ff007f;
+      box-shadow: 0 0 10px rgba(255, 0, 127, 0.2);
+    }
+    body.theme-preset-5 .btn-ar, body.theme-preset-5 .btn-primary {
+      background: #000000 !important;
+      color: #00ffcc !important;
+      border: 1px solid #00ffcc !important;
+      box-shadow: 0 0 8px rgba(0, 255, 204, 0.3) !important;
+    }
+    /* ─── CART FLOATING BUTTON ─── */
+    .cart-floating-btn {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--primary);
+      border: 1px solid var(--border-glow);
+      color: #ffffff;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(99, 102, 241, 0.4);
+      z-index: 1000;
+      transition: all 0.2s;
+    }
+    .cart-floating-btn:hover {
+      transform: scale(1.08);
+      background: var(--primary-dark);
+    }
+    .cart-count-badge {
+      position: absolute;
+      top: -4px;
+      right: -4px;
+      background: var(--danger);
+      color: #ffffff;
+      font-size: 0.72rem;
+      font-weight: 800;
+      min-width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2px;
+      border: 2px solid var(--bg);
+    }
+
+    /* ─── CART DRAWER ─── */
+    .cart-drawer-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(4px);
+      z-index: 1001;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .cart-drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .cart-drawer {
+      position: fixed;
+      top: 0;
+      right: -360px;
+      width: 360px;
+      height: 100%;
+      background: var(--bg-glass);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid var(--border);
+      box-shadow: -4px 0 24px rgba(0,0,0,0.3);
+      z-index: 1002;
+      display: flex;
+      flex-direction: column;
+      transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .cart-drawer.open {
+      right: 0;
+    }
+    .cart-drawer-header {
+      padding: 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .cart-drawer-close {
+      background: none;
+      border: none;
+      color: var(--text);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .cart-drawer-body {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .cart-drawer-footer {
+      padding: 20px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-card);
+    }
+
+    .cart-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+      padding-bottom: 12px;
+    }
+    .cart-item-info {
+      flex: 1;
+    }
+    .cart-item-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+    .cart-item-price {
+      font-size: 0.8rem;
+      color: var(--primary-light);
+      margin-top: 2px;
+    }
+    .cart-item-controls {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cart-qty-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 4px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 0.8rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cart-item-qty {
+      font-size: 0.85rem;
+      font-weight: 700;
+      width: 16px;
+      text-align: center;
+    }
+
+    .cart-summary-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      margin-bottom: 6px;
+    }
+
+    /* ─── FAVORITES HEART ICON ─── */
+    .btn-favorite-heart {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.1);
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #ef4444;
+      font-size: 1.1rem;
+      z-index: 10;
+      transition: all 0.2s;
+    }
+    .btn-favorite-heart:hover {
+      transform: scale(1.1);
+      background: rgba(0,0,0,0.8);
+    }
   </style>
 </head>
 <body>
 
   <!-- CONFETTI CANVAS -->
   <canvas id="confettiCanvas"></canvas>
+
+  <!-- CART FLOATING BUTTON -->
+  <button class="cart-floating-btn" id="cartFloatingBtn" onclick="toggleCartDrawer(true)" style="display: none;">
+    <span class="cart-count-badge" id="cartCountBadge">0</span>
+    🛒
+  </button>
+
+  <!-- CART DRAWER BACKDROP -->
+  <div class="cart-drawer-backdrop" id="cartDrawerBackdrop" onclick="toggleCartDrawer(false)"></div>
+
+  <!-- CART DRAWER -->
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-drawer-header">
+      <h3 style="font-family: var(--font-display); font-weight: 800;">🛒 Shopping Cart</h3>
+      <button class="cart-drawer-close" onclick="toggleCartDrawer(false)">×</button>
+    </div>
+    <div class="cart-drawer-body" id="cartDrawerBody">
+      <!-- Dynamic cart items will go here -->
+    </div>
+    <div class="cart-drawer-footer">
+      <div class="cart-summary-row">
+        <span>Subtotal:</span>
+        <span id="cartSubtotal" style="font-weight: 600;">₹0</span>
+      </div>
+      <div class="cart-summary-row" id="cartDiscountRow" style="display:none;">
+        <span style="color:var(--success);">Discount:</span>
+        <span style="color:var(--success);" id="cartDiscountAmount">-₹0</span>
+      </div>
+      <div class="cart-summary-row" style="font-size: 1.1rem; font-weight: 800; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+        <span>Total:</span>
+        <span id="cartTotal" style="color: var(--primary-light);">₹0</span>
+      </div>
+      
+      <!-- Voucher Input -->
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <input type="text" id="voucherInput" class="form-control" placeholder="Enter coupon code..." style="padding: 6px 12px; font-size: 0.8rem; flex: 1;" />
+        <button class="btn btn-secondary btn-sm" onclick="applyVoucherCode()" style="padding: 6px 12px; font-size: 0.8rem;">Apply</button>
+      </div>
+      <div id="voucherStatusMsg" style="font-size: 0.72rem; margin-top: 4px; font-weight: 600;"></div>
+
+      <!-- Checkout Details -->
+      <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 8px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size: 0.75rem;">Table Number</label>
+          <input type="number" id="checkoutTable" class="form-control" placeholder="e.g. 5" style="padding: 6px 12px; font-size: 0.8rem;" required />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size: 0.75rem;">Your Name</label>
+          <input type="text" id="checkoutName" class="form-control" placeholder="Enter your name" style="padding: 6px 12px; font-size: 0.8rem;" />
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size: 0.75rem;">Email (for Loyalty Points)</label>
+          <input type="email" id="checkoutEmail" class="form-control" placeholder="your@email.com" style="padding: 6px 12px; font-size: 0.8rem;" />
+        </div>
+      </div>
+
+      <button class="btn btn-primary" id="checkoutSubmitBtn" style="width:100%; margin-top: 16px; padding: 10px;" onclick="submitTableOrder()">
+        🚀 Place Table Order
+      </button>
+    </div>
+  </div>
+
+  <!-- DISH DETAIL MODAL -->
+  <div class="modal-backdrop" id="dishDetailModal">
+    <div class="modal" style="max-width: 500px; width: 90%;">
+      <div class="modal-header">
+        <h3 class="modal-title" id="detailModalTitle" style="font-family: var(--font-display); font-weight: 800;">Dish Name</h3>
+        <button class="modal-close" onclick="document.getElementById('dishDetailModal').classList.remove('open')">×</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:16px; max-height: 60vh; overflow-y: auto;">
+        <div id="detailModalImageWrap" style="width:100%; height:220px; border-radius:var(--radius-lg); overflow:hidden; background: var(--bg-elevated); display:flex; align-items:center; justify-content:center;"></div>
+        
+        <div>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+            <span class="badge badge-info" id="detailModalCategory">Category</span>
+            <span style="font-size:1.2rem; font-weight:800; color:var(--primary-light);" id="detailModalPrice">₹0</span>
+          </div>
+          <p id="detailModalDesc" style="font-size:0.85rem; color:var(--text-sec); line-height:1.5; margin-bottom: 8px;">Description here</p>
+          <div id="detailModalChips" style="display:flex; gap:8px; flex-wrap:wrap;"></div>
+        </div>
+
+        <!-- Smart Upselling Section -->
+        <div id="detailModalUpsellsWrap" class="hidden" style="border-top:1px solid var(--border); padding-top:12px;">
+          <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-sec); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em;">People also order:</div>
+          <div id="detailModalUpsellsList" style="display:flex; flex-direction:column; gap:8px;">
+            <!-- Upsell items list with checkboxes -->
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="gap:10px;">
+        <a class="btn btn-secondary" id="detailModalArBtn" href="#" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center; gap:6px;">📱 View in AR</a>
+        <button class="btn btn-primary" id="detailModalCartBtn" style="flex:1;">Add to Cart</button>
+      </div>
+    </div>
+  </div>
 
   <!-- HEADER -->
   <header class="header">
@@ -912,9 +1301,52 @@
           return;
         }
 
+        // DYNAMIC THEME INJECTOR
+        const theme = restaurant.theme_settings;
+        if (theme) {
+          if (theme.theme && theme.theme !== '1') {
+            document.body.classList.add(`theme-preset-${theme.theme}`);
+          }
+          const styleEl = document.createElement('style');
+          styleEl.textContent = `
+            :root {
+              ${theme.primaryColor ? `--primary: ${theme.primaryColor};` : ''}
+              ${theme.primaryColor ? `--primary-light: ${theme.primaryColor}dd;` : ''}
+              ${theme.primaryColor ? `--border-glow: ${theme.primaryColor}55;` : ''}
+              ${theme.backgroundColor ? `--bg: ${theme.backgroundColor};` : ''}
+              ${theme.cardColor ? `--bg-card: ${theme.cardColor};` : ''}
+              ${theme.fontFamily ? `--font: '${theme.fontFamily}', sans-serif;` : ''}
+              ${theme.fontFamily ? `--font-display: '${theme.fontFamily}', sans-serif;` : ''}
+            }
+          `;
+          document.head.appendChild(styleEl);
+
+          // Update header and banner text/images
+          document.getElementById('restaurantName').innerHTML = theme.logoUrl 
+            ? `<img src="${theme.logoUrl}" style="height:32px; max-width:140px; object-fit:contain; border-radius:4px; vertical-align:middle;" />` 
+            : restaurant.name;
+
+          document.getElementById('heroTitle').textContent = theme.welcomeTitle || `${restaurant.name}'s Menu`;
+          if (theme.welcomeSubtitle) {
+            const subt = document.querySelector('.hero-subtitle');
+            if (subt) subt.textContent = theme.welcomeSubtitle;
+          }
+          
+          if (theme.bannerUrl) {
+            const heroEl = document.querySelector('.hero');
+            if (heroEl) {
+              heroEl.style.background = `linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.65)), url('${theme.bannerUrl}') center/cover`;
+              heroEl.style.borderRadius = 'var(--radius-xl)';
+              heroEl.style.padding = '80px 24px';
+              heroEl.style.marginTop = '20px';
+            }
+          }
+        } else {
+          document.getElementById('restaurantName').textContent = restaurant.name;
+          document.getElementById('heroTitle').textContent = `${restaurant.name}'s Menu`;
+        }
+
         document.title = `${restaurant.name} — Menu`;
-        document.getElementById('restaurantName').textContent = restaurant.name;
-        document.getElementById('heroTitle').textContent = `${restaurant.name}'s Menu`;
 
         const arEnabled = restaurant.subscription_status === 'active';
         if (!arEnabled) document.getElementById('expiredBanner').style.display = 'block';
@@ -1041,15 +1473,17 @@
       const isIOS = /ipad|iphone|ipod/i.test(navigator.userAgent) && !window.MSStream;
 
       grid.innerHTML = items.map((item, i) => {
-        const arBtnEnabled = arEnabled && (item.model_url || item.usdz_url);
-
-        /* ── PERFORMANCE: build ar.html URL with model data pre-embedded ──
-           ar.html reads model/name/price from params instantly and starts
-           downloading the GLB *before* its own DB query returns.          */
-        const baseArUrl = buildArUrl(item, isAndroid, isIOS);
+        const isFav = window._favoriteIds && window._favoriteIds.includes(item.id);
+        const heartChar = isFav ? '❤️' : '🤍';
 
         return `
-          <div class="dish-card" style="animation-delay:${i * 0.04}s;">
+          <div class="dish-card" style="animation-delay:${i * 0.04}s; position:relative; cursor:pointer;" onclick="openDishDetail('${item.id}')">
+            
+            <!-- Favorite Heart Icon -->
+            <button class="btn-favorite-heart" onclick="toggleFavorite(event, '${item.id}')" id="favHeart-${item.id}">
+              ${heartChar}
+            </button>
+
             <div class="dish-img-wrap">
               ${item.image_url
                 ? `<img class="dish-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />`
@@ -1061,20 +1495,15 @@
               <div class="dish-name">${item.name}</div>
               ${item.category ? `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:1px;margin-bottom:2px;">${item.category}</div>` : ''}
               ${item.description ? `
-                <div class="dish-desc" id="desc-${item.id}" onclick="toggleDesc('${item.id}')">${escHtml(item.description)}</div>
-                <button class="dish-desc-toggle" id="togBtn-${item.id}" onclick="toggleDesc('${item.id}')">
-                  <span id="togTxt-${item.id}">Read more</span> ▾
-                </button>
+                <div class="dish-desc" id="desc-${item.id}">${escHtml(item.description)}</div>
                 ${buildDescChips(item.description)}
               ` : ''}
             </div>
-            <div class="dish-footer">
+            <div class="dish-footer" style="display:flex; justify-content:space-between; align-items:center;">
               <div class="ui-dish-price">₹${item.price.toLocaleString('en-IN')}</div>
-              ${(item.model_url || item.usdz_url)
-                ? arBtnEnabled
-                  ? `<a class="btn-ar" href="${baseArUrl}" ${isIOS && item.usdz_url ? 'rel="ar"' : ''}>📱 View in AR</a>`
-                  : `<button class="btn-ar disabled" disabled>AR Unavailable</button>`
-                : `<span style="font-size:.75rem;color:var(--text-muted);">No AR model</span>`}
+              <button class="btn-ar" onclick="event.stopPropagation(); openDishDetail('${item.id}')">
+                ${(item.model_url || item.usdz_url) ? '📱 View & Order' : '🛒 Order'}
+              </button>
             </div>
           </div>`;
       }).join('');
@@ -1104,6 +1533,439 @@
     }
     /* Expose to non-module scripts (spin wheel result button) */
     window._buildArUrl = buildArUrl;
+
+    /* ═══════════════════════════════════════════════════════════
+       TABLE ORDERING, CART & SMART UPSELLING LOGIC
+    ═══════════════════════════════════════════════════════════ */
+    let cart = [];
+    let appliedVoucher = null;
+    window._favoriteIds = [];
+
+    // Pre-fill Table Number and Customer Loyalty details on start
+    setTimeout(async () => {
+      const queryTable = params.get('table');
+      if (queryTable) {
+        const tableInput = document.getElementById('checkoutTable');
+        if (tableInput) {
+          tableInput.value = queryTable;
+          // Add styling lock or subtle border
+          tableInput.style.borderColor = 'var(--success)';
+        }
+      }
+
+      const activeLoyalty = JSON.parse(localStorage.getItem('loyalty_session'));
+      if (activeLoyalty && activeLoyalty.restaurant_id === restaurantId) {
+        if (document.getElementById('checkoutName')) {
+          document.getElementById('checkoutName').value = activeLoyalty.name || '';
+        }
+        if (document.getElementById('checkoutEmail')) {
+          document.getElementById('checkoutEmail').value = activeLoyalty.email || '';
+        }
+
+        // Fetch Customer Favorites
+        try {
+          const { data, error } = await supabase
+            .from('customer_favorites')
+            .select('menu_item_id')
+            .eq('customer_id', activeLoyalty.customer_id)
+            .eq('restaurant_id', restaurantId);
+          if (!error && data) {
+            window._favoriteIds = data.map(d => d.menu_item_id);
+            // Re-render items to show red hearts
+            if (window._allItems) {
+              renderItems(window._allItems, window._arEnabled);
+            }
+          }
+        } catch (err) {
+          console.warn("Could not fetch customer favorites:", err.message);
+        }
+      }
+    }, 500);
+
+    /* ─── Cart Drawer Controls ─── */
+    window.toggleCartDrawer = (show) => {
+      const drawer = document.getElementById('cartDrawer');
+      const backdrop = document.getElementById('cartDrawerBackdrop');
+      if (show) {
+        drawer.classList.add('open');
+        backdrop.classList.add('open');
+        updateCartUI();
+      } else {
+        drawer.classList.remove('open');
+        backdrop.classList.remove('open');
+      }
+    };
+
+    window.addToCart = (id, quantity = 1, upsellIdsToAdd = []) => {
+      const item = window._allItems.find(i => i.id === id);
+      if (!item) return;
+
+      const existing = cart.find(c => c.id === id);
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        cart.push({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: quantity
+        });
+      }
+
+      // If any upsell checkboxes were selected in detail modal, add them too
+      upsellIdsToAdd.forEach(upId => {
+        const upItem = window._allItems.find(i => i.id === upId);
+        if (upItem) {
+          const extUp = cart.find(c => c.id === upId);
+          if (extUp) extUp.quantity += 1;
+          else cart.push({ id: upItem.id, name: upItem.name, price: upItem.price, quantity: 1 });
+        }
+      });
+
+      // Show floating cart button
+      document.getElementById('cartFloatingBtn').style.display = 'flex';
+      updateCartBadge();
+      
+      // Close detail modal
+      document.getElementById('dishDetailModal').classList.remove('open');
+      
+      // Briefly animate cart button
+      const btn = document.getElementById('cartFloatingBtn');
+      btn.style.transform = 'scale(1.2)';
+      setTimeout(() => { btn.style.transform = 'scale(1)'; }, 200);
+
+      updateCartUI();
+    };
+
+    function updateCartBadge() {
+      const totalQty = cart.reduce((sum, item) => sum + item.quantity, 0);
+      document.getElementById('cartCountBadge').textContent = totalQty;
+      document.getElementById('cartFloatingBtn').style.display = totalQty > 0 ? 'flex' : 'none';
+    }
+
+    window.changeCartQty = (id, delta) => {
+      const item = cart.find(c => c.id === id);
+      if (!item) return;
+      item.quantity += delta;
+      if (item.quantity <= 0) {
+        cart = cart.filter(c => c.id !== id);
+      }
+      updateCartBadge();
+      updateCartUI();
+    };
+
+    function updateCartUI() {
+      const container = document.getElementById('cartDrawerBody');
+      if (!cart.length) {
+        container.innerHTML = `
+          <div style="text-align:center; padding: 40px 10px; color: var(--text-sec);">
+            <div style="font-size: 2.5rem; margin-bottom: 8px;">🛒</div>
+            <p>Your cart is empty.</p>
+            <p style="font-size:0.75rem; margin-top:4px;">Tap a dish to view details and add items.</p>
+          </div>
+        `;
+        document.getElementById('cartSubtotal').textContent = '₹0';
+        document.getElementById('cartTotal').textContent = '₹0';
+        document.getElementById('cartDiscountRow').style.display = 'none';
+        return;
+      }
+
+      container.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <div class="cart-item-info">
+            <div class="cart-item-name">${item.name}</div>
+            <div class="cart-item-price">₹${item.price}</div>
+          </div>
+          <div class="cart-item-controls">
+            <button class="cart-qty-btn" onclick="changeCartQty('${item.id}', -1)">-</button>
+            <span class="cart-item-qty">${item.quantity}</span>
+            <button class="cart-qty-btn" onclick="changeCartQty('${item.id}', 1)">+</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Calculation
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+      let discount = 0;
+
+      if (appliedVoucher) {
+        if (appliedVoucher.type === 'discount_flat') {
+          discount = parseFloat(appliedVoucher.value);
+        } else if (appliedVoucher.type === 'discount_percent') {
+          discount = Math.floor(subtotal * (parseFloat(appliedVoucher.value) / 100));
+        }
+      }
+
+      const total = Math.max(0, subtotal - discount);
+
+      document.getElementById('cartSubtotal').textContent = `₹${subtotal.toLocaleString('en-IN')}`;
+      if (discount > 0) {
+        document.getElementById('cartDiscountAmount').textContent = `-₹${discount.toLocaleString('en-IN')}`;
+        document.getElementById('cartDiscountRow').style.display = 'flex';
+      } else {
+        document.getElementById('cartDiscountRow').style.display = 'none';
+      }
+      document.getElementById('cartTotal').textContent = `₹${total.toLocaleString('en-IN')}`;
+    }
+
+    /* ─── Voucher Application ─── */
+    window.applyVoucherCode = async () => {
+      const code = document.getElementById('voucherInput').value.trim();
+      const msgEl = document.getElementById('voucherStatusMsg');
+      if (!code) {
+        msgEl.textContent = 'Please enter a coupon code.';
+        msgEl.style.color = 'var(--danger)';
+        return;
+      }
+
+      msgEl.textContent = 'Verifying...';
+      msgEl.style.color = 'var(--text-sec)';
+
+      try {
+        const { data: voucher, error } = await supabase
+          .from('loyalty_vouchers')
+          .select('*')
+          .eq('code', code)
+          .eq('restaurant_id', restaurantId)
+          .eq('is_used', false)
+          .single();
+
+        if (error || !voucher) {
+          throw new Error('Voucher is invalid, expired or already used.');
+        }
+
+        if (voucher.expires_at && new Date(voucher.expires_at) < new Date()) {
+          throw new Error('Voucher has expired.');
+        }
+
+        appliedVoucher = voucher;
+        msgEl.textContent = `✓ Coupon applied: ${voucher.description || `${voucher.value} off`}`;
+        msgEl.style.color = 'var(--success)';
+        
+        updateCartUI();
+
+      } catch (err) {
+        appliedVoucher = null;
+        msgEl.textContent = err.message;
+        msgEl.style.color = 'var(--danger)';
+        updateCartUI();
+      }
+    };
+
+    /* ─── Table Ordering Submission ─── */
+    window.submitTableOrder = async () => {
+      const tableInput = document.getElementById('checkoutTable');
+      const tableNumber = parseInt(tableInput.value);
+      const name = document.getElementById('checkoutName').value.trim();
+      const email = document.getElementById('checkoutEmail').value.trim();
+
+      if (isNaN(tableNumber) || tableNumber <= 0) {
+        alert('Please enter a valid table number.');
+        tableInput.focus();
+        return;
+      }
+
+      const submitBtn = document.getElementById('checkoutSubmitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Placing Order...';
+
+      try {
+        let customerId = null;
+        if (email) {
+          const { data: customer } = await supabase
+            .from('loyalty_customers')
+            .select('id')
+            .eq('email', email.toLowerCase())
+            .eq('restaurant_id', restaurantId)
+            .single();
+          if (customer) customerId = customer.id;
+        }
+
+        const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+        let discount = 0;
+
+        if (appliedVoucher) {
+          if (appliedVoucher.type === 'discount_flat') {
+            discount = parseFloat(appliedVoucher.value);
+          } else if (appliedVoucher.type === 'discount_percent') {
+            discount = Math.floor(subtotal * (parseFloat(appliedVoucher.value) / 100));
+          }
+        }
+
+        // Insert order
+        const { data: order, error } = await supabase
+          .from('orders')
+          .insert([{
+            restaurant_id: restaurantId,
+            customer_id: customerId,
+            customer_name: name || 'Dine-In Table Customer',
+            customer_email: email || null,
+            table_number: tableNumber,
+            total_amount: subtotal,
+            discount_amount: discount,
+            status: 'pending',
+            voucher_code: appliedVoucher ? appliedVoucher.code : null
+          }])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Insert order items
+        const orderItemsPayload = cart.map(item => ({
+          order_id: order.id,
+          menu_item_id: item.id,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price
+        }));
+
+        const { error: itemsError } = await supabase
+          .from('order_items')
+          .insert(orderItemsPayload);
+
+        if (itemsError) throw itemsError;
+
+        cart = [];
+        appliedVoucher = null;
+        document.getElementById('voucherInput').value = '';
+        document.getElementById('voucherStatusMsg').textContent = '';
+        updateCartBadge();
+        toggleCartDrawer(false);
+
+        alert('🎉 Order placed successfully! Sent to kitchen KDS.');
+
+      } catch (err) {
+        alert('Order placement failed: ' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '🚀 Place Table Order';
+      }
+    };
+
+
+    /* ─── Dish Detail Modal & Upsells ─── */
+    window.openDishDetail = async (id) => {
+      const item = window._allItems.find(i => i.id === id);
+      if (!item) return;
+
+      const isAndroid = /android/i.test(navigator.userAgent);
+      const isIOS = /ipad|iphone|ipod/i.test(navigator.userAgent) && !window.MSStream;
+      const baseArUrl = buildArUrl(item, isAndroid, isIOS);
+
+      document.getElementById('detailModalTitle').textContent = item.name;
+      document.getElementById('detailModalCategory').textContent = item.category || 'Mains';
+      document.getElementById('detailModalPrice').textContent = `₹${item.price.toLocaleString('en-IN')}`;
+      document.getElementById('detailModalDesc').textContent = item.description || 'Fresh ingredients, prepared to order.';
+
+      const imgWrap = document.getElementById('detailModalImageWrap');
+      if (item.image_url) {
+        imgWrap.innerHTML = `<img src="${item.image_url}" style="width:100%; height:100%; object-fit:cover;" />`;
+      } else {
+        imgWrap.innerHTML = `<div style="font-size:3rem; color:var(--text-muted);">🍽️</div>`;
+      }
+
+      const chipsEl = document.getElementById('detailModalChips');
+      chipsEl.innerHTML = '';
+      if (item.description) {
+        const calMatch = item.description.match(/(\d[\d,]*)\s*kcal/i);
+        if (calMatch) chipsEl.innerHTML += `<span class="badge badge-success">🔥 ${calMatch[1]} kcal</span>`;
+      }
+
+      const arBtn = document.getElementById('detailModalArBtn');
+      if (item.model_url || item.usdz_url) {
+        arBtn.style.display = 'inline-flex';
+        arBtn.href = baseArUrl;
+        if (isIOS && item.usdz_url) arBtn.setAttribute('rel', 'ar');
+        else arBtn.removeAttribute('rel');
+      } else {
+        arBtn.style.display = 'none';
+      }
+
+      const cartBtn = document.getElementById('detailModalCartBtn');
+      cartBtn.onclick = () => {
+        const checkedUpsells = Array.from(document.querySelectorAll('.upsell-check:checked')).map(cb => cb.dataset.id);
+        addToCart(item.id, 1, checkedUpsells);
+      };
+
+      const upsellWrap = document.getElementById('detailModalUpsellsWrap');
+      const upsellsList = document.getElementById('detailModalUpsellsList');
+      
+      upsellWrap.classList.add('hidden');
+      upsellsList.innerHTML = '';
+
+      try {
+        const { data: rule } = await supabase
+          .from('upsell_rules')
+          .select('upsell_item_ids')
+          .eq('menu_item_id', item.id)
+          .single();
+
+        if (rule && rule.upsell_item_ids && rule.upsell_item_ids.length > 0) {
+          const { data: upItems, error: upErr } = await supabase
+            .from('menu_items')
+            .select('id, name, price')
+            .in('id', rule.upsell_item_ids)
+            .eq('is_available', true);
+
+          if (!upErr && upItems && upItems.length > 0) {
+            upsellWrap.classList.remove('hidden');
+            upsellsList.innerHTML = upItems.map(up => `
+              <label style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:6px; border-radius:8px; background: rgba(255,255,255,0.03); font-size: 0.85rem;">
+                <input type="checkbox" class="upsell-check" data-id="${up.id}" style="cursor:pointer;" />
+                <span style="font-weight: 600;">+ Add ${up.name}</span>
+                <span style="margin-left:auto; color: var(--primary-light);">+₹${up.price}</span>
+              </label>
+            `).join('');
+          }
+        }
+      } catch (err) {
+        console.warn("Smart upselling fetch failed:", err.message);
+      }
+
+      document.getElementById('dishDetailModal').classList.add('open');
+    };
+
+
+    /* ─── Favorites Toggle Function ─── */
+    window.toggleFavorite = async (event, id) => {
+      event.stopPropagation();
+      const activeLoyalty = JSON.parse(localStorage.getItem('loyalty_session'));
+      if (!activeLoyalty || !activeLoyalty.customer_id) {
+        alert("🏆 Join our Loyalty Rewards program to save your favorite dishes!");
+        window.location.href = `/loyalty?restaurant=${restaurantId}`;
+        return;
+      }
+
+      const heartEl = document.getElementById('favHeart-' + id);
+      const isFav = window._favoriteIds.includes(id);
+
+      try {
+        if (isFav) {
+          const { error } = await supabase
+            .from('customer_favorites')
+            .delete()
+            .eq('customer_id', activeLoyalty.customer_id)
+            .eq('menu_item_id', id);
+          if (error) throw error;
+          window._favoriteIds = window._favoriteIds.filter(fid => fid !== id);
+          heartEl.textContent = '🤍';
+        } else {
+          const { error } = await supabase
+            .from('customer_favorites')
+            .insert([{
+              restaurant_id: restaurantId,
+              customer_id: activeLoyalty.customer_id,
+              menu_item_id: id
+            }]);
+          if (error) throw error;
+          window._favoriteIds.push(id);
+          heartEl.textContent = '❤️';
+        }
+      } catch (err) {
+        console.error("Favorite toggle failed:", err.message);
+      }
+    };
   </script>
 
 

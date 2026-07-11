@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waiter Alerts & Service — AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    .waiter-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .waiter-card {
+      background: var(--bg-card);
+      border: 2px solid #10b981; /* Green border for delivery alert */
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 0 10px rgba(16,185,129,0.1);
+      position: relative;
+    }
+
+    .waiter-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .waiter-table-badge {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--success);
+    }
+
+    .waiter-time {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .waiter-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .waiter-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+    }
+
+    .waiter-item-qty {
+      background: rgba(16,185,129,0.1);
+      color: var(--success);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: bold;
+    }
+
+    .waiter-card-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+    }
+  </style>
+</head>
+<body class="dashboard-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"></div>
+      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Operations</div>
+      <a class="nav-item" href="/restaurant/kitchen">Kitchen KDS</a>
+      <a class="nav-item active" href="/restaurant/waiter">Waiter Alerts</a>
+      <a class="nav-item" href="/restaurant/billing">Billing Console</a>
+      <div class="sidebar-section-label">Configuration</div>
+      <a class="nav-item" href="/restaurant">Dashboard</a>
+      <a class="nav-item" href="/restaurant/menu">My Menu</a>
+      <a class="nav-item" href="/restaurant/theme">Custom UI & Theme</a>
+      <a class="nav-item" href="/restaurant/loyalty-crm">Loyalty CRM</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">R</div>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="restaurantName">Loading...</div>
+          <div class="user-role">Service Staff</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn" type="button">Sign Out</button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
+      <div class="topbar-breadcrumb">
+        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">Waiter Alerts</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in" style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="page-header-text">
+          <h1>Waiter Alert Dashboard</h1>
+          <p>Deliver hot orders to tables as soon as they are ready.</p>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-muted); font-weight:600;" id="waiterStatus">
+          Last updated: Just now
+        </div>
+      </div>
+
+      <div class="waiter-grid animate-in animate-in-delay-1" id="waiterGrid">
+        <!-- Delivery cards -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import "/js/logout-handler.js?v=3";
+    import { supabase } from "/js/supabase-config.js?v=3";
+    import { ordersAPI } from "/js/loyalty-api.js?v=3";
+    import { showToast } from "/js/utils.js?v=3";
+
+    let restaurantId = null;
+    let restaurant = null;
+    let readyOrders = [];
+
+    (async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+      if (!profile) return window.location.href = '../login.html';
+
+      restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+      restaurantId = restaurant.id;
+
+      document.getElementById('restaurantName').textContent = restaurant.name;
+      document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
+      document.getElementById('topbarRestName').textContent    = restaurant.name;
+      document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+
+      // Load active orders and setup subscription
+      loadWaiterOrders();
+      setInterval(loadWaiterOrders, 8000); // Polling backup
+
+      // Realtime listener
+      supabase
+        .channel('waiter-orders')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+          loadWaiterOrders();
+        })
+        .subscribe();
+    })();
+
+    async function loadWaiterOrders() {
+      try {
+        const data = await ordersAPI.getActiveByRestaurant(restaurantId);
+        // Waiter alerts are for orders in 'ready' status
+        readyOrders = data.filter(o => o.status === 'ready');
+        renderWaiterCards();
+        document.getElementById('waiterStatus').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        console.error('Waiter alerts load failed:', err.message);
+      }
+    }
+
+    function renderWaiterCards() {
+      const grid = document.getElementById('waiterGrid');
+      if (!readyOrders.length) {
+        grid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 48px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl);">
+            <div style="font-size: 32px; margin-bottom: 12px;">🛎️</div>
+            <h3 style="margin-bottom: 6px;">No pending deliveries</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">When the kitchen finishes preparing a dish, it will show up here immediately.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = readyOrders.map(order => {
+        const timeAgo = formatTimeAgo(new Date(order.created_at));
+
+        return `
+          <div class="waiter-card" data-id="${order.id}">
+            <div class="waiter-card-header">
+              <div class="waiter-table-badge">Serve Table ${order.table_number}</div>
+              <div class="waiter-time">${timeAgo}</div>
+            </div>
+            
+            <div class="waiter-items-list">
+              ${order.order_items.map(item => `
+                <div class="waiter-item">
+                  <span class="waiter-item-qty">${item.quantity}x</span>
+                  <span class="waiter-item-name" style="font-weight:600;">${item.name}</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <div class="waiter-card-footer">
+              <button class="btn btn-sm btn-success" style="width:100%;" onclick="serveOrder('${order.id}')">
+                ✔️ Mark as Served
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.serveOrder = async (id) => {
+      try {
+        await ordersAPI.updateStatus(id, 'served');
+        showToast('Order successfully marked as served!', 'success');
+        loadWaiterOrders();
+      } catch (err) {
+        showToast('Status update failed: ' + err.message, 'error');
+      }
+    };
+
+    function formatTimeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      let interval = Math.floor(seconds / 60);
+      if (interval < 1) return 'Just now';
+      return `${interval}m ago`;
+    }
+  </script>
+</body>
+</html>

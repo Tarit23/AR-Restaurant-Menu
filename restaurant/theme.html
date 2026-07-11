@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom UI & Theme — AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  
+  <style>
+    .theme-editor-container {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      gap: 24px;
+      min-height: calc(100vh - 120px);
+    }
+    
+    .editor-controls {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+      max-height: calc(100vh - 140px);
+    }
+
+    .preview-pane {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-6);
+      position: relative;
+    }
+
+    /* Mobile Mockup Frame */
+    .mobile-mockup {
+      width: 360px;
+      height: 680px;
+      background: #0f172a;
+      border: 12px solid #1e293b;
+      border-radius: 40px;
+      box-shadow: var(--shadow-2xl);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .mockup-notch {
+      width: 140px;
+      height: 20px;
+      background: #1e293b;
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      border-bottom-left-radius: 12px;
+      border-bottom-right-radius: 12px;
+      z-index: 100;
+    }
+
+    /* Template options */
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .preset-card {
+      background: var(--bg-elevated);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 10px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .preset-card:hover {
+      border-color: var(--primary);
+    }
+
+    .preset-card.active {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.15);
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+    }
+
+    /* Color picker grouping */
+    .color-pickers {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .color-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--bg-elevated);
+      padding: 8px 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+
+    .color-label {
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .color-input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .color-hex {
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .color-picker-dot {
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      border: 2px solid #fff;
+      cursor: pointer;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .color-picker-dot input[type="color"] {
+      position: absolute;
+      top: -5px;
+      left: -5px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      cursor: pointer;
+    }
+
+    /* Font choice */
+    .font-control {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      padding: 10px;
+      font-size: 0.82rem;
+      cursor: pointer;
+    }
+
+    .btn-radius-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-radius-opt {
+      flex: 1;
+      padding: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-radius-opt.active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    /* Live simulator styles inside mockup */
+    .sim-header {
+      padding: 24px 16px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .sim-logo {
+      font-size: 0.85rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .sim-logo-img {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--sim-primary, #6366f1);
+    }
+
+    .sim-hero {
+      padding: 24px 16px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sim-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+
+    .sim-subtitle {
+      font-size: 0.72rem;
+      opacity: 0.7;
+      margin-top: 6px;
+    }
+
+    .sim-menu-section {
+      padding: 16px;
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .sim-cat-bar {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      margin-bottom: 16px;
+      padding-bottom: 4px;
+    }
+
+    .sim-cat-pill {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      white-space: nowrap;
+    }
+
+    .sim-cat-pill.active {
+      background: var(--sim-primary, #6366f1);
+      color: var(--sim-btn-text, #fff);
+      border-color: var(--sim-primary, #6366f1);
+    }
+
+    .sim-dish-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .sim-dish-card {
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      background: var(--sim-card, rgba(30,41,59,0.7));
+    }
+
+    .sim-dish-img {
+      width: 70px;
+      height: 70px;
+      background: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+
+    .sim-dish-body {
+      padding: 10px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .sim-dish-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+
+    .sim-dish-desc {
+      font-size: 0.65rem;
+      opacity: 0.6;
+      line-height: 1.3;
+      margin: 2px 0 6px;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .sim-dish-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sim-dish-price {
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .sim-btn-ar {
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      background: var(--sim-primary, #6366f1);
+      color: var(--sim-btn-text, #fff);
+      border: none;
+      border-radius: var(--sim-btn-radius, 8px);
+      cursor: pointer;
+    }
+
+    .sim-floating-btn {
+      position: absolute;
+      bottom: 20px;
+      right: 20px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--sim-primary, #6366f1);
+      color: var(--sim-btn-text, #fff);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      cursor: pointer;
+    }
+
+    /* Pre-built Templates Styles */
+    .mock-template-1 { /* Glassmorphism default */ }
+    .mock-template-2 { /* Vintage Editorial */
+      background: #faf7f0 !important;
+      color: #1e1e1e !important;
+      font-family: 'Playfair Display', Georgia, serif !important;
+    }
+    .mock-template-2 .sim-dish-card {
+      background: #ffffff !important;
+      border: 1px solid #d4c5b9 !important;
+      border-radius: 0px !important;
+      color: #1e1e1e !important;
+    }
+    .mock-template-2 .sim-header {
+      border-bottom: 1px solid #d4c5b9 !important;
+      background: #faf7f0 !important;
+    }
+    .mock-template-2 .sim-cat-pill {
+      border-radius: 0px !important;
+      background: #ffffff !important;
+      border: 1px solid #d4c5b9 !important;
+      color: #1e1e1e !important;
+    }
+    .mock-template-2 .sim-cat-pill.active {
+      background: #1e1e1e !important;
+      color: #ffffff !important;
+      border-color: #1e1e1e !important;
+    }
+
+    .mock-template-3 { /* Minimalist Tokyo */
+      background: #ffffff !important;
+      color: #0f172a !important;
+      font-family: monospace !important;
+    }
+    .mock-template-3 .sim-dish-card {
+      background: #ffffff !important;
+      border: 2px solid #0f172a !important;
+      border-radius: 0px !important;
+      color: #0f172a !important;
+    }
+    .mock-template-3 .sim-cat-pill {
+      border-radius: 0px !important;
+      background: #ffffff !important;
+      border: 2px solid #0f172a !important;
+      color: #0f172a !important;
+    }
+
+    .mock-template-4 { /* Vibrant Sunset */
+      background: linear-gradient(to bottom, #fff5f5, #fffbeb) !important;
+      color: #451a03 !important;
+    }
+    .mock-template-4 .sim-dish-card {
+      background: #ffffff !important;
+      border: 1px solid #fef3c7 !important;
+      border-radius: 20px !important;
+      box-shadow: 0 4px 8px rgba(69,26,3,0.05) !important;
+      color: #451a03 !important;
+    }
+    .mock-template-4 .sim-cat-pill {
+      border-radius: 30px !important;
+      background: #fef3c7 !important;
+      border: none !important;
+      color: #451a03 !important;
+    }
+
+    .mock-template-5 { /* Cyberpunk Neon */
+      background: #000000 !important;
+      color: #00ffcc !important;
+      font-family: monospace !important;
+    }
+    .mock-template-5 .sim-dish-card {
+      background: #000000 !important;
+      border: 1px solid #ff007f !important;
+      border-radius: 0px !important;
+      box-shadow: 0 0 8px rgba(255,0,127,0.3) !important;
+      color: #00ffcc !important;
+    }
+    .mock-template-5 .sim-cat-pill {
+      border-radius: 0px !important;
+      background: #000000 !important;
+      border: 1px solid #00ffcc !important;
+      color: #00ffcc !important;
+    }
+  </style>
+</head>
+<body class="dashboard-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"></div>
+      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Operations</div>
+      <a class="nav-item" href="/restaurant/kitchen">Kitchen KDS</a>
+      <a class="nav-item" href="/restaurant/waiter">Waiter Alerts</a>
+      <a class="nav-item" href="/restaurant/billing">Billing Console</a>
+      <div class="sidebar-section-label">Configuration</div>
+      <a class="nav-item" href="/restaurant">Dashboard</a>
+      <a class="nav-item" href="/restaurant/menu">My Menu</a>
+      <a class="nav-item active" href="/restaurant/theme">Custom UI & Theme</a>
+      <a class="nav-item" href="/restaurant/loyalty-crm">Loyalty CRM</a>
+      <a class="nav-item" href="/restaurant/subscription">Subscription</a>
+      <a class="nav-item" href="/restaurant/qr">QR Code</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">R</div>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="restaurantName">Loading...</div>
+          <div class="user-role">Restaurant Owner</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn" type="button">Sign Out</button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
+      <div class="topbar-breadcrumb">
+        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">UI Theme Customizer</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in">
+        <div class="page-header-text">
+          <h1>Branding & Custom UI Customizer</h1>
+          <p>Style your restaurant's digital menu: pick colors, typography, layout presets, and headers.</p>
+        </div>
+      </div>
+
+      <div class="theme-editor-container">
+        <!-- Editor Controls (Left) -->
+        <div class="editor-controls animate-in animate-in-delay-1">
+          <div>
+            <label class="form-label" style="font-weight: 700;">1. Choose Layout Preset</label>
+            <div class="preset-grid" style="margin-top: 8px;">
+              <div class="preset-card active" data-preset="1">Glassmorphism</div>
+              <div class="preset-card" data-preset="2">Vintage Serif</div>
+              <div class="preset-card" data-preset="3">Tokyo Minimal</div>
+              <div class="preset-card" data-preset="4">Warm Sunset</div>
+              <div class="preset-card" data-preset="5">Neon Cyberpunk</div>
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 700;">2. Select Three Theme Colors</label>
+            <div class="color-pickers" style="margin-top: 8px;">
+              <div class="color-row">
+                <span class="color-label">Primary Color</span>
+                <div class="color-input-wrap">
+                  <span class="color-hex" id="hexPrimary">#6366f1</span>
+                  <div class="color-picker-dot" id="dotPrimary">
+                    <input type="color" id="inputPrimary" value="#6366f1" />
+                  </div>
+                </div>
+              </div>
+              <div class="color-row">
+                <span class="color-label">Background</span>
+                <div class="color-input-wrap">
+                  <span class="color-hex" id="hexBg">#0f172a</span>
+                  <div class="color-picker-dot" id="dotBg">
+                    <input type="color" id="inputBg" value="#0f172a" />
+                  </div>
+                </div>
+              </div>
+              <div class="color-row">
+                <span class="color-label">Card Color</span>
+                <div class="color-input-wrap">
+                  <span class="color-hex" id="hexCard">#1e293b</span>
+                  <div class="color-picker-dot" id="dotCard">
+                    <input type="color" id="inputCard" value="#1e293b" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 700;">3. Font Typography</label>
+            <select id="fontFamily" class="font-control" style="margin-top: 8px;">
+              <option value="Poppins">Poppins (Sans-Serif)</option>
+              <option value="Inter">Inter (Sans-Serif)</option>
+              <option value="Playfair Display">Playfair Display (Elegant Serif)</option>
+              <option value="Montserrat">Montserrat (Modern)</option>
+              <option value="Courier New">Courier New (Monospace)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 700;">4. Button Corner Radius</label>
+            <div class="btn-radius-group" style="margin-top: 8px;">
+              <div class="btn-radius-opt active" data-radius="12px">Rounded</div>
+              <div class="btn-radius-opt" data-radius="30px">Pill</div>
+              <div class="btn-radius-opt" data-radius="0px">Sharp</div>
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 700;">5. Custom Menu Banner Header</label>
+            <div class="form-group" style="margin-top: 8px;">
+              <input type="text" id="welcomeTitle" class="form-control" placeholder="Welcome Title (e.g. Welcome to Phoenix Cafe)" />
+            </div>
+            <div class="form-group">
+              <input type="text" id="welcomeSubtitle" class="form-control" placeholder="Welcome Subtitle (e.g. Experience Culinary Art)" />
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 700;">6. Logo & Banner Link</label>
+            <div class="form-group" style="margin-top: 8px;">
+              <input type="text" id="logoUrl" class="form-control" placeholder="Logo image URL" />
+            </div>
+            <div class="form-group">
+              <input type="text" id="bannerUrl" class="form-control" placeholder="Hero banner image URL" />
+            </div>
+          </div>
+
+          <button id="saveThemeBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Save Theme Settings</button>
+        </div>
+
+        <!-- Live Visual Preview Mockup (Right) -->
+        <div class="preview-pane animate-in animate-in-delay-2">
+          <div style="position: absolute; top: 12px; left: 16px; font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">
+            Canva-style Real-time Simulator Panel
+          </div>
+          
+          <div class="mobile-mockup">
+            <div class="mockup-notch"></div>
+            <!-- Mock Content Container -->
+            <div id="simContent" style="display:flex; flex-direction:column; height:100%; overflow-y:auto; padding-top:20px;">
+              
+              <!-- Mock Header -->
+              <div class="sim-header">
+                <div class="sim-logo">
+                  <div class="sim-logo-img" id="simLogo"></div>
+                  <span id="simRestName">Phoenix Cafe</span>
+                </div>
+                <div class="sim-cat-pill" style="margin-bottom:0; font-size:0.6rem;">🛒 Cart (0)</div>
+              </div>
+
+              <!-- Mock Hero Banner -->
+              <div class="sim-hero" id="simHeroBg" style="background: rgba(255,255,255,0.02);">
+                <div class="sim-title" id="simTitle">Phoenix Cafe's Menu</div>
+                <div class="sim-subtitle" id="simSubtitle">Fresh, delicious, and made with love.</div>
+              </div>
+
+              <!-- Mock Menu Section -->
+              <div class="sim-menu-section">
+                <div class="sim-cat-bar">
+                  <div class="sim-cat-pill active">Starters</div>
+                  <div class="sim-cat-pill">Mains</div>
+                  <div class="sim-cat-pill">Desserts</div>
+                  <div class="sim-cat-pill">Drinks</div>
+                </div>
+
+                <div class="sim-dish-grid">
+                  <!-- Dish Card -->
+                  <div class="sim-dish-card" id="simCard1">
+                    <div class="sim-dish-img">🍜</div>
+                    <div class="sim-dish-body">
+                      <div>
+                        <div class="sim-dish-name">Spicy Ramen Noodles</div>
+                        <div class="sim-dish-desc">Savory broth, egg, wheat noodles.</div>
+                      </div>
+                      <div class="sim-dish-footer">
+                        <div class="sim-dish-price">₹350</div>
+                        <button class="sim-btn-ar" id="simBtn1">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Dish Card 2 -->
+                  <div class="sim-dish-card" id="simCard2">
+                    <div class="sim-dish-img">🍕</div>
+                    <div class="sim-dish-body">
+                      <div>
+                        <div class="sim-dish-name">Four Cheese Pizza</div>
+                        <div class="sim-dish-desc">Mozzarella, Gorgonzola, Cheddar, Parmesan.</div>
+                      </div>
+                      <div class="sim-dish-footer">
+                        <div class="sim-dish-price">₹450</div>
+                        <button class="sim-btn-ar" id="simBtn2">Add to Cart</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="sim-floating-btn" id="simFab">🎁</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import "/js/logout-handler.js?v=3";
+    import { supabase } from "/js/supabase-config.js?v=3";
+    import { themeAPI } from "/js/loyalty-api.js?v=3";
+    import { showToast } from "/js/utils.js?v=3";
+
+    let restaurantId = null;
+    let restaurant = null;
+    let themeSettings = {
+      theme: "1",
+      fontFamily: "Poppins",
+      primaryColor: "#6366f1",
+      secondaryColor: "#a855f7",
+      backgroundColor: "#0f172a",
+      cardColor: "rgba(30, 41, 59, 0.7)",
+      textColor: "#f8fafc",
+      buttonColor: "#6366f1",
+      buttonTextColor: "#ffffff",
+      buttonRadius: "12px",
+      welcomeTitle: "",
+      welcomeSubtitle: "",
+      logoUrl: "",
+      bannerUrl: ""
+    };
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryRestId = urlParams.get('restaurant');
+
+    (async function initAuth() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+      if (!profile) return window.location.href = '../login.html';
+
+      const isSuperAdmin = profile.role === 'super_admin';
+
+      if (isSuperAdmin && queryRestId) {
+        restaurantId = queryRestId;
+        const { data: rest } = await supabase.from('restaurants').select('*').eq('id', restaurantId).single();
+        restaurant = rest;
+        
+        // Adjust sidebar nav to link back to Admin Panel
+        const sidebarNav = document.querySelector('.sidebar-nav');
+        sidebarNav.innerHTML = `
+          <div class="sidebar-section-label">Super Admin Mode</div>
+          <a class="nav-item" href="/admin">Dashboard</a>
+          <a class="nav-item" href="/admin/restaurants">Restaurants</a>
+          <a class="nav-item active" href="#">Customizing Theme</a>
+        `;
+        document.getElementById('restaurantName').textContent = 'Super Admin';
+        document.getElementById('restNameSub').textContent    = 'Platform Admin';
+        document.getElementById('avatarInitial').textContent  = 'A';
+      } else {
+        restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+        restaurantId = restaurant.id;
+        document.getElementById('restaurantName').textContent = restaurant.name;
+        document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
+        document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+      }
+
+      if (!restaurant) {
+        return showToast('Error: No restaurant found to customize.', 'error');
+      }
+
+      document.getElementById('topbarRestName').textContent    = restaurant.name;
+      document.getElementById('simRestName').textContent  = restaurant.name;
+      document.getElementById('simTitle').textContent  = restaurant.name + "'s Menu";
+
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+
+      // Load Theme Settings
+      try {
+        const dbTheme = await themeAPI.get(restaurantId);
+        if (dbTheme) {
+          themeSettings = { ...themeSettings, ...dbTheme };
+          loadThemeControls();
+        }
+      } catch (err) {
+        console.warn("No custom theme settings found, using defaults", err.message);
+      }
+      
+      updateLivePreview();
+    })();
+
+    function loadThemeControls() {
+      // Set presets active card
+      document.querySelectorAll('.preset-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.preset === themeSettings.theme);
+      });
+
+      // Colors
+      document.getElementById('inputPrimary').value = themeSettings.primaryColor || '#6366f1';
+      document.getElementById('inputBg').value = themeSettings.backgroundColor || '#0f172a';
+      document.getElementById('inputCard').value = themeSettings.cardColor || 'rgba(30, 41, 59, 0.7)';
+      
+      // Hex Labels
+      document.getElementById('hexPrimary').textContent = themeSettings.primaryColor;
+      document.getElementById('hexBg').textContent = themeSettings.backgroundColor;
+      document.getElementById('hexCard').textContent = themeSettings.cardColor;
+
+      // Font
+      document.getElementById('fontFamily').value = themeSettings.fontFamily || 'Poppins';
+
+      // Corner radius
+      document.querySelectorAll('.btn-radius-opt').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.radius === themeSettings.buttonRadius);
+      });
+
+      // Text Banners
+      document.getElementById('welcomeTitle').value = themeSettings.welcomeTitle || '';
+      document.getElementById('welcomeSubtitle').value = themeSettings.welcomeSubtitle || '';
+      
+      // Images
+      document.getElementById('logoUrl').value = themeSettings.logoUrl || '';
+      document.getElementById('bannerUrl').value = themeSettings.bannerUrl || '';
+    }
+
+    function updateLivePreview() {
+      const container = document.getElementById('simContent');
+      const elements = {
+        primary: themeSettings.primaryColor,
+        bg: themeSettings.backgroundColor,
+        card: themeSettings.cardColor,
+        radius: themeSettings.buttonRadius,
+        font: themeSettings.fontFamily,
+        title: themeSettings.welcomeTitle || (restaurant ? restaurant.name + "'s Menu" : "Phoenix Cafe's Menu"),
+        sub: themeSettings.welcomeSubtitle || "Fresh, delicious, and made with love.",
+        logo: themeSettings.logoUrl,
+        banner: themeSettings.bannerUrl
+      };
+
+      // Set Font family of sim body
+      container.style.fontFamily = `"${elements.font}", sans-serif`;
+      
+      // Colors
+      container.style.setProperty('--sim-primary', elements.primary);
+      container.style.setProperty('--sim-card', elements.card);
+      container.style.setProperty('--sim-btn-radius', elements.radius);
+      
+      // Apply background and clear previous classes
+      container.style.background = elements.bg;
+      container.style.color = '#f8fafc';
+      container.classList.remove('mock-template-1', 'mock-template-2', 'mock-template-3', 'mock-template-4', 'mock-template-5');
+      
+      // Apply Template Specific Styles
+      const presetId = themeSettings.theme;
+      container.classList.add(`mock-template-${presetId}`);
+
+      // Set banner title/sub
+      document.getElementById('simTitle').textContent = elements.title;
+      document.getElementById('simSubtitle').textContent = elements.sub;
+
+      // Set custom banner background if URL exists
+      const bannerEl = document.getElementById('simHeroBg');
+      if (elements.banner) {
+        bannerEl.style.background = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${elements.banner}') center/cover`;
+      } else {
+        bannerEl.style.background = 'rgba(255,255,255,0.02)';
+      }
+
+      // Set custom logo if URL exists
+      const logoEl = document.getElementById('simLogo');
+      if (elements.logo) {
+        logoEl.style.background = `url('${elements.logo}') center/cover`;
+      } else {
+        logoEl.style.background = elements.primary;
+      }
+    }
+
+    // Controls Event Listeners
+    document.querySelectorAll('.preset-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
+        card.classList.add('active');
+        themeSettings.theme = card.dataset.preset;
+        updateLivePreview();
+      });
+    });
+
+    // Color Pickers
+    document.getElementById('inputPrimary').addEventListener('input', (e) => {
+      const val = e.target.value;
+      themeSettings.primaryColor = val;
+      document.getElementById('hexPrimary').textContent = val;
+      updateLivePreview();
+    });
+
+    document.getElementById('inputBg').addEventListener('input', (e) => {
+      const val = e.target.value;
+      themeSettings.backgroundColor = val;
+      document.getElementById('hexBg').textContent = val;
+      updateLivePreview();
+    });
+
+    document.getElementById('inputCard').addEventListener('input', (e) => {
+      const val = e.target.value;
+      themeSettings.cardColor = val;
+      document.getElementById('hexCard').textContent = val;
+      updateLivePreview();
+    });
+
+    // Font
+    document.getElementById('fontFamily').addEventListener('change', (e) => {
+      themeSettings.fontFamily = e.target.value;
+      updateLivePreview();
+    });
+
+    // Radius
+    document.querySelectorAll('.btn-radius-opt').forEach(opt => {
+      opt.addEventListener('click', () => {
+        document.querySelectorAll('.btn-radius-opt').forEach(o => o.classList.remove('active'));
+        opt.classList.add('active');
+        themeSettings.buttonRadius = opt.dataset.radius;
+        updateLivePreview();
+      });
+    });
+
+    // Banners text
+    document.getElementById('welcomeTitle').addEventListener('input', (e) => {
+      themeSettings.welcomeTitle = e.target.value.trim();
+      updateLivePreview();
+    });
+    
+    document.getElementById('welcomeSubtitle').addEventListener('input', (e) => {
+      themeSettings.welcomeSubtitle = e.target.value.trim();
+      updateLivePreview();
+    });
+
+    // Images
+    document.getElementById('logoUrl').addEventListener('input', (e) => {
+      themeSettings.logoUrl = e.target.value.trim();
+      updateLivePreview();
+    });
+
+    document.getElementById('bannerUrl').addEventListener('input', (e) => {
+      themeSettings.bannerUrl = e.target.value.trim();
+      updateLivePreview();
+    });
+
+    // Save
+    document.getElementById('saveThemeBtn').addEventListener('click', async () => {
+      const btn = document.getElementById('saveThemeBtn');
+      btn.disabled = true;
+      btn.textContent = 'Saving Settings...';
+
+      try {
+        await themeAPI.save(restaurantId, themeSettings);
+        showToast('🎉 UI Theme and custom colors saved successfully!', 'success');
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save Theme Settings';
+      }
+    });
+  </script>
+</body>
+</html>

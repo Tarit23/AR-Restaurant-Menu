@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kitchen Display System (KDS) — AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    .kds-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .kds-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .kds-card.status-pending {
+      border-color: #f59e0b;
+      box-shadow: 0 0 10px rgba(245,158,11,0.1);
+    }
+
+    .kds-card.status-preparing {
+      border-color: #6366f1;
+      box-shadow: 0 0 10px rgba(99,102,241,0.1);
+    }
+
+    .kds-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .kds-table-badge {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--primary-light);
+    }
+
+    .kds-time {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .kds-items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      flex: 1;
+    }
+
+    .kds-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.88rem;
+    }
+
+    .kds-item input[type="checkbox"] {
+      cursor: pointer;
+    }
+
+    .kds-item-name {
+      font-weight: 600;
+    }
+
+    .kds-item-qty {
+      background: rgba(255,255,255,0.06);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.78rem;
+      font-weight: bold;
+    }
+
+    .kds-card-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      display: flex;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body class="dashboard-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"></div>
+      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Operations</div>
+      <a class="nav-item active" href="/restaurant/kitchen">Kitchen KDS</a>
+      <a class="nav-item" href="/restaurant/waiter">Waiter Alerts</a>
+      <a class="nav-item" href="/restaurant/billing">Billing Console</a>
+      <div class="sidebar-section-label">Configuration</div>
+      <a class="nav-item" href="/restaurant">Dashboard</a>
+      <a class="nav-item" href="/restaurant/menu">My Menu</a>
+      <a class="nav-item" href="/restaurant/theme">Custom UI & Theme</a>
+      <a class="nav-item" href="/restaurant/loyalty-crm">Loyalty CRM</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">R</div>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="restaurantName">Loading...</div>
+          <div class="user-role">Kitchen Staff</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn" type="button">Sign Out</button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
+      <div class="topbar-breadcrumb">
+        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">Kitchen KDS</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in" style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="page-header-text">
+          <h1>Kitchen Display System (KDS)</h1>
+          <p>Real-time updates of table orders and preparation status.</p>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-muted); font-weight:600;" id="kdsStatus">
+          Last updated: Just now
+        </div>
+      </div>
+
+      <div class="kds-grid animate-in animate-in-delay-1" id="kdsGrid">
+        <!-- Live order cards -->
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import "/js/logout-handler.js?v=3";
+    import { supabase } from "/js/supabase-config.js?v=3";
+    import { ordersAPI } from "/js/loyalty-api.js?v=3";
+    import { showToast } from "/js/utils.js?v=3";
+
+    let restaurantId = null;
+    let restaurant = null;
+    let activeOrders = [];
+
+    (async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+      if (!profile) return window.location.href = '../login.html';
+
+      restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+      restaurantId = restaurant.id;
+
+      document.getElementById('restaurantName').textContent = restaurant.name;
+      document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
+      document.getElementById('topbarRestName').textContent    = restaurant.name;
+      document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+
+      // Load active orders and setup subscription
+      loadKdsOrders();
+      setInterval(loadKdsOrders, 8000); // Fail-safe polling
+
+      // Realtime listener
+      supabase
+        .channel('kds-orders')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+          loadKdsOrders();
+        })
+        .subscribe();
+    })();
+
+    async function loadKdsOrders() {
+      try {
+        const data = await ordersAPI.getActiveByRestaurant(restaurantId);
+        // We only want pending or preparing status for kitchen view
+        activeOrders = data.filter(o => o.status === 'pending' || o.status === 'preparing');
+        renderKdsCards();
+        document.getElementById('kdsStatus').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        console.error('KDS load failed:', err.message);
+      }
+    }
+
+    function renderKdsCards() {
+      const grid = document.getElementById('kdsGrid');
+      if (!activeOrders.length) {
+        grid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 48px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl);">
+            <div style="font-size: 32px; margin-bottom: 12px;">🍜</div>
+            <h3 style="margin-bottom: 6px;">All clean! No active orders</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">New dine-in orders placed at tables will instantly appear here.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = activeOrders.map(order => {
+        const timeAgo = formatTimeAgo(new Date(order.created_at));
+        const statusClass = order.status === 'pending' ? 'status-pending' : 'status-preparing';
+        const buttonLabel = order.status === 'pending' ? '👨‍🍳 Start Preparing' : '🔔 Mark Ready';
+        const buttonClass = order.status === 'pending' ? 'btn-secondary' : 'btn-primary';
+
+        return `
+          <div class="kds-card ${statusClass}" data-id="${order.id}">
+            <div class="kds-card-header">
+              <div class="kds-table-badge">Table ${order.table_number}</div>
+              <div class="kds-time">${timeAgo}</div>
+            </div>
+            
+            <div class="kds-items-list">
+              ${order.order_items.map(item => `
+                <label class="kds-item">
+                  <input type="checkbox" />
+                  <span class="kds-item-qty">${item.quantity}x</span>
+                  <span class="kds-item-name">${item.name}</span>
+                </label>
+              `).join('')}
+            </div>
+
+            <div class="kds-card-footer">
+              <button class="btn btn-sm ${buttonClass}" style="flex:1;" onclick="advanceOrderStatus('${order.id}', '${order.status}')">
+                ${buttonLabel}
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.advanceOrderStatus = async (id, currentStatus) => {
+      const nextStatus = currentStatus === 'pending' ? 'preparing' : 'ready';
+      try {
+        await ordersAPI.updateStatus(id, nextStatus);
+        showToast(nextStatus === 'preparing' ? 'Preparation started!' : 'Order ready for delivery!', 'success');
+        loadKdsOrders();
+      } catch (err) {
+        showToast('Status update failed: ' + err.message, 'error');
+      }
+    };
+
+    function formatTimeAgo(date) {
+      const seconds = Math.floor((new Date() - date) / 1000);
+      let interval = Math.floor(seconds / 60);
+      if (interval < 1) return 'Just now';
+      return `${interval}m ago`;
+    }
+  </script>
+</body>
+</html>

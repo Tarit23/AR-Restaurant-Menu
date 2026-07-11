@@ -302,6 +302,117 @@
     @keyframes pulse { 0%,100% { opacity: .6; } 50% { opacity: 1; } }
 
     section { margin-bottom: 28px; }
+
+    /* ── Tab Switcher & Content ── */
+    .tab-switcher {
+      display: flex;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      padding: 4px;
+      border-radius: 14px;
+      margin: 20px 0;
+      gap: 4px;
+    }
+    .tab-btn {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .tab-btn:hover {
+      color: var(--text);
+      background: rgba(255,255,255,0.02);
+    }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
+    .dashboard-tab-content {
+      display: block;
+    }
+    .dashboard-tab-content.hidden {
+      display: none;
+    }
+
+    /* Favorites & Orders Cards */
+    .fav-dish-card, .order-history-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      display: flex;
+      gap: 14px;
+      align-items: center;
+      position: relative;
+    }
+    .fav-dish-img {
+      width: 60px;
+      height: 60px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: rgba(255,255,255,0.04);
+    }
+    .fav-dish-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .fav-dish-name {
+      font-weight: 700;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+    .fav-dish-price {
+      font-size: 0.85rem;
+      color: var(--primary-light);
+    }
+
+    .order-history-card {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+    }
+    .order-history-header {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+      font-size: 0.8rem;
+    }
+    .order-history-items {
+      font-size: 0.88rem;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .order-history-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px solid var(--border);
+    }
+    .order-status-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .status-pending   { background: rgba(245, 158, 11, 0.1); color: var(--gold); }
+    .status-preparing { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+    .status-ready     { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+    .status-served    { background: rgba(6, 182, 212, 0.1); color: #06b6d4; }
+    .status-completed { background: rgba(16, 185, 129, 0.2); color: var(--success); }
   </style>
 </head>
 <body>
@@ -318,105 +429,144 @@
 
 <div class="content">
 
-  <!-- Hero Tier Card -->
-  <div class="hero-card fade-up" id="heroCard" style="color:#cd7f32;border-color:rgba(205,127,50,.35);background:linear-gradient(135deg,rgba(205,127,50,.1),rgba(99,102,241,.08));">
-    <div class="hero-tier-badge" id="tierBadge" style="color:#cd7f32;border-color:rgba(205,127,50,.4);">
-      🥉 Bronze
-    </div>
-    <div id="vipBadge" class="hero-vip-badge" style="display:none;">👑 VIP</div>
-    <div class="hero-name" id="heroName">Loading...</div>
-    <div class="hero-email" id="heroEmail"></div>
-    <div class="points-display">
-      <div class="points-number" id="pointsNum" style="color:#cd7f32;">0</div>
-      <div class="points-label">points</div>
-    </div>
-    <div class="tier-progress-wrap">
-      <div class="tier-progress-label">
-        <span id="progressLabel">Progress to Silver</span>
-        <span id="progressPts">0 / 500 pts</span>
-      </div>
-      <div class="tier-progress-bar">
-        <div class="tier-progress-fill" id="progressFill" style="width:0%;background:#cd7f32;"></div>
-      </div>
-    </div>
+  <!-- Segmented Tab Switcher -->
+  <div class="tab-switcher fade-up">
+    <button class="tab-btn active" id="tabBtnRewards" onclick="switchDashboardTab('rewards')">🎁 Rewards</button>
+    <button class="tab-btn" id="tabBtnFavorites" onclick="switchDashboardTab('favorites')">❤️ Favorites</button>
+    <button class="tab-btn" id="tabBtnHistory" onclick="switchDashboardTab('history')">📜 History</button>
   </div>
 
-  <!-- Quick Stats -->
-  <div class="stats-row fade-up">
-    <div class="stat-card">
-      <div class="stat-val" id="statVisits">—</div>
-      <div class="stat-lab">Total Visits</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-val" id="statEarned">—</div>
-      <div class="stat-lab">Points Earned</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-val" id="statVouchers">—</div>
-      <div class="stat-lab">Active Vouchers</div>
-    </div>
-  </div>
-
-  <!-- Birthday card (shown if birthday set + birthday week) -->
-  <div id="birthdayClaimCard" class="birthday-card" style="display:none;">
-    <div class="birthday-icon">🎂</div>
-    <div class="birthday-body">
-      <div class="birthday-title">Happy Birthday! 🎉</div>
-      <div class="birthday-desc" id="birthdayRewardDesc">Your free birthday reward is waiting!</div>
-      <button class="btn-claim" onclick="claimBirthday()">Claim Free Reward →</button>
-    </div>
-  </div>
-
-  <!-- Birthday setup (if birthday not set) -->
-  <div id="birthdaySetupCard" class="birthday-setup" style="display:none;">
-    <h3>🎂 Add Your Birthday</h3>
-    <p>Add your birthday once to unlock a special birthday reward every year. <strong>Cannot be changed later.</strong></p>
-    <div class="form-row">
-      <input type="date" id="birthdayInput" class="form-input"/>
-      <button class="btn-sm" onclick="saveBirthday()">Save</button>
-    </div>
-  </div>
-
-  <!-- Vouchers -->
-  <section id="vouchersSection">
-    <div class="section-hdr">
-      <div class="section-title">🎟️ My Vouchers</div>
-    </div>
-    <div class="vouchers-scroll" id="vouchersScroll">
-      <div class="loading-pulse" style="min-width:220px;height:140px;border-radius:18px;"></div>
-    </div>
-  </section>
-
-  <!-- Redeem Points -->
-  <section>
-    <div class="section-hdr">
-      <div class="section-title">💫 Redeem Points</div>
-    </div>
-    <div class="redeem-grid" id="redeemGrid">
-      <div class="redeem-card" id="redeemDiscount" onclick="redeemDiscount()">
-        <div class="redeem-icon">💸</div>
-        <div class="redeem-pts" id="discountPtsLabel">100 pts</div>
-        <div class="redeem-desc">₹50 Flat Discount Voucher</div>
-        <div class="redeem-badge">Popular</div>
+  <!-- REWARDS TAB CONTAINER -->
+  <div id="tabContentRewards" class="dashboard-tab-content active">
+    <!-- Hero Tier Card -->
+    <div class="hero-card fade-up" id="heroCard" style="color:#cd7f32;border-color:rgba(205,127,50,.35);background:linear-gradient(135deg,rgba(205,127,50,.1),rgba(99,102,241,.08));">
+      <div class="hero-tier-badge" id="tierBadge" style="color:#cd7f32;border-color:rgba(205,127,50,.4);">
+        🥉 Bronze
       </div>
-      <div class="redeem-card" id="redeemFree" onclick="redeemFreeItem()">
-        <div class="redeem-icon">🍕</div>
-        <div class="redeem-pts" id="freeItemPtsLabel">500 pts</div>
-        <div class="redeem-desc" id="freeItemDesc">Free Burger / Pizza / Drink</div>
+      <div id="vipBadge" class="hero-vip-badge" style="display:none;">👑 VIP</div>
+      <div class="hero-name" id="heroName">Loading...</div>
+      <div class="hero-email" id="heroEmail"></div>
+      <div class="points-display">
+        <div class="points-number" id="pointsNum" style="color:#cd7f32;">0</div>
+        <div class="points-label">points</div>
+      </div>
+      <div class="tier-progress-wrap">
+        <div class="tier-progress-label">
+          <span id="progressLabel">Progress to Silver</span>
+          <span id="progressPts">0 / 500 pts</span>
+        </div>
+        <div class="tier-progress-bar">
+          <div class="tier-progress-fill" id="progressFill" style="width:0%;background:#cd7f32;"></div>
+        </div>
       </div>
     </div>
-  </section>
 
-  <!-- Activity Timeline -->
-  <section>
-    <div class="section-hdr">
-      <div class="section-title">📋 Activity</div>
+    <!-- Quick Stats -->
+    <div class="stats-row fade-up">
+      <div class="stat-card">
+        <div class="stat-val" id="statVisits">—</div>
+        <div class="stat-lab">Total Visits</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statEarned">—</div>
+        <div class="stat-lab">Points Earned</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-val" id="statVouchers">—</div>
+        <div class="stat-lab">Active Vouchers</div>
+      </div>
     </div>
-    <div class="activity-list" id="activityList">
-      <div class="loading-pulse" style="height:60px;border-radius:14px;"></div>
-      <div class="loading-pulse" style="height:60px;border-radius:14px;margin-top:2px;"></div>
+
+    <!-- Birthday card (shown if birthday set + birthday week) -->
+    <div id="birthdayClaimCard" class="birthday-card" style="display:none;">
+      <div class="birthday-icon">🎂</div>
+      <div class="birthday-body">
+        <div class="birthday-title">Happy Birthday! 🎉</div>
+        <div class="birthday-desc" id="birthdayRewardDesc">Your free birthday reward is waiting!</div>
+        <button class="btn-claim" onclick="claimBirthday()">Claim Free Reward →</button>
+      </div>
     </div>
-  </section>
+
+    <!-- Birthday setup (if birthday not set) -->
+    <div id="birthdaySetupCard" class="birthday-setup" style="display:none;">
+      <h3>🎂 Add Your Birthday</h3>
+      <p>Add your birthday once to unlock a special birthday reward every year. <strong>Cannot be changed later.</strong></p>
+      <div class="form-row">
+        <input type="date" id="birthdayInput" class="form-input"/>
+        <button class="btn-sm" onclick="saveBirthday()">Save</button>
+      </div>
+    </div>
+
+    <!-- Vouchers -->
+    <section id="vouchersSection">
+      <div class="section-hdr">
+        <div class="section-title">🎟️ My Vouchers</div>
+      </div>
+      <div class="vouchers-scroll" id="vouchersScroll">
+        <div class="loading-pulse" style="min-width:220px;height:140px;border-radius:18px;"></div>
+      </div>
+    </section>
+
+    <!-- Redeem Points -->
+    <section>
+      <div class="section-hdr">
+        <div class="section-title">💫 Redeem Points</div>
+      </div>
+      <div class="redeem-grid" id="redeemGrid">
+        <div class="redeem-card" id="redeemDiscount" onclick="redeemDiscount()">
+          <div class="redeem-icon">💸</div>
+          <div class="redeem-pts" id="discountPtsLabel">100 pts</div>
+          <div class="redeem-desc">₹50 Flat Discount Voucher</div>
+          <div class="redeem-badge">Popular</div>
+        </div>
+        <div class="redeem-card" id="redeemFree" onclick="redeemFreeItem()">
+          <div class="redeem-icon">🍕</div>
+          <div class="redeem-pts" id="freeItemPtsLabel">500 pts</div>
+          <div class="redeem-desc" id="freeItemDesc">Free Burger / Pizza / Drink</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Activity Timeline -->
+    <section>
+      <div class="section-hdr">
+        <div class="section-title">📋 Activity</div>
+      </div>
+      <div class="activity-list" id="activityList">
+        <div class="loading-pulse" style="height:60px;border-radius:14px;"></div>
+        <div class="loading-pulse" style="height:60px;border-radius:14px;margin-top:2px;"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FAVORITES TAB CONTAINER -->
+  <div id="tabContentFavorites" class="dashboard-tab-content hidden">
+    <section>
+      <div class="section-hdr">
+        <div class="section-title">❤️ Favorite Dishes</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px;" id="favoritesList">
+        <div style="text-align:center; padding: 40px 10px; color: var(--muted); font-size: 0.85rem;">
+          No favorite dishes saved yet.<br/>Go to the menu and click the ❤️ icon!
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- HISTORY TAB CONTAINER -->
+  <div id="tabContentHistory" class="dashboard-tab-content hidden">
+    <section>
+      <div class="section-hdr">
+        <div class="section-title">📜 Order History</div>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:12px; margin-top:16px;" id="historyList">
+        <div style="text-align:center; padding: 40px 10px; color: var(--muted); font-size: 0.85rem;">
+          No orders placed yet.
+        </div>
+      </div>
+    </section>
+  </div>
+
 </div>
 
 <!-- Bottom nav -->
@@ -426,6 +576,9 @@
   </button>
   <button class="nav-item-btn" onclick="openQR()">
     <span class="nav-icon">📱</span>My QR
+  </button>
+  <button class="nav-item-btn" onclick="window.location.href='/loyalty/photobooth'+location.search">
+    <span class="nav-icon">📸</span>Booth
   </button>
   <button class="nav-item-btn" onclick="document.getElementById('vouchersSection').scrollIntoView({behavior:'smooth'})">
     <span class="nav-icon">🎟️</span>Vouchers
@@ -726,6 +879,136 @@ async function loadData() {
   const viewMenuBtn = document.getElementById('viewMenuBtn');
   if (viewMenuBtn) {
     viewMenuBtn.href = `/menu?restaurant=${restaurantId}`;
+  }
+}
+
+/* ── Segmented Tabs Switching & API Handlers ── */
+window.switchDashboardTab = function(tab) {
+  // Toggle buttons
+  document.getElementById('tabBtnRewards').classList.toggle('active', tab === 'rewards');
+  document.getElementById('tabBtnFavorites').classList.toggle('active', tab === 'favorites');
+  document.getElementById('tabBtnHistory').classList.toggle('active', tab === 'history');
+
+  // Toggle contents
+  document.getElementById('tabContentRewards').classList.toggle('hidden', tab !== 'rewards');
+  document.getElementById('tabContentFavorites').classList.toggle('hidden', tab !== 'favorites');
+  document.getElementById('tabContentHistory').classList.toggle('hidden', tab !== 'history');
+
+  if (tab === 'favorites') {
+    loadFavoritesTab();
+  } else if (tab === 'history') {
+    loadHistoryTab();
+  }
+};
+
+async function loadFavoritesTab() {
+  const container = document.getElementById('favoritesList');
+  container.innerHTML = '<div style="text-align:center; padding: 20px;"><div class="loading-pulse" style="height:40px; border-radius:10px;"></div></div>';
+  
+  try {
+    const { data: favs, error } = await supabase
+      .from('customer_favorites')
+      .select('id, menu_item_id, menu_items(*)')
+      .eq('customer_id', customer.id)
+      .eq('restaurant_id', restaurantId);
+
+    if (error) throw error;
+    if (!favs || !favs.length) {
+      container.innerHTML = `
+        <div style="text-align:center; padding: 40px 10px; color: var(--muted); font-size: 0.85rem;">
+          No favorite dishes saved yet.<br/>Go to the menu and click the ❤️ icon!
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = favs.map(f => {
+      const item = f.menu_items;
+      if (!item) return '';
+      return `
+        <div class="fav-dish-card">
+          ${item.image_url ? `<img class="fav-dish-img" src="${item.image_url}" alt="${item.name}" />` : `<div class="fav-dish-img" style="display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.05); font-size: 1.5rem;">🍽️</div>`}
+          <div class="fav-dish-info">
+            <div class="fav-dish-name">${item.name}</div>
+            <div class="fav-dish-price">₹${item.price}</div>
+          </div>
+          <button onclick="removeFavorite('${f.id}')" style="background:none; border:none; color:var(--danger); cursor:pointer; font-size: 1.2rem; padding: 8px;">❤️</button>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    container.innerHTML = `<div style="color:var(--danger); font-size: 0.8rem;">Failed to load favorites: ${err.message}</div>`;
+  }
+}
+
+window.removeFavorite = async (favId) => {
+  if (confirm("Remove this dish from your favorites?")) {
+    try {
+      const { error } = await supabase
+        .from('customer_favorites')
+        .delete()
+        .eq('id', favId);
+      if (error) throw error;
+      loadFavoritesTab();
+    } catch (err) {
+      alert("Failed to remove favorite: " + err.message);
+    }
+  }
+};
+
+async function loadHistoryTab() {
+  const container = document.getElementById('historyList');
+  container.innerHTML = '<div style="text-align:center; padding: 20px;"><div class="loading-pulse" style="height:40px; border-radius:10px;"></div></div>';
+
+  try {
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('customer_id', customer.id)
+      .eq('restaurant_id', restaurantId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    if (!orders || !orders.length) {
+      container.innerHTML = `
+        <div style="text-align:center; padding: 40px 10px; color: var(--muted); font-size: 0.85rem;">
+          No orders placed yet.
+        </div>
+      `;
+      return;
+    }
+
+    container.innerHTML = orders.map(order => {
+      const itemsList = order.order_items.map(i => `${i.quantity}x ${i.name} (₹${i.price})`).join(', ');
+      const dateStr = new Date(order.created_at).toLocaleDateString() + ' ' + new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      const finalAmt = order.total_amount - order.discount_amount;
+      const statusClass = `status-${order.status}`;
+      
+      return `
+        <div class="order-history-card">
+          <div class="order-history-header">
+            <span>ID: #${order.id.substring(0,8).toUpperCase()}</span>
+            <span style="color: var(--muted);">${dateStr}</span>
+          </div>
+          <div class="order-history-items">
+            <strong>Table #${order.table_number}</strong><br/>
+            ${itemsList}
+          </div>
+          <div class="order-history-footer">
+            <div>
+              <span style="font-size:0.8rem; color:var(--muted);">Total paid:</span>
+              <strong style="color: var(--primary-light);">₹${finalAmt}</strong>
+              ${order.discount_amount > 0 ? `<span style="font-size: 0.72rem; color: var(--success); font-weight:600;">(Saved ₹${order.discount_amount})</span>` : ''}
+            </div>
+            <span class="order-status-badge ${statusClass}">${order.status}</span>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+  } catch (err) {
+    container.innerHTML = `<div style="color:var(--danger); font-size: 0.8rem;">Failed to load order history: ${err.message}</div>`;
   }
 }
 

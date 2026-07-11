@@ -133,6 +133,15 @@ export const menuAPI = {
     return data;
   },
 
+  async createMany(itemsArray) {
+    const { data, error } = await supabase
+      .from('menu_items')
+      .insert(itemsArray)
+      .select();
+    if (error) throw error;
+    return data;
+  },
+
   async update(id, updates) {
     const { data, error } = await supabase
       .from('menu_items')

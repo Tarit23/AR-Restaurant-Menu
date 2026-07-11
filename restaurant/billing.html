@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Billing POS Console — AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    .billing-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 20px;
+    }
+    
+    .billing-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .billing-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 10px;
+    }
+
+    .billing-table-number {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--primary-light);
+    }
+
+    .billing-amount {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #10b981;
+    }
+
+    .billing-details {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.85rem;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-secondary);
+    }
+
+    .billing-card-footer {
+      border-top: 1px solid var(--border);
+      padding-top: 12px;
+      display: flex;
+      gap: 10px;
+    }
+
+    /* Receipt Modal Styling */
+    .receipt {
+      background: #ffffff;
+      color: #000000;
+      font-family: 'Courier New', Courier, monospace;
+      padding: 24px;
+      border-radius: 4px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      border: 1px solid #e2e8f0;
+    }
+
+    .receipt-header {
+      text-align: center;
+      border-bottom: 2px dashed #000000;
+      padding-bottom: 12px;
+      margin-bottom: 12px;
+    }
+
+    .receipt-title {
+      font-size: 1.25rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+
+    .receipt-line {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+    }
+
+    .receipt-total-line {
+      border-top: 2px dashed #000000;
+      margin-top: 12px;
+      padding-top: 8px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body class="dashboard-layout">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"></div>
+      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="sidebar-section-label">Operations</div>
+      <a class="nav-item" href="/restaurant/kitchen">Kitchen KDS</a>
+      <a class="nav-item" href="/restaurant/waiter">Waiter Alerts</a>
+      <a class="nav-item active" href="/restaurant/billing">Billing Console</a>
+      <div class="sidebar-section-label">Configuration</div>
+      <a class="nav-item" href="/restaurant">Dashboard</a>
+      <a class="nav-item" href="/restaurant/menu">My Menu</a>
+      <a class="nav-item" href="/restaurant/theme">Custom UI & Theme</a>
+      <a class="nav-item" href="/restaurant/loyalty-crm">Loyalty CRM</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">R</div>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="restaurantName">Loading...</div>
+          <div class="user-role">Billing Admin</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn" type="button">Sign Out</button>
+      </div>
+    </div>
+  </aside>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
+      <div class="topbar-breadcrumb">
+        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">Billing Console</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in" style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="page-header-text">
+          <h1>Billing & POS Console</h1>
+          <p>Collect payments, print receipts, and issue customer loyalty points.</p>
+        </div>
+        <div style="font-size:0.8rem; color:var(--text-muted); font-weight:600;" id="billingStatus">
+          Last updated: Just now
+        </div>
+      </div>
+
+      <div class="billing-grid animate-in animate-in-delay-1" id="billingGrid">
+        <!-- Live checkout tables -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ── BILL RECEIPT MODAL ── -->
+  <div class="modal-backdrop" id="receiptModal">
+    <div class="modal" style="max-width: 440px; width: 90%;">
+      <div class="modal-header">
+        <h3 class="modal-title">Receipt Review</h3>
+        <button class="modal-close" onclick="document.getElementById('receiptModal').classList.remove('open')">×</button>
+      </div>
+      <div class="modal-body" style="background: var(--bg-elevated); padding: 20px;">
+        
+        <div class="receipt" id="receiptPaper">
+          <!-- Dynamic Receipt Text -->
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('receiptModal').classList.remove('open')">Close</button>
+        <button class="btn btn-primary" onclick="printReceipt()">Print Receipt</button>
+        <button class="btn btn-success" id="collectPayBtn" onclick="markPaidFromReceipt()">Mark Paid & Close Table</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import "/js/logout-handler.js?v=3";
+    import { supabase } from "/js/supabase-config.js?v=3";
+    import { ordersAPI } from "/js/loyalty-api.js?v=3";
+    import { showToast } from "/js/utils.js?v=3";
+
+    let restaurantId = null;
+    let restaurant = null;
+    let servedOrders = [];
+    let currentActiveOrderForReceipt = null;
+
+    (async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+      if (!profile) return window.location.href = '../login.html';
+
+      restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+      restaurantId = restaurant.id;
+
+      document.getElementById('restaurantName').textContent = restaurant.name;
+      document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
+      document.getElementById('topbarRestName').textContent    = restaurant.name;
+      document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+
+      // Load active orders and setup subscription
+      loadBillingOrders();
+      setInterval(loadBillingOrders, 8000); // Polling backup
+
+      // Realtime listener
+      supabase
+        .channel('billing-orders')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
+          loadBillingOrders();
+        })
+        .subscribe();
+    })();
+
+    async function loadBillingOrders() {
+      try {
+        const data = await ordersAPI.getActiveByRestaurant(restaurantId);
+        // Billing includes orders that have been 'served'
+        servedOrders = data.filter(o => o.status === 'served');
+        renderBillingCards();
+        document.getElementById('billingStatus').textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+      } catch (err) {
+        console.error('Billing orders load failed:', err.message);
+      }
+    }
+
+    function renderBillingCards() {
+      const grid = document.getElementById('billingGrid');
+      if (!servedOrders.length) {
+        grid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 48px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl);">
+            <div style="font-size: 32px; margin-bottom: 12px;">💸</div>
+            <h3 style="margin-bottom: 6px;">No active tables billing</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">All tables served have been billed and paid. Great job!</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = servedOrders.map(order => {
+        const itemNames = order.order_items.map(i => `${i.quantity}x ${i.name}`).join(', ');
+        const finalTotal = order.total_amount - order.discount_amount;
+        
+        return `
+          <div class="billing-card" data-id="${order.id}">
+            <div class="billing-card-header">
+              <div class="billing-table-number">Table ${order.table_number}</div>
+              <div class="billing-amount">₹${finalTotal.toLocaleString('en-IN')}</div>
+            </div>
+            
+            <div class="billing-details">
+              <div class="detail-row">
+                <span>Customer:</span>
+                <span style="color: var(--text-primary); font-weight:600;">${order.customer_name || 'Walk-in'}</span>
+              </div>
+              <div class="detail-row">
+                <span>Items:</span>
+                <span style="color: var(--text-primary); text-align:right; max-width: 180px; text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${itemNames}">${itemNames}</span>
+              </div>
+              ${order.voucher_code ? `
+              <div class="detail-row" style="color: var(--success); font-weight: 600;">
+                <span>Coupon Applied:</span>
+                <span>${order.voucher_code} (-₹${order.discount_amount})</span>
+              </div>` : ''}
+            </div>
+
+            <div class="billing-card-footer">
+              <button class="btn btn-sm btn-secondary" style="flex:1;" onclick="openReceipt('${order.id}')">
+                📄 View Bill
+              </button>
+              <button class="btn btn-sm btn-primary" style="flex:1;" onclick="collectPayment('${order.id}')">
+                ✅ Complete Pay
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.openReceipt = (id) => {
+      const order = servedOrders.find(o => o.id === id);
+      if (!order) return;
+      currentActiveOrderForReceipt = order;
+
+      const subtotal = order.total_amount;
+      const discount = order.discount_amount;
+      const finalTotal = subtotal - discount;
+
+      const receiptHtml = `
+        <div class="receipt-header">
+          <div class="receipt-title">${restaurant.name}</div>
+          <div style="font-size: 0.72rem; margin-top: 4px;">Dine-In Restaurant POS</div>
+          <div style="font-size: 0.72rem; margin-top: 2px;">Table #${order.table_number}</div>
+        </div>
+        
+        <div style="border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px; font-size: 0.75rem;">
+          <div class="receipt-line">
+            <span>Bill ID: #${order.id.substring(0,8).toUpperCase()}</span>
+            <span>Date: ${new Date(order.created_at).toLocaleDateString()}</span>
+          </div>
+          <div class="receipt-line">
+            <span>Customer: ${order.customer_name || 'Walk-In'}</span>
+            <span>Time: ${new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+          </div>
+        </div>
+
+        <div style="border-bottom: 1px dashed #000; padding-bottom: 8px; margin-bottom: 8px;">
+          ${order.order_items.map(item => `
+            <div class="receipt-line">
+              <span>${item.name} (${item.quantity}x)</span>
+              <span>₹${(item.price * item.quantity).toLocaleString('en-IN')}</span>
+            </div>
+          `).join('')}
+        </div>
+
+        <div style="font-size: 0.8rem;">
+          <div class="receipt-line">
+            <span>Subtotal:</span>
+            <span>₹${subtotal.toLocaleString('en-IN')}</span>
+          </div>
+          ${discount > 0 ? `
+          <div class="receipt-line" style="color:#000;">
+            <span>Discount (${order.voucher_code || 'Voucher'}):</span>
+            <span>-₹${discount.toLocaleString('en-IN')}</span>
+          </div>` : ''}
+          
+          <div class="receipt-total-line">
+            <span>TOTAL:</span>
+            <span>₹${finalTotal.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 20px; font-size: 0.75rem; border-top: 2px dashed #000; padding-top: 8px;">
+          Thank you for dining with us!<br/>
+          ${order.customer_id ? `🎉 Points Earned: ${Math.floor(finalTotal * 0.1)} pts` : 'Scan QR code & Join Loyalty to earn rewards!'}
+        </div>
+      `;
+
+      document.getElementById('receiptPaper').innerHTML = receiptHtml;
+      document.getElementById('receiptModal').classList.add('open');
+    };
+
+    window.markPaidFromReceipt = () => {
+      if (currentActiveOrderForReceipt) {
+        collectPayment(currentActiveOrderForReceipt.id);
+        document.getElementById('receiptModal').classList.remove('open');
+      }
+    };
+
+    window.collectPayment = async (id) => {
+      try {
+        await ordersAPI.updateStatus(id, 'completed');
+        showToast('Payment settled and loyalty points credited!', 'success');
+        loadBillingOrders();
+      } catch (err) {
+        showToast('Payment completion failed: ' + err.message, 'error');
+      }
+    };
+
+    window.printReceipt = () => {
+      const receiptContent = document.getElementById('receiptPaper').innerHTML;
+      const win = window.open('', '', 'width=400,height=600');
+      win.document.write(`
+        <html>
+        <head>
+          <title>Print Receipt</title>
+          <style>
+            body { font-family: 'Courier New', monospace; padding: 20px; color: #000; background: #fff; }
+            .receipt-header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 12px; margin-bottom: 12px; }
+            .receipt-title { font-size: 1.25rem; font-weight: bold; text-transform: uppercase; }
+            .receipt-line { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.85rem; }
+            .receipt-total-line { border-top: 2px dashed #000; margin-top: 12px; padding-top: 8px; font-size: 1.1rem; font-weight: bold; display: flex; justify-content: space-between; }
+          </style>
+        </head>
+        <body onload="window.print(); window.close();">
+          ${receiptContent}
+        </body>
+        </html>
+      `);
+      win.document.close();
+    };
+  </script>
+</body>
+</html>

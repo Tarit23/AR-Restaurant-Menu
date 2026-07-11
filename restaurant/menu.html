@@ -66,9 +66,14 @@
       <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
     </div>
     <nav class="sidebar-nav">
-      <div class="sidebar-section-label">My Restaurant</div>
+      <div class="sidebar-section-label">Operations</div>
+      <a class="nav-item" href="/restaurant/kitchen">Kitchen KDS</a>
+      <a class="nav-item" href="/restaurant/waiter">Waiter Alerts</a>
+      <a class="nav-item" href="/restaurant/billing">Billing Console</a>
+      <div class="sidebar-section-label">Configuration</div>
       <a class="nav-item" href="/restaurant">Dashboard</a>
       <a class="nav-item active" href="/restaurant/menu">My Menu</a>
+      <a class="nav-item" href="/restaurant/theme">Custom UI & Theme</a>
       <a class="nav-item" href="/restaurant/loyalty-crm">Loyalty CRM</a>
       <a class="nav-item" href="/restaurant/subscription">Subscription</a>
       <a class="nav-item" href="/restaurant/qr">QR Code</a>
@@ -100,10 +105,15 @@
     </header>
 
     <div class="page-content">
-      <div class="page-header animate-in">
+      <div class="page-header animate-in" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
         <div class="page-header-text">
           <h1>My Menu</h1>
           <p>Edit dish details, descriptions, and availability</p>
+        </div>
+        <div style="display:flex; gap:12px;">
+          <button class="btn btn-primary" onclick="document.getElementById('aiImportModal').classList.add('open')" style="display:inline-flex; align-items:center; gap:8px;">
+            🤖 Import via AI
+          </button>
         </div>
       </div>
 
@@ -181,6 +191,107 @@
     </div>
   </div>
 
+  <!-- ── AI MENU IMPORT MODAL ── -->
+  <div class="modal-backdrop" id="aiImportModal">
+    <div class="modal" style="max-width: 860px; width: 90%;">
+      <div class="modal-header">
+        <h3 class="modal-title">🤖 AI Menu Generator & Parser</h3>
+        <button class="modal-close" onclick="document.getElementById('aiImportModal').classList.remove('open')">×</button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        
+        <!-- Tab buttons -->
+        <div style="display:flex; gap:12px; margin-bottom:16px; border-bottom:1px solid var(--border); padding-bottom:8px;">
+          <button type="button" class="btn btn-sm btn-ghost" id="tabUploadBtn" onclick="switchImportTab('upload')" style="border-bottom: 2px solid var(--primary);">Upload Menu File</button>
+          <button type="button" class="btn btn-sm btn-ghost" id="tabTextBtn" onclick="switchImportTab('text')">Paste Menu Text</button>
+        </div>
+
+        <!-- File Upload Tab -->
+        <div id="importTabUpload">
+          <div style="border: 2px dashed var(--border); border-radius: var(--radius-xl); padding: 32px 16px; text-align: center; cursor: pointer; transition: 0.2s;" 
+               id="dropzone" onclick="document.getElementById('menuFile').click()">
+            <span style="font-size: 32px; display: block; margin-bottom: 12px;">📁</span>
+            <span style="font-size: 0.875rem; font-weight: 600;">Drag & drop menu image or PDF here</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;">PNG, JPG, JPEG, PDF up to 10MB</span>
+            <input type="file" id="menuFile" accept="image/*,application/pdf" style="display: none;" />
+          </div>
+          <div id="fileInfo" style="margin-top: 10px; font-size: 0.8rem; text-align: center; color: var(--success);" class="hidden"></div>
+        </div>
+
+        <!-- Text Paste Tab -->
+        <div id="importTabText" class="hidden">
+          <div class="form-group">
+            <label class="form-label" for="pasteText">Paste Raw Menu Transcript</label>
+            <textarea id="pasteText" class="form-control" rows="6" placeholder="Paste menu text here (e.g. Soup - 120, Pizza Margherita - 399 with mozzarella...)"></textarea>
+          </div>
+        </div>
+
+        <button type="button" id="parseMenuBtn" class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="parseMenuData()">
+          🤖 Parse Menu with Gemini AI
+        </button>
+
+        <!-- Loader -->
+        <div id="importLoader" class="hidden" style="text-align: center; padding: 32px 0;">
+          <div class="ai-spin" style="font-size: 36px; margin-bottom: 12px; display: inline-block;">⚙️</div>
+          <p style="font-size: 0.85rem; color: var(--text-secondary);">AI is extracting dishes, prices, categories, and ingredients... Please wait...</p>
+        </div>
+
+        <!-- Extracted Spreadsheet Review Table -->
+        <div id="extractedSection" class="hidden" style="margin-top: 24px;">
+          <h4 style="margin-bottom: 10px; color: var(--text-primary);">Review & Approve Parsed Items</h4>
+          <div style="overflow-x: auto; border: 1px solid var(--border); border-radius: var(--radius-md);">
+            <table class="table" style="min-width: 700px; margin-bottom: 0;">
+              <thead>
+                <tr>
+                  <th style="width: 40px; text-align: center;"><input type="checkbox" id="selectAllParsed" checked onclick="toggleAllParsed(this.checked)" /></th>
+                  <th>Name</th>
+                  <th>Category</th>
+                  <th>Price (₹)</th>
+                  <th>Ingredients</th>
+                  <th>Calories</th>
+                </tr>
+              </thead>
+              <tbody id="parsedItemsBody">
+                <!-- Dynamic rows -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('aiImportModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-success hidden" id="approveImportBtn" onclick="saveImportedItems()">Import Approved Items (0)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── SMART UPSELLS MODAL ── -->
+  <div class="modal-backdrop" id="upsellModal">
+    <div class="modal" style="max-width: 500px; width: 90%;">
+      <div class="modal-header">
+        <h3 class="modal-title">🤝 Cross-Sell Recommendations</h3>
+        <button class="modal-close" onclick="document.getElementById('upsellModal').classList.remove('open')">×</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 0.82rem; color: var(--text-secondary); margin-bottom: 16px;">
+          Select items to recommend as cross-sells when a customer opens <strong id="upsellTargetName" style="color: var(--primary-light);">Dish</strong>:
+        </p>
+        
+        <input type="text" id="upsellSearch" class="form-control" placeholder="Search menu items..." style="margin-bottom: 12px;" oninput="filterUpsellsList()" />
+        
+        <input type="hidden" id="upsellTargetId" />
+        <div id="upsellItemsList" style="max-height: 300px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 10px; background: var(--bg-elevated);">
+          <!-- Dynamic checklist -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('upsellModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" id="saveUpsellBtn" onclick="saveUpsellConfig()">Save Recommendations</button>
+      </div>
+    </div>
+  </div>
+
   <style>
   .menu-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:var(--space-5); }
   .dish-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); overflow:hidden; transition:var(--transition-slow); animation:fadeIn .4s ease both; }
@@ -203,6 +314,7 @@
   import "/js/logout-handler.js?v=3";
   import { supabase } from "/js/supabase-config.js?v=3";
   import { menuAPI, restaurantsAPI } from '/js/api.js?v=3';
+  import { upsellAPI } from '/js/loyalty-api.js?v=3';
   import { showToast } from '/js/utils.js?v=3';
   import { generateAIDescription } from '/js/ai-description.js?v=3';
 
@@ -298,10 +410,11 @@
             ${item.description ? '<span class="badge badge-ai">🧠 AI Desc</span>' : ''}
           </div>
         </div>
-        <div class="dish-actions">
+        <div class="dish-actions" style="gap:6px;">
           <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openEdit('${item.id}')">✏️ Edit</button>
+          <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openUpsell('${item.id}')">🤝 Upsells</button>
           <button class="btn ${item.is_available ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleAvail('${item.id}',${item.is_available})">
-            ${item.is_available ? 'Mark Unavailable' : 'Mark Available'}
+            ${item.is_available ? 'Hide' : 'Show'}
           </button>
         </div>
       </div>
@@ -352,6 +465,316 @@
     finally { btn.classList.remove('loading'); }
   });
 
+  /* ─── AI MENU GENERATOR / PARSER LOGIC ─── */
+  let parsedMenuDataList = [];
+  let importActiveTab = 'upload';
+
+  window.switchImportTab = (tab) => {
+    importActiveTab = tab;
+    document.getElementById('importTabUpload').classList.toggle('hidden', tab !== 'upload');
+    document.getElementById('importTabText').classList.toggle('hidden', tab !== 'text');
+    document.getElementById('tabUploadBtn').style.borderBottom = tab === 'upload' ? '2px solid var(--primary)' : 'none';
+    document.getElementById('tabTextBtn').style.borderBottom = tab === 'text' ? '2px solid var(--primary)' : 'none';
+  };
+
+  // Drag and drop events
+  setTimeout(() => {
+    const dropzone = document.getElementById('dropzone');
+    const menuFileInput = document.getElementById('menuFile');
+    const fileInfo = document.getElementById('fileInfo');
+    if (!dropzone) return;
+
+    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.style.borderColor = 'var(--primary)'; });
+    dropzone.addEventListener('dragleave', () => { dropzone.style.borderColor = 'var(--border)'; });
+    dropzone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropzone.style.borderColor = 'var(--border)';
+      if (e.dataTransfer.files.length) {
+        handleSelectedFile(e.dataTransfer.files[0]);
+      }
+    });
+
+    menuFileInput.addEventListener('change', () => {
+      if (menuFileInput.files.length) {
+        handleSelectedFile(menuFileInput.files[0]);
+      }
+    });
+
+    function handleSelectedFile(file) {
+      if (file.size > 10 * 1024 * 1024) {
+        showToast('File is too large! Maximum limit is 10MB.', 'warning');
+        return;
+      }
+      fileInfo.textContent = `Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+      fileInfo.classList.remove('hidden');
+    }
+  }, 100);
+
+  // Helper to read file as Base64
+  function getBase64(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        const base64Str = reader.result.split(',')[1];
+        resolve(base64Str);
+      };
+      reader.onerror = error => reject(error);
+    });
+  }
+
+  window.parseMenuData = async () => {
+    const parseBtn = document.getElementById('parseMenuBtn');
+    const loader = document.getElementById('importLoader');
+    const extractedSection = document.getElementById('extractedSection');
+    const fileInput = document.getElementById('menuFile');
+    
+    // Clear previous results
+    document.getElementById('parsedItemsBody').innerHTML = '';
+    extractedSection.classList.add('hidden');
+    document.getElementById('approveImportBtn').classList.add('hidden');
+
+    let payload = {};
+
+    if (importActiveTab === 'upload') {
+      const file = fileInput.files[0];
+      if (!file) { showToast('Please choose or drop a menu file first!', 'warning'); return; }
+      
+      parseBtn.disabled = true;
+      loader.classList.remove('hidden');
+      
+      try {
+        const base64Str = await getBase64(file);
+        payload = {
+          fileBase64: base64Str,
+          mimeType: file.type
+        };
+      } catch (err) {
+        showToast('Error reading file: ' + err.message, 'error');
+        parseBtn.disabled = false;
+        loader.classList.add('hidden');
+        return;
+      }
+    } else {
+      const text = document.getElementById('pasteText').value.trim();
+      if (!text) { showToast('Please paste some menu text first!', 'warning'); return; }
+      
+      parseBtn.disabled = true;
+      loader.classList.remove('hidden');
+      payload = { rawText: text };
+    }
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const apiKey = session?.access_token;
+      
+      const functionUrl = `${supabase.supabaseUrl}/functions/v1/ai-menu-generator`;
+      const res = await fetch(functionUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+          'apikey': supabase.supabaseKey
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText);
+      }
+
+      const result = await res.json();
+      if (result.error) throw new Error(result.error);
+      
+      parsedMenuDataList = result.items || [];
+      if (!parsedMenuDataList.length) {
+        showToast('AI could not find any dishes. Try pasting raw text or uploading a clearer file.', 'warning');
+      } else {
+        renderParsedItems();
+        extractedSection.classList.remove('hidden');
+        document.getElementById('approveImportBtn').classList.remove('hidden');
+        updateApproveButtonCount();
+        showToast(`🎉 Successfully parsed ${parsedMenuDataList.length} items!`, 'success');
+      }
+
+    } catch (err) {
+      showToast('AI Parsing failed: ' + err.message, 'error');
+    } finally {
+      parseBtn.disabled = false;
+      loader.classList.add('hidden');
+    }
+  };
+
+  function renderParsedItems() {
+    const tbody = document.getElementById('parsedItemsBody');
+    tbody.innerHTML = parsedMenuDataList.map((item, i) => `
+      <tr class="parsed-row" data-index="${i}">
+        <td style="text-align: center;"><input type="checkbox" class="parsed-item-check" checked onchange="updateApproveButtonCount()" /></td>
+        <td><input type="text" class="form-control form-control-sm parsed-name" value="${item.name || ''}" style="min-width:140px;" /></td>
+        <td><input type="text" class="form-control form-control-sm parsed-category" value="${item.category || ''}" style="min-width:100px;" /></td>
+        <td><input type="number" class="form-control form-control-sm parsed-price" value="${item.price || 150}" style="width:80px;" /></td>
+        <td><input type="text" class="form-control form-control-sm parsed-ingredients" value="${item.ingredients || ''}" style="min-width:180px;" /></td>
+        <td><input type="number" class="form-control form-control-sm parsed-calories" value="${item.calories || 250}" style="width:75px;" /></td>
+      </tr>
+    `).join('');
+  }
+
+  window.toggleAllParsed = (checked) => {
+    document.querySelectorAll('.parsed-item-check').forEach(chk => {
+      chk.checked = checked;
+    });
+    updateApproveButtonCount();
+  };
+
+  window.updateApproveButtonCount = () => {
+    const count = document.querySelectorAll('.parsed-item-check:checked').length;
+    const btn = document.getElementById('approveImportBtn');
+    btn.textContent = `Import Approved Items (${count})`;
+    btn.disabled = count === 0;
+  };
+
+  window.saveImportedItems = async () => {
+    const checkedRows = document.querySelectorAll('.parsed-row');
+    const itemsToSave = [];
+
+    checkedRows.forEach(row => {
+      const chk = row.querySelector('.parsed-item-check');
+      if (chk && chk.checked) {
+        const name = row.querySelector('.parsed-name').value.trim();
+        const category = row.querySelector('.parsed-category').value.trim();
+        const price = parseFloat(row.querySelector('.parsed-price').value) || 0;
+        const ingredients = row.querySelector('.parsed-ingredients').value.trim();
+        const calories = parseInt(row.querySelector('.parsed-calories').value) || 0;
+
+        if (name) {
+          const descriptionText = `Savory ${category.toLowerCase() || 'dish'} containing ${ingredients || 'fresh ingredients'}. Approx. ${calories} calories.`;
+          
+          itemsToSave.push({
+            restaurant_id: restaurant.id,
+            name: name,
+            category: category || 'Mains',
+            price: price,
+            description: descriptionText.substring(0, 300),
+            is_available: true
+          });
+        }
+      }
+    });
+
+    if (!itemsToSave.length) return;
+
+    const approveBtn = document.getElementById('approveImportBtn');
+    approveBtn.disabled = true;
+    approveBtn.textContent = 'Importing...';
+
+    try {
+      await menuAPI.createMany(itemsToSave);
+      showToast(`🎉 Successfully imported ${itemsToSave.length} menu items!`, 'success');
+      document.getElementById('aiImportModal').classList.remove('open');
+      
+      // Reset variables
+      parsedMenuDataList = [];
+      document.getElementById('menuFile').value = '';
+      document.getElementById('pasteText').value = '';
+      document.getElementById('fileInfo').classList.add('hidden');
+      
+      loadMenu();
+    } catch (err) {
+      showToast('Import failed: ' + err.message, 'error');
+      approveBtn.disabled = false;
+      updateApproveButtonCount();
+    }
+  };
+
+
+  /* ─── SMART UPSELL RECOMMENDATIONS LOGIC ─── */
+  let allUpsellItemsList = [];
+  let currentTargetUpsellItemId = null;
+
+  window.openUpsell = async (id) => {
+    currentTargetUpsellItemId = id;
+    const item = window._menuItems.find(i => i.id === id);
+    if (!item) return;
+
+    document.getElementById('upsellTargetName').textContent = item.name;
+    document.getElementById('upsellTargetId').value = id;
+    document.getElementById('upsellSearch').value = '';
+    
+    const listContainer = document.getElementById('upsellItemsList');
+    listContainer.innerHTML = '<p style="font-size:0.8rem; text-align:center; color:var(--text-muted);">Loading menu items...</p>';
+    document.getElementById('upsellModal').classList.add('open');
+
+    try {
+      // Fetch existing rules
+      let activeRecommendations = [];
+      try {
+        const rule = await upsellAPI.getRuleByItem(id);
+        if (rule && rule.upsell_item_ids) {
+          activeRecommendations = rule.upsell_item_ids;
+        }
+      } catch (err) {
+        console.warn("No active upsell rule config", err.message);
+      }
+
+      // Render checkboxes
+      allUpsellItemsList = window._menuItems.filter(i => i.id !== id);
+      
+      if (!allUpsellItemsList.length) {
+        listContainer.innerHTML = '<p style="font-size:0.8rem; text-align:center; color:var(--text-muted);">No other menu items available to recommend.</p>';
+        return;
+      }
+
+      renderUpsellCheckboxes(allUpsellItemsList, activeRecommendations);
+
+    } catch (err) {
+      showToast('Failed to load recommendations: ' + err.message, 'error');
+    }
+  };
+
+  function renderUpsellCheckboxes(items, checkedIds) {
+    const listContainer = document.getElementById('upsellItemsList');
+    listContainer.innerHTML = items.map(item => {
+      const isChecked = checkedIds.includes(item.id);
+      return `
+        <label class="upsell-item-label" data-name="${item.name.toLowerCase()}" style="display:flex; align-items:center; gap:10px; cursor:pointer; padding:6px; border-radius:6px; background: rgba(255,255,255,0.02); transition:background 0.2s;">
+          <input type="checkbox" class="upsell-item-check" data-id="${item.id}" ${isChecked ? 'checked' : ''} />
+          <span style="font-size:0.82rem; font-weight:600;">${item.name}</span>
+          <span style="font-size:0.75rem; color:var(--text-muted); margin-left:auto;">₹${item.price} · ${item.category || 'Mains'}</span>
+        </label>
+      `;
+    }).join('');
+  }
+
+  window.filterUpsellsList = () => {
+    const query = document.getElementById('upsellSearch').value.toLowerCase().trim();
+    const items = document.querySelectorAll('.upsell-item-label');
+    items.forEach(el => {
+      const name = el.dataset.name;
+      el.style.display = name.includes(query) ? 'flex' : 'none';
+    });
+  };
+
+  window.saveUpsellConfig = async () => {
+    const targetId = document.getElementById('upsellTargetId').value;
+    const checkedBoxes = document.querySelectorAll('.upsell-item-check:checked');
+    const upsellItemIds = Array.from(checkedBoxes).map(cb => cb.dataset.id);
+
+    const btn = document.getElementById('saveUpsellBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      await upsellAPI.saveRules(restaurant.id, targetId, upsellItemIds);
+      showToast('🎉 Cross-sell recommendations saved successfully!', 'success');
+      document.getElementById('upsellModal').classList.remove('open');
+    } catch (err) {
+      showToast('Failed to save recommendations: ' + err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Recommendations';
+    }
+  };
 
   </script>
 </body>

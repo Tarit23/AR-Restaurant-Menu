@@ -571,3 +571,173 @@ export function buildWeeklyPromoEmail(customerName, restaurantName, points, offe
     </div>
   </div>`;
 }
+
+/* ─── Orders API ─── */
+export const ordersAPI = {
+  async create(orderData, items) {
+    const { data: order, error } = await supabase
+      .from('orders')
+      .insert([orderData])
+      .select()
+      .single();
+    if (error) throw error;
+
+    const orderItems = items.map(item => ({
+      order_id: order.id,
+      menu_item_id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price
+    }));
+
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
+    if (itemsError) throw itemsError;
+
+    return order;
+  },
+
+  async getByCustomer(customerId, restaurantId) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('customer_id', customerId)
+      .eq('restaurant_id', restaurantId)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async getActiveByRestaurant(restaurantId) {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*, order_items(*)')
+      .eq('restaurant_id', restaurantId)
+      .neq('status', 'completed')
+      .neq('status', 'cancelled')
+      .order('created_at', { ascending: true });
+    if (error) throw error;
+    return data;
+  },
+
+  async updateStatus(orderId, status) {
+    const { data, error } = await supabase
+      .from('orders')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', orderId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+};
+
+/* ─── Favorites API ─── */
+export const favoritesAPI = {
+  async toggle(restaurantId, customerId, menuItemId) {
+    // Check if exists
+    const { data: existing } = await supabase
+      .from('customer_favorites')
+      .select('id')
+      .eq('customer_id', customerId)
+      .eq('menu_item_id', menuItemId)
+      .single();
+
+    if (existing) {
+      const { error } = await supabase
+        .from('customer_favorites')
+        .delete()
+        .eq('id', existing.id);
+      if (error) throw error;
+      return { isFavorite: false };
+    } else {
+      const { error } = await supabase
+        .from('customer_favorites')
+        .insert([{ restaurant_id: restaurantId, customer_id: customerId, menu_item_id: menuItemId }]);
+      if (error) throw error;
+      return { isFavorite: true };
+    }
+  },
+
+  async getByCustomer(customerId, restaurantId) {
+    const { data, error } = await supabase
+      .from('customer_favorites')
+      .select('menu_item_id, menu_items(*)')
+      .eq('customer_id', customerId)
+      .eq('restaurant_id', restaurantId);
+    if (error) throw error;
+    return data.map(d => d.menu_items).filter(Boolean);
+  },
+
+  async getIdsByCustomer(customerId, restaurantId) {
+    const { data, error } = await supabase
+      .from('customer_favorites')
+      .select('menu_item_id')
+      .eq('customer_id', customerId)
+      .eq('restaurant_id', restaurantId);
+    if (error) throw error;
+    return data.map(d => d.menu_item_id);
+  }
+};
+
+/* ─── Upsell API ─── */
+export const upsellAPI = {
+  async getRules(restaurantId) {
+    const { data, error } = await supabase
+      .from('upsell_rules')
+      .select('*')
+      .eq('restaurant_id', restaurantId);
+    if (error) throw error;
+    return data;
+  },
+
+  async getRuleByItem(menuItemId) {
+    const { data, error } = await supabase
+      .from('upsell_rules')
+      .select('*')
+      .eq('menu_item_id', menuItemId)
+      .single();
+    if (error && error.code !== 'PGRST116') throw error;
+    return data;
+  },
+
+  async saveRules(restaurantId, menuItemId, upsellItemIds) {
+    const { data, error } = await supabase
+      .from('upsell_rules')
+      .upsert({
+        restaurant_id: restaurantId,
+        menu_item_id: menuItemId,
+        upsell_item_ids: upsellItemIds,
+        created_at: new Date().toISOString()
+      }, { onConflict: 'restaurant_id,menu_item_id' })
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+};
+
+/* ─── Theme API ─── */
+export const themeAPI = {
+  async get(restaurantId) {
+    const { data, error } = await supabase
+      .from('restaurants')
+      .select('theme_settings')
+      .eq('id', restaurantId)
+      .single();
+    if (error) throw error;
+    return data.theme_settings;
+  },
+
+  async save(restaurantId, themeSettings) {
+    const { data, error } = await supabase
+      .from('restaurants')
+      .update({ theme_settings: themeSettings })
+      .eq('id', restaurantId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data.theme_settings;
+  }
+};

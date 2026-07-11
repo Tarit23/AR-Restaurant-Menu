@@ -278,8 +278,9 @@
           <td>${r.autopay_enabled ? '<span class="badge badge-success">ON</span>' : '<span class="badge badge-secondary">OFF</span>'}</td>
           <td style="font-size:.8rem;color:var(--text-muted);">${formatDate(r.next_payment_date)}</td>
           <td>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="openEdit('${r.id}')">Edit</button>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <button class="btn btn-ghost btn-sm" onclick="openEdit('${r.id}')">Edit</button>
+              <a class="btn btn-ghost btn-sm" href="/restaurant/theme.html?restaurant=${r.id}" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">Theme</a>
               <button class="btn btn-danger btn-sm" onclick="openDelete('${r.id}', '${r.name}')">Delete</button>
             </div>
           </td>
