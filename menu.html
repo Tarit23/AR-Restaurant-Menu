@@ -848,8 +848,8 @@
     .cart-drawer {
       position: fixed;
       top: 0;
-      right: -360px;
-      width: 360px;
+      right: -440px;
+      width: 440px;
       height: 100%;
       background: var(--bg-glass);
       backdrop-filter: blur(20px);
@@ -862,6 +862,12 @@
     }
     .cart-drawer.open {
       right: 0;
+    }
+    @media (max-width: 500px) {
+      .cart-drawer {
+        width: 100vw;
+        right: -100vw;
+      }
     }
     .cart-drawer-header {
       padding: 20px;
@@ -1229,59 +1235,117 @@
   <!-- CART DRAWER -->
   <div class="cart-drawer" id="cartDrawer">
     <div class="cart-drawer-header">
-      <h3 style="font-family: var(--font-display); font-weight: 800;">🛒 Shopping Cart</h3>
+      <h3 style="font-family: var(--font-display); font-weight: 800; display:flex; align-items:center; gap:8px;">🛒 Your Order</h3>
       <button class="cart-drawer-close" onclick="toggleCartDrawer(false)">×</button>
     </div>
-    <div class="cart-drawer-body" id="cartDrawerBody">
-      <!-- Dynamic cart items will go here -->
+    
+    <div class="cart-drawer-body" id="cartDrawerBody" style="flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px;">
+      
+      <!-- Empty Cart Message -->
+      <div id="cartEmptyState" style="text-align:center; padding: 40px 10px; color: var(--text-sec);">
+        <div style="font-size: 2.5rem; margin-bottom: 8px;">🛒</div>
+        <p style="font-weight:700;">Your cart is empty.</p>
+        <p style="font-size:0.75rem; margin-top:4px;">Add items to your cart from the menu above to configure and place your table order.</p>
+      </div>
+
+      <!-- Active Cart Content Container (Hidden when empty) -->
+      <div id="cartActiveContent" style="display:none; flex-direction:column; gap:20px;">
+        
+        <!-- Foods list -->
+        <div>
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; color:var(--text-sec); border-bottom: 1px solid var(--border); padding-bottom: 4px; display:block;">Added Dishes</label>
+          <div id="cartItemsListContainer" style="display:flex; flex-direction:column; margin-top:8px;"></div>
+        </div>
+
+        <!-- Voucher Coupon Input -->
+        <div class="cart-section" id="cartCouponSection" style="border-top: 1px solid var(--border); padding-top: 16px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; color:var(--text-sec);">Loyalty Promo Coupon</label>
+          <div style="display:flex; gap:8px; margin-top:6px;">
+            <input type="text" id="voucherInput" class="form-control" placeholder="Enter coupon code..." style="padding: 6px 12px; font-size: 0.8rem; flex: 1; border-radius:8px;" />
+            <button class="btn btn-secondary btn-sm" onclick="applyVoucherCode()" style="padding: 6px 12px; font-size: 0.8rem; border-radius:8px;">Apply</button>
+          </div>
+          <div id="voucherStatusMsg" style="font-size: 0.72rem; margin-top: 4px; font-weight: 600;"></div>
+        </div>
+
+        <!-- Table Details -->
+        <div class="cart-section" style="border-top: 1px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; color:var(--text-sec);">Table Details</label>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="font-size: 0.75rem;">Table Number (Required)</label>
+            <input type="number" id="checkoutTable" class="form-control" placeholder="e.g. 5" style="border-radius:8px; padding: 8px 12px;" required />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="font-size: 0.75rem;">Your Name</label>
+            <input type="text" id="checkoutName" class="form-control" placeholder="Enter your name" style="border-radius:8px; padding: 8px 12px;" />
+          </div>
+          <div class="form-group" style="margin-bottom:0;">
+            <label class="form-label" style="font-size: 0.75rem;">Email (for Loyalty Points)</label>
+            <input type="email" id="checkoutEmail" class="form-control" placeholder="your@email.com" style="border-radius:8px; padding: 8px 12px;" />
+          </div>
+        </div>
+
+        <!-- Payment Selector -->
+        <div class="cart-section" style="border-top: 1px solid var(--border); padding-top: 16px;">
+          <label class="form-label" style="font-weight: 700; font-size: 0.85rem; color:var(--text-sec); margin-bottom:8px; display:block;">Select Payment Option</label>
+          <div class="payment-selector-group" style="display:flex; flex-direction:column; gap:8px;">
+            <label class="payment-option-card active" id="payOptCash" style="display:flex; align-items:center; gap:10px; padding:12px; border: 1.5px solid var(--primary); border-radius:10px; background:rgba(99,102,241,0.08); cursor:pointer;">
+              <input type="radio" name="payment_method" value="cash" checked style="display:none;" onchange="selectPaymentMethod('cash')" />
+              <span style="font-size:1.2rem;">💵</span>
+              <div style="flex:1;">
+                <div style="font-weight:700; font-size:0.85rem; color:var(--text);">Cash Payment</div>
+                <div style="font-size:0.7rem; color:var(--text-sec);">Pay directly via cash at table</div>
+              </div>
+            </label>
+            
+            <label class="payment-option-card" id="payOptUpi" style="display:flex; align-items:center; gap:10px; padding:12px; border: 1.5px solid var(--border); border-radius:10px; cursor:pointer;">
+              <input type="radio" name="payment_method" value="upi" style="display:none;" onchange="selectPaymentMethod('upi')" />
+              <span style="font-size:1.2rem;">📱</span>
+              <div style="flex:1;">
+                <div style="font-weight:700; font-size:0.85rem; color:var(--text);">UPI Payment (Instant QR)</div>
+                <div style="font-size:0.7rem; color:var(--text-sec);">Scan UPI QR Code to pay now</div>
+              </div>
+            </label>
+            
+            <label class="payment-option-card" id="payOptAfter" style="display:flex; align-items:center; gap:10px; padding:12px; border: 1.5px solid var(--border); border-radius:10px; cursor:pointer;">
+              <input type="radio" name="payment_method" value="pay_after_eating" style="display:none;" onchange="selectPaymentMethod('pay_after_eating')" />
+              <span style="font-size:1.2rem;">🍽️</span>
+              <div style="flex:1;">
+                <div style="font-weight:700; font-size:0.85rem; color:var(--text);">Pay After Eating</div>
+                <div style="font-size:0.7rem; color:var(--text-sec);">Pay via Cash/UPI at counter later</div>
+              </div>
+            </label>
+          </div>
+          
+          <!-- UPI QR Display Code inside drawer -->
+          <div id="upiQrCodeContainer" style="display:none; text-align:center; padding:16px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,0.02); margin-top:12px;">
+            <div id="upiDemoBadge" style="display:none; background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); padding:6px 12px; border-radius:8px; font-size:0.72rem; font-weight:700; margin-bottom:12px; text-align:center;">
+              ⚠️ Demo UPI QR Code (Configure UPI ID in Dashboard to receive live payments)
+            </div>
+            <canvas id="upiQrCanvas" style="max-width: 140px; margin: 0 auto; background:#fff; padding:6px; border-radius:8px; display:block;"></canvas>
+            <div style="font-size:0.78rem; color:var(--text); margin-top:8px;">Scan to pay <strong id="upiPayAmount" style="color:var(--primary-light);">₹0</strong> to <span id="upiMerchantName" style="font-weight:700;">Restaurant</span></div>
+            <div style="font-size:0.7rem; color:var(--text-sec); font-weight:600; margin-top:2px;">UPI ID: <span id="upiDisplayId" style="color:var(--text);"></span></div>
+          </div>
+        </div>
+
+      </div>
     </div>
-    <div class="cart-drawer-footer">
-      <div class="cart-summary-row">
-        <span>Subtotal:</span>
-        <span id="cartSubtotal" style="font-weight: 600;">₹0</span>
+    
+    <div class="cart-drawer-footer" style="padding:20px; border-top:1px solid var(--border); background:var(--bg-elevated);">
+      <div class="cart-summary-row" style="display:flex; justify-content:space-between; margin-bottom:6px; font-size:0.9rem;">
+        <span style="color:var(--text-sec);">Subtotal:</span>
+        <span id="cartSubtotal" style="font-weight: 600; color:var(--text);">₹0</span>
       </div>
-      <div class="cart-summary-row" id="cartDiscountRow" style="display:none;">
+      <div class="cart-summary-row" id="cartDiscountRow" style="display:none; justify-content:space-between; margin-bottom:6px; font-size:0.9rem;">
         <span style="color:var(--success);">Discount:</span>
-        <span style="color:var(--success);" id="cartDiscountAmount">-₹0</span>
+        <span style="color:var(--success); font-weight: 600;" id="cartDiscountAmount">-₹0</span>
       </div>
-      <div class="cart-summary-row" style="font-size: 1.1rem; font-weight: 800; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
-        <span>Total:</span>
+      <div class="cart-summary-row" style="display:flex; justify-content:space-between; font-size: 1.15rem; font-weight: 800; border-top: 1px solid var(--border); padding-top: 10px; margin-top: 10px;">
+        <span style="color:var(--text);">Grand Total:</span>
         <span id="cartTotal" style="color: var(--primary-light);">₹0</span>
       </div>
       
-      <!-- Voucher Input -->
-      <div style="display:flex; gap:8px; margin-top:12px;">
-        <input type="text" id="voucherInput" class="form-control" placeholder="Enter coupon code..." style="padding: 6px 12px; font-size: 0.8rem; flex: 1;" />
-        <button class="btn btn-secondary btn-sm" onclick="applyVoucherCode()" style="padding: 6px 12px; font-size: 0.8rem;">Apply</button>
-      </div>
-      <div id="voucherStatusMsg" style="font-size: 0.72rem; margin-top: 4px; font-weight: 600;"></div>
-
-      <!-- Checkout Details -->
-      <div style="margin-top: 16px; border-top: 1px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 8px;">
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label" style="font-size: 0.75rem;">Table Number</label>
-          <input type="number" id="checkoutTable" class="form-control" placeholder="e.g. 5" style="padding: 6px 12px; font-size: 0.8rem;" required />
-        </div>
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label" style="font-size: 0.75rem;">Your Name</label>
-          <input type="text" id="checkoutName" class="form-control" placeholder="Enter your name" style="padding: 6px 12px; font-size: 0.8rem;" />
-        </div>
-        <div class="form-group" style="margin-bottom:0;">
-          <label class="form-label" style="font-size: 0.75rem;">Email (for Loyalty Points)</label>
-          <input type="email" id="checkoutEmail" class="form-control" placeholder="your@email.com" style="padding: 6px 12px; font-size: 0.8rem;" />
-        </div>
-        <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
-          <label class="form-label" style="font-size: 0.75rem; font-weight:700;">Payment Option</label>
-          <select id="checkoutPaymentMethod" class="form-control" style="padding: 6px 12px; font-size: 0.8rem; border-radius:8px;" onchange="syncDrawerPaymentToPage(this.value)">
-            <option value="cash">💵 Cash Payment</option>
-            <option value="upi">📱 UPI (Instant QR)</option>
-            <option value="pay_after_eating">🍽️ Pay After Eating</option>
-          </select>
-        </div>
-      </div>
-
-      <button class="btn btn-primary" id="checkoutSubmitBtn" style="width:100%; margin-top: 16px; padding: 10px;" onclick="submitTableOrder()">
-        🚀 Place Table Order
+      <button class="btn btn-primary" id="checkoutSubmitBtn" style="width:100%; margin-top: 16px; padding: 12px; border-radius:12px; font-size:1rem; font-weight:700;" onclick="submitTableOrder()">
+        🚀 Confirm & Send Order
       </button>
     </div>
   </div>
@@ -1397,17 +1461,7 @@
     </div>
   </div>
 
-  <!-- DEDICATED IN-PAGE CART / CHECKOUT SECTION -->
-  <div class="menu-section" id="pageOrderSection" style="margin-top: 40px; margin-bottom: 60px;">
-    <div style="max-width: 900px; margin: 0 auto; padding: 28px; border: 1px solid var(--border); border-radius: var(--radius-2xl); background: var(--bg-card); box-shadow: 0 8px 32px rgba(0,0,0,0.15);">
-      <h3 style="font-family: var(--font-display); font-weight: 800; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: var(--text); border-bottom: 1px solid var(--border); padding-bottom: 12px;">
-        🛒 Review Your Order & Checkout
-      </h3>
-      <div id="pageOrderSectionContent">
-        <!-- Loaded dynamically by updateCartUI -->
-      </div>
-    </div>
-  </div>
+
 
   <footer class="public-footer">
     Powered by <strong>AR Menu Platform</strong> · Augmented Reality dining experience
@@ -1595,6 +1649,17 @@
           .from('restaurants').select('*').eq('id', id).single();
 
         window._restaurantInfo = restaurant;
+        // Pre-fill drawer table details from URL/local storage
+        const qTable = new URLSearchParams(window.location.search).get('table');
+        const tableInput = document.getElementById('checkoutTable');
+        if (tableInput) tableInput.value = qTable || localStorage.getItem('ar_table_num') || '';
+        
+        const nameInput = document.getElementById('checkoutName');
+        if (nameInput) nameInput.value = localStorage.getItem('ar_cust_name') || '';
+        
+        const emailInput = document.getElementById('checkoutEmail');
+        if (emailInput) emailInput.value = localStorage.getItem('ar_cust_email') || '';
+
         if (rErr || !restaurant) {
           document.getElementById('heroTitle').textContent = 'Restaurant not found';
           document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-title">Restaurant Not Found</div><div class="empty-text">Please scan the correct QR code.</div></div>`;
@@ -2024,9 +2089,6 @@
         if (radio) radio.checked = true;
       }
 
-      const drawerSelect = document.getElementById('checkoutPaymentMethod');
-      if (drawerSelect) drawerSelect.value = method;
-
       const upiSection = document.getElementById('upiQrCodeContainer');
       if (method === 'upi') {
         if (upiSection) upiSection.style.display = 'block';
@@ -2082,47 +2144,43 @@
 
 
     function updateCartUI() {
-      const container = document.getElementById('cartDrawerBody');
-      const pageCartContainer = document.getElementById('pageOrderSectionContent');
+      const emptyState = document.getElementById('cartEmptyState');
+      const activeContent = document.getElementById('cartActiveContent');
+      const submitBtn = document.getElementById('checkoutSubmitBtn');
 
       if (!cart.length) {
-        container.innerHTML = `
-          <div style="text-align:center; padding: 40px 10px; color: var(--text-sec);">
-            <div style="font-size: 2.5rem; margin-bottom: 8px;">🛒</div>
-            <p>Your cart is empty.</p>
-            <p style="font-size:0.75rem; margin-top:4px;">Tap a dish to view details and add items.</p>
-          </div>
-        `;
+        if (emptyState) emptyState.style.display = 'block';
+        if (activeContent) activeContent.style.display = 'none';
+        if (submitBtn) submitBtn.disabled = true;
+
         document.getElementById('cartSubtotal').textContent = '₹0';
         document.getElementById('cartTotal').textContent = '₹0';
         document.getElementById('cartDiscountRow').style.display = 'none';
-
-        if (pageCartContainer) {
-          pageCartContainer.innerHTML = `
-            <div style="text-align:center; padding: 40px 10px; color: var(--text-sec);">
-              <div style="font-size: 3rem; margin-bottom: 12px;">🍽️</div>
-              <p style="font-size: 1.1rem; font-weight: 600; color: var(--text);">Your cart is empty</p>
-              <p style="font-size:0.85rem; margin-top:4px;">Add items to your cart from the menu above to configure and place your table order.</p>
-            </div>
-          `;
-        }
+        updateCardQtyButtons();
         return;
       }
 
-      // Drawer list
-      container.innerHTML = cart.map(item => `
-        <div class="cart-item">
-          <div class="cart-item-info">
-            <div class="cart-item-name">${item.name}</div>
-            <div class="cart-item-price">₹${item.price}</div>
+      if (emptyState) emptyState.style.display = 'none';
+      if (activeContent) activeContent.style.display = 'flex';
+      if (submitBtn) submitBtn.disabled = false;
+
+      // Render Items list in drawer body
+      const itemsList = document.getElementById('cartItemsListContainer');
+      if (itemsList) {
+        itemsList.innerHTML = cart.map(item => `
+          <div class="cart-item" style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom:1px solid var(--border);">
+            <div class="cart-item-info">
+              <div class="cart-item-name" style="font-weight:700; font-size:0.9rem; color:var(--text);">${item.name}</div>
+              <div class="cart-item-price" style="font-size:0.8rem; color:var(--primary-light); font-weight:600;">₹${item.price} each</div>
+            </div>
+            <div class="cart-item-controls" style="display:flex; align-items:center; gap:8px;">
+              <button class="cart-qty-btn" onclick="changeCartQty('${item.id}', -1)" style="width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--bg-elevated); color:var(--text); cursor:pointer;">-</button>
+              <span class="cart-item-qty" style="font-weight:700; font-size:0.85rem; color:var(--text); min-width:14px; text-align:center;">${item.quantity}</span>
+              <button class="cart-qty-btn" onclick="changeCartQty('${item.id}', 1)" style="width:26px; height:26px; border-radius:50%; border:1px solid var(--border); background:var(--bg-elevated); color:var(--text); cursor:pointer;">+</button>
+            </div>
           </div>
-          <div class="cart-item-controls">
-            <button class="cart-qty-btn" onclick="changeCartQty('${item.id}', -1)">-</button>
-            <span class="cart-item-qty">${item.quantity}</span>
-            <button class="cart-qty-btn" onclick="changeCartQty('${item.id}', 1)">+</button>
-          </div>
-        </div>
-      `).join('');
+        `).join('');
+      }
 
       // Calculation
       const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
@@ -2146,6 +2204,15 @@
         document.getElementById('cartDiscountRow').style.display = 'none';
       }
       document.getElementById('cartTotal').textContent = `₹${total.toLocaleString('en-IN')}`;
+
+      // Refresh card quantities
+      updateCardQtyButtons();
+
+      // Refresh QR code if currently in UPI payment mode
+      const activeRadio = document.querySelector('input[name="payment_method"]:checked');
+      if (activeRadio && activeRadio.value === 'upi') {
+        generateUpiQrCode();
+      }
 
       updateCardQtyButtons();
 
@@ -2275,29 +2342,7 @@
           </div>
         `;
 
-        // Pre-fill fields
-        const qTable = new URLSearchParams(window.location.search).get('table');
-        const tableInput = document.getElementById('pageCheckoutTable');
-        if (tableInput) {
-          tableInput.value = qTable || localStorage.getItem('ar_table_num') || '';
-        }
-        const nameInput = document.getElementById('pageCheckoutName');
-        if (nameInput) {
-          nameInput.value = localStorage.getItem('ar_cust_name') || '';
-        }
-        const emailInput = document.getElementById('pageCheckoutEmail');
-        if (emailInput) {
-          emailInput.value = localStorage.getItem('ar_cust_email') || '';
-        }
-        const voucherInput = document.getElementById('pageVoucherInput');
-        if (voucherInput && appliedVoucher) {
-          voucherInput.value = appliedVoucher.code;
-          const pageMsg = document.getElementById('pageVoucherStatusMsg');
-          if (pageMsg) {
-            pageMsg.textContent = `Coupon '${appliedVoucher.code}' applied!`;
-            pageMsg.style.color = 'var(--success)';
-          }
-        }
+
       }
     }
 
@@ -2347,19 +2392,6 @@
     };
 
     window.submitPageTableOrder = async () => {
-      const tableVal = document.getElementById('pageCheckoutTable').value.trim();
-      const nameVal = document.getElementById('pageCheckoutName').value.trim();
-      const emailVal = document.getElementById('pageCheckoutEmail').value.trim();
-
-      if (!tableVal) {
-        alert('Table number is required.');
-        return;
-      }
-
-      document.getElementById('checkoutTable').value = tableVal;
-      document.getElementById('checkoutName').value = nameVal;
-      document.getElementById('checkoutEmail').value = emailVal;
-
       await submitTableOrder();
     };
 
@@ -2461,16 +2493,12 @@
             status: 'pending',
             voucher_code: appliedVoucher ? appliedVoucher.code : null,
             payment_method: (() => {
-              const drawerSelect = document.getElementById('checkoutPaymentMethod');
               const pageRadio = document.querySelector('input[name="payment_method"]:checked');
-              if (pageRadio) return pageRadio.value;
-              if (drawerSelect) return drawerSelect.value;
-              return 'cash';
+              return pageRadio ? pageRadio.value : 'cash';
             })(),
             payment_status: (() => {
-              const drawerSelect = document.getElementById('checkoutPaymentMethod');
               const pageRadio = document.querySelector('input[name="payment_method"]:checked');
-              const method = pageRadio ? pageRadio.value : (drawerSelect ? drawerSelect.value : 'cash');
+              const method = pageRadio ? pageRadio.value : 'cash';
               return method === 'upi' ? 'paid' : 'pending';
             })()
           }])
