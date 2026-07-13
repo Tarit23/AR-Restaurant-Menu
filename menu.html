@@ -1468,6 +1468,22 @@
     const params       = new URLSearchParams(window.location.search);
     const restaurantId = params.get('restaurant');
 
+    function getFallbackModel(item) {
+      const cat = (item.category || '').toLowerCase();
+      const name = (item.name || '').toLowerCase();
+      if (cat.includes('coffee') || cat.includes('drink') || cat.includes('beverage') || cat.includes('tea') || name.includes('coffee') || name.includes('tea') || name.includes('latte') || name.includes('cappuccino') || name.includes('americano')) {
+        return {
+          model_url: 'https://modelviewer.dev/shared-assets/models/CoffeeCup/CoffeeCup.glb',
+          usdz_url: 'https://modelviewer.dev/shared-assets/models/CoffeeCup/CoffeeCup.usdz'
+        };
+      }
+      return {
+        model_url: 'https://modelviewer.dev/shared-assets/models/glTFSampleModels/Cake/Cake.glb',
+        usdz_url: 'https://modelviewer.dev/shared-assets/models/glTFSampleModels/Cake/Cake.usdz'
+      };
+    }
+
+
     if (!restaurantId) {
       document.getElementById('heroTitle').textContent = 'Restaurant not found';
       document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-title">No restaurant specified</div><div class="empty-text">Please scan the QR code provided by the restaurant.</div></div>`;
@@ -1673,7 +1689,7 @@
               ${item.image_url
                 ? `<img class="dish-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />`
                 : `<div class="dish-img-placeholder">🍽️</div>`}
-              ${(item.model_url || item.usdz_url) ? `<div class="dish-ar-badge">AR</div>` : ''}
+              <div class="dish-ar-badge">AR</div>
               ${!item.is_available ? `<div class="dish-unavail-overlay"><div class="dish-unavail-label">Unavailable</div></div>` : ''}
             </div>
             <div class="dish-body">
@@ -1691,10 +1707,16 @@
                   🛒 Add
                 </button>
               </div>
-              ${(item.model_url || item.usdz_url) && arEnabled
-                ? `<a class="btn-ar" href="${buildArUrl(item, isAndroid, isIOS)}" onclick="event.stopPropagation();" ${isIOS && item.usdz_url ? 'rel="ar"' : ''} style="width:100%; display:inline-flex; justify-content:center; text-decoration:none; box-sizing: border-box;">
-                     📱 View in AR
-                   </a>`
+              ${arEnabled
+                ? (() => {
+                    const modelData = (item.model_url || item.usdz_url)
+                      ? { model_url: item.model_url, usdz_url: item.usdz_url }
+                      : getFallbackModel(item);
+                    const cardArUrl = buildArUrl({ ...item, ...modelData }, isAndroid, isIOS);
+                    return `<a class="btn-ar" href="${cardArUrl}" onclick="event.stopPropagation();" ${isIOS && modelData.usdz_url ? 'rel="ar"' : ''} style="width:100%; display:inline-flex; justify-content:center; text-decoration:none; box-sizing: border-box;">
+                       📱 View in AR
+                     </a>`;
+                  })()
                 : ''}
             </div>
           </div>`;
@@ -2248,14 +2270,15 @@
       }
 
       const arBtn = document.getElementById('detailModalArBtn');
-      if (item.model_url || item.usdz_url) {
-        arBtn.style.display = 'inline-flex';
-        arBtn.href = baseArUrl;
-        if (isIOS && item.usdz_url) arBtn.setAttribute('rel', 'ar');
-        else arBtn.removeAttribute('rel');
-      } else {
-        arBtn.style.display = 'none';
-      }
+      const modelData = (item.model_url || item.usdz_url)
+        ? { model_url: item.model_url, usdz_url: item.usdz_url }
+        : getFallbackModel(item);
+      const modalArUrl = buildArUrl({ ...item, ...modelData }, isAndroid, isIOS);
+
+      arBtn.style.display = 'inline-flex';
+      arBtn.href = modalArUrl;
+      if (isIOS && modelData.usdz_url) arBtn.setAttribute('rel', 'ar');
+      else arBtn.removeAttribute('rel');
 
       const cartBtn = document.getElementById('detailModalCartBtn');
       cartBtn.onclick = () => {

@@ -415,6 +415,22 @@
     const prePrice     = params.get('price');
 
     const menuUrl = `./menu.html?restaurant=${restaurantId}`;
+
+    function getFallbackModel(item) {
+      const cat = (item.category || '').toLowerCase();
+      const name = (item.name || '').toLowerCase();
+      if (cat.includes('coffee') || cat.includes('drink') || cat.includes('beverage') || cat.includes('tea') || name.includes('coffee') || name.includes('tea') || name.includes('latte') || name.includes('cappuccino') || name.includes('americano')) {
+        return {
+          model_url: 'https://modelviewer.dev/shared-assets/models/CoffeeCup/CoffeeCup.glb',
+          usdz_url: 'https://modelviewer.dev/shared-assets/models/CoffeeCup/CoffeeCup.usdz'
+        };
+      }
+      return {
+        model_url: 'https://modelviewer.dev/shared-assets/models/glTFSampleModels/Cake/Cake.glb',
+        usdz_url: 'https://modelviewer.dev/shared-assets/models/glTFSampleModels/Cake/Cake.usdz'
+      };
+    }
+
     document.getElementById('backBtn').href = menuUrl;
     document.getElementById('errorBackLink').href = menuUrl;
 
@@ -564,9 +580,13 @@
           return;
         }
 
-        if (!item.model_url && !item.usdz_url) {
-          showError('No AR Model', 'This dish does not have a 3D model for AR viewing.');
-          return;
+        // Use fallback models if not set in DB
+        let modelUrl = item.model_url;
+        let usdzUrl = item.usdz_url;
+        if (!modelUrl && !usdzUrl) {
+          const fallback = getFallbackModel(item);
+          modelUrl = fallback.model_url;
+          usdzUrl = fallback.usdz_url;
         }
 
         const arEnabled = item.restaurants?.subscription_status === 'active';
@@ -596,16 +616,16 @@
            set it now (normal flow). If it was already
            set, only update if different (avoid re-fetch)
         ══════════════════════════════════════════ */
-        if (!preModelUrl && item.model_url) {
-          viewer.src = item.model_url;
-        } else if (preModelUrl && item.model_url &&
-                   decodeURIComponent(preModelUrl) !== item.model_url) {
+        if (!preModelUrl && modelUrl) {
+          viewer.src = modelUrl;
+        } else if (preModelUrl && modelUrl &&
+                   decodeURIComponent(preModelUrl) !== modelUrl) {
           // URL-passed model differs from DB — use DB (source of truth)
-          viewer.src = item.model_url;
+          viewer.src = modelUrl;
         }
 
-        if (!preIosUrl && item.usdz_url) {
-          viewer.setAttribute('ios-src', item.usdz_url);
+        if (!preIosUrl && usdzUrl) {
+          viewer.setAttribute('ios-src', usdzUrl);
         }
 
         /* Hard fallback if model doesn't fire 'load' in 6s */
