@@ -27,6 +27,22 @@
       overflow-y: auto;
       max-height: calc(100vh - 140px);
     }
+    
+    /* Tabs & Presets UI Styles */
+    .tab.active {
+      background: var(--primary) !important;
+      color: #ffffff !important;
+      box-shadow: 0 4px 12px var(--border-glow);
+    }
+    .theme-studio-card {
+      cursor: pointer;
+      transition: all 0.22s ease-in-out;
+    }
+    .theme-studio-card:hover {
+      border-color: var(--primary-light) !important;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0,0,0,0.18) !important;
+    }
 
     .preview-pane {
       background: var(--bg-card);
@@ -482,16 +498,23 @@
       <div class="theme-editor-container">
         <!-- Editor Controls (Left) -->
         <div class="editor-controls animate-in animate-in-delay-1">
-          <div>
-            <label class="form-label" style="font-weight: 800; font-size:1.05rem; display:block; margin-bottom:12px;">🎭 Theme Studio Presets</label>
-            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;" id="themeCardsList">
+          <!-- Tab Switcher -->
+          <div class="tabs" style="margin-bottom: 12px; display: flex; gap: 4px; background: var(--bg-elevated); padding: 4px; border-radius: var(--radius-lg); border: 1px solid var(--border);">
+            <button class="tab active" id="tabPresets" onclick="switchThemeTab('presets')" style="flex:1; background:none; border:none; padding:10px; border-radius:var(--radius-md); font-size:.85rem; font-weight:700; color:var(--text-muted); cursor:pointer; transition:all 0.2s;">🎭 Presets Studio</button>
+            <button class="tab" id="tabCustom" onclick="switchThemeTab('custom')" style="flex:1; background:none; border:none; padding:10px; border-radius:var(--radius-md); font-size:.85rem; font-weight:700; color:var(--text-muted); cursor:pointer; transition:all 0.2s;">🎨 Custom Builder</button>
+          </div>
+
+          <!-- Presets Studio Panel -->
+          <div id="themePresetsPanel" style="display:flex; flex-direction:column; gap:12px;">
+            <div style="display:flex; flex-direction:column; gap:12px;" id="themeCardsList">
               <!-- Populated by JS dynamically with preview/apply actions -->
             </div>
           </div>
 
-          <div>
-            <label class="form-label" style="font-weight: 800; font-size:1.05rem; display:block; margin-bottom:12px; border-top:1px solid var(--border); padding-top:16px;">🎨 Custom Theme Builder</label>
-            <label class="form-label" style="font-weight: 700; margin-top:8px;">Choose Palette Colors</label>
+          <!-- Custom Builder Panel -->
+          <div id="themeCustomPanel" style="display:none; flex-direction:column; gap:20px;">
+            <label class="form-label" style="font-weight: 800; font-size:1.05rem; display:block; margin-bottom:4px;">🎨 Custom Theme Builder</label>
+            <label class="form-label" style="font-weight: 700;">Choose Palette Colors</label>
             <div class="color-pickers" style="margin-top: 8px;">
               <div class="color-row">
                 <span class="color-label">Primary Color</span>
@@ -611,6 +634,7 @@
 
           <button id="saveThemeBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%;">🚀 Save Custom Theme Settings</button>
           <button id="resetThemeBtn" class="btn btn-secondary" style="margin-top: 4px; width: 100%;">↩️ Reset to Default Theme</button>
+          </div> <!-- Close themeCustomPanel -->
         </div>
 
         <!-- Live Visual Preview Mockup (Right) -->
@@ -694,10 +718,10 @@
     import { supabase } from "/js/supabase-config.js?v=3";
     import { themeAPI } from "/js/loyalty-api.js?v=3";
 
-    const THEME_PRESETS = {
+        const THEME_PRESETS = {
       modern_minimal: {
-        name: "Modern Minimal",
-        description: "Apple-inspired clean aesthetic. Perfect for modern eateries.",
+        name: "⚪ Modern Minimal",
+        description: "Apple-inspired clean aesthetic. White, clean cards, lots of spacing.",
         primaryColor: "#0f172a",
         secondaryColor: "#f1f5f9",
         backgroundColor: "#ffffff",
@@ -709,37 +733,37 @@
         fontBody: "Inter",
         borderRadius: "12px",
         buttonStyle: "rounded",
-        shadow: "0 4px 20px rgba(0,0,0,0.05)",
+        shadow: "0 4px 20px rgba(0,0,0,0.03)",
         border: "1px solid rgba(15,23,42,0.06)",
         animationStyle: "fast-fade",
         glassEffect: "none"
       },
       warm_sunset: {
-        name: "Warm Sunset",
-        description: "Soft orange, beige and cream. Warm, welcoming atmosphere.",
+        name: "🌅 Warm Sunset",
+        description: "Warm orange, beige, and wooden textures. Cozy welcoming vibes.",
         primaryColor: "#d97706",
         secondaryColor: "#fef3c7",
         backgroundColor: "#faf7f0",
         cardColor: "#ffffff",
         textColor: "#78350f",
         mutedColor: "#b45309",
-        accentColor: "#f59e0b",
+        accentColor: "#f97316",
         fontHeading: "Nunito",
         fontBody: "Nunito",
-        borderRadius: "16px",
+        borderRadius: "18px",
         buttonStyle: "pill",
-        shadow: "0 6px 24px rgba(217,119,6,0.08)",
-        border: "1px solid rgba(217,119,6,0.1)",
+        shadow: "0 6px 20px rgba(249,115,22,0.06)",
+        border: "1px solid rgba(217,119,6,0.08)",
         animationStyle: "gentle-fade",
         glassEffect: "none"
       },
       glassmorphism: {
-        name: "Glassmorphism",
-        description: "Frosted glass floating UI. Modern, premium and futuristic.",
+        name: "✨ Glassmorphism",
+        description: "Frosted glass floating UI, transparency blur, and glows.",
         primaryColor: "#6366f1",
         secondaryColor: "rgba(99,102,241,0.15)",
         backgroundColor: "#09090f",
-        cardColor: "rgba(255,255,255,0.04)",
+        cardColor: "rgba(255,255,255,0.03)",
         textColor: "#f1f5f9",
         mutedColor: "#94a3b8",
         accentColor: "#06b6d4",
@@ -747,52 +771,33 @@
         fontBody: "Poppins",
         borderRadius: "24px",
         buttonStyle: "pill",
-        shadow: "0 8px 32px rgba(0,0,0,0.37)",
+        shadow: "0 8px 32px rgba(0,0,0,0.3)",
         border: "1px solid rgba(255,255,255,0.08)",
         animationStyle: "glass-hover",
-        glassEffect: "blur(16px)"
+        glassEffect: "blur(20px)"
       },
       luxury_noir: {
-        name: "Luxury Noir",
-        description: "Premium gold and deep black. High-end, luxury dining aura.",
+        name: "💎 Luxury Noir",
+        description: "Premium gold and deep black. High-end fine dining aura.",
         primaryColor: "#d4af37",
         secondaryColor: "#1a1a1a",
         backgroundColor: "#0a0a0a",
         cardColor: "#121212",
         textColor: "#ffffff",
-        mutedColor: "#a0a0a0",
+        mutedColor: "#a08540",
         accentColor: "#d4af37",
         fontHeading: "Cormorant Garamond",
         fontBody: "Cormorant Garamond",
         borderRadius: "0px",
         buttonStyle: "sharp",
-        shadow: "0 8px 30px rgba(212,175,55,0.05)",
+        shadow: "0 8px 30px rgba(212,175,55,0.04)",
         border: "1px solid #d4af37",
         animationStyle: "slow-transition",
         glassEffect: "none"
       },
-      coffee_house: {
-        name: "Coffee House",
-        description: "Rich chocolate brown and cream tones. Cozy cafe style.",
-        primaryColor: "#4a2c2a",
-        secondaryColor: "#ebd8c3",
-        backgroundColor: "#f7f1e5",
-        cardColor: "#ffffff",
-        textColor: "#2c1716",
-        mutedColor: "#8c6a5e",
-        accentColor: "#7c5c52",
-        fontHeading: "DM Sans",
-        fontBody: "DM Sans",
-        borderRadius: "14px",
-        buttonStyle: "rounded",
-        shadow: "0 6px 18px rgba(74,44,42,0.06)",
-        border: "1px solid rgba(74,44,42,0.08)",
-        animationStyle: "soft-lift",
-        glassEffect: "none"
-      },
       organic_nature: {
-        name: "Organic Nature",
-        description: "Fresh greens and leaf accents. Ideal for vegan & healthy diets.",
+        name: "🌿 Organic Nature",
+        description: "Fresh mint green and earth tones. Ideal for vegan & healthy cafés.",
         primaryColor: "#15803d",
         secondaryColor: "#dcfce7",
         backgroundColor: "#f0fdfa",
@@ -804,9 +809,104 @@
         fontBody: "Manrope",
         borderRadius: "20px",
         buttonStyle: "rounded",
-        shadow: "0 4px 16px rgba(21,128,61,0.06)",
-        border: "1px solid rgba(21,128,61,0.08)",
+        shadow: "0 4px 16px rgba(21,128,61,0.04)",
+        border: "1px solid rgba(21,128,61,0.06)",
         animationStyle: "natural-floating",
+        glassEffect: "none"
+      },
+      ocean_breeze: {
+        name: "🌊 Ocean Breeze",
+        description: "Fresh seafood style. Cool blue, aqua, and sea white gradients.",
+        primaryColor: "#0284c7",
+        secondaryColor: "#e0f2fe",
+        backgroundColor: "#f0f9ff",
+        cardColor: "#ffffff",
+        textColor: "#0c4a6e",
+        mutedColor: "#0284c7",
+        accentColor: "#0ea5e9",
+        fontHeading: "DM Sans",
+        fontBody: "DM Sans",
+        borderRadius: "16px",
+        buttonStyle: "rounded",
+        shadow: "0 6px 18px rgba(14,165,233,0.05)",
+        border: "1px solid rgba(14,165,233,0.06)",
+        animationStyle: "soft-lift",
+        glassEffect: "none"
+      },
+      rustic_wood: {
+        name: "🪵 Rustic Wood",
+        description: "Brown wood textures and warm ambient tones. Perfect for steakhouses.",
+        primaryColor: "#854d0e",
+        secondaryColor: "#fef3c7",
+        backgroundColor: "#fcf8f2",
+        cardColor: "#ffffff",
+        textColor: "#3b2314",
+        mutedColor: "#7c4a27",
+        accentColor: "#854d0e",
+        fontHeading: "Nunito",
+        fontBody: "Nunito",
+        borderRadius: "10px",
+        buttonStyle: "rounded",
+        shadow: "0 4px 14px rgba(133,77,14,0.04)",
+        border: "1px solid rgba(133,77,14,0.08)",
+        animationStyle: "gentle-fade",
+        glassEffect: "none"
+      },
+      elegant_bistro: {
+        name: "🍷 Elegant Bistro",
+        description: "Burgundy wine colors and vintage serifs. European dining style.",
+        primaryColor: "#9d174d",
+        secondaryColor: "#fce7f3",
+        backgroundColor: "#fdfafe",
+        cardColor: "#ffffff",
+        textColor: "#4c0519",
+        mutedColor: "#831843",
+        accentColor: "#9d174d",
+        fontHeading: "Playfair Display",
+        fontBody: "Playfair Display",
+        borderRadius: "4px",
+        buttonStyle: "sharp",
+        shadow: "0 6px 20px rgba(157,23,77,0.03)",
+        border: "1px solid rgba(157,23,77,0.08)",
+        animationStyle: "slow-transition",
+        glassEffect: "none"
+      },
+      coffee_house: {
+        name: "☕ Coffee House",
+        description: "Rich espresso brown and cream tones. Warm bakery vibe.",
+        primaryColor: "#7c421f",
+        secondaryColor: "#f5ebe0",
+        backgroundColor: "#faf6f0",
+        cardColor: "#ffffff",
+        textColor: "#27130a",
+        mutedColor: "#7c421f",
+        accentColor: "#9a3412",
+        fontHeading: "DM Sans",
+        fontBody: "DM Sans",
+        borderRadius: "14px",
+        buttonStyle: "rounded",
+        shadow: "0 6px 16px rgba(154,52,18,0.05)",
+        border: "1px solid rgba(154,52,18,0.08)",
+        animationStyle: "soft-lift",
+        glassEffect: "none"
+      },
+      midnight_premium: {
+        name: "🌙 Midnight Premium",
+        description: "Deep carbon dark mode with premium gold accents.",
+        primaryColor: "#ea580c",
+        secondaryColor: "#27272a",
+        backgroundColor: "#09090b",
+        cardColor: "#18181b",
+        textColor: "#fafafa",
+        mutedColor: "#ea580c",
+        accentColor: "#f97316",
+        fontHeading: "Poppins",
+        fontBody: "Poppins",
+        borderRadius: "22px",
+        buttonStyle: "pill",
+        shadow: "0 8px 24px rgba(249,115,22,0.08)",
+        border: "1px solid rgba(249,115,22,0.15)",
+        animationStyle: "glass-hover",
         glassEffect: "none"
       }
     };
@@ -1043,7 +1143,43 @@
       
       updateLivePreview();
       renderThemeStudioCards();
+      
+      // Focus preset tab initially
+      switchThemeTab('presets');
     })();
+
+    window.switchThemeTab = (tabName) => {
+      const presetsBtn = document.getElementById('tabPresets');
+      const customBtn = document.getElementById('tabCustom');
+      const presetsPanel = document.getElementById('themePresetsPanel');
+      const customPanel = document.getElementById('themeCustomPanel');
+
+      if (!presetsBtn || !customBtn || !presetsPanel || !customPanel) return;
+
+      if (tabName === 'presets') {
+        presetsBtn.classList.add('active');
+        presetsBtn.style.background = 'var(--primary)';
+        presetsBtn.style.color = '#ffffff';
+
+        customBtn.classList.remove('active');
+        customBtn.style.background = 'none';
+        customBtn.style.color = 'var(--text-muted)';
+
+        presetsPanel.style.display = 'flex';
+        customPanel.style.display = 'none';
+      } else {
+        customBtn.classList.add('active');
+        customBtn.style.background = 'var(--primary)';
+        customBtn.style.color = '#ffffff';
+
+        presetsBtn.classList.remove('active');
+        presetsBtn.style.background = 'none';
+        presetsBtn.style.color = 'var(--text-muted)';
+
+        presetsPanel.style.display = 'none';
+        customPanel.style.display = 'flex';
+      }
+    };
 
     // Reset Theme Settings
     const resetBtn = document.getElementById('resetThemeBtn');
