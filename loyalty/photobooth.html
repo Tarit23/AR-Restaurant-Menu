@@ -7,6 +7,13 @@
   <link rel="stylesheet" href="../css/main.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <style>
+    body.light-theme {
+      --bg:      #f8fafc;
+      --card:    rgba(0,0,0,.04);
+      --border:  rgba(0,0,0,.08);
+      --text:    #0f172a;
+    }
+
     :root {
       --bg: #09090f;
       --card: rgba(255,255,255,0.04);
@@ -226,10 +233,21 @@
   </style>
 </head>
 <body>
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('theme_preference') || 'dark';
+      if (savedTheme === 'light') {
+        document.body.classList.add('light-theme');
+      }
+    })();
+  </script>
   <div class="booth-container">
     <div class="header">
       <h2 style="font-size:1.25rem; font-weight:800; margin:0;">📸 Photo Booth</h2>
-      <a class="back-btn" id="backBtn" href="#">Dashboard</a>
+      <div style="display:flex; gap:10px; align-items:center;">
+        <button class="back-btn" id="themeToggleBtn" style="padding:8px 12px; font-size:1rem;" title="Toggle Light/Dark Mode">🌓</button>
+        <a class="back-btn" id="backBtn" href="#">Dashboard</a>
+      </div>
     </div>
 
     <!-- Live Cam Window -->
@@ -476,6 +494,19 @@
       document.getElementById('instTag').textContent = `@${restaurantName.replace(/\s+/g, '')}`;
       document.getElementById('instructionsModal').classList.add('open');
     };
+
+    // Theme Toggle Functionality
+    const themeBtn = document.getElementById('themeToggleBtn');
+    if (themeBtn) {
+      const savedTheme = localStorage.getItem('theme_preference') || 'dark';
+      themeBtn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
+      
+      themeBtn.addEventListener('click', () => {
+        const isLight = document.body.classList.toggle('light-theme');
+        localStorage.setItem('theme_preference', isLight ? 'light' : 'dark');
+        themeBtn.textContent = isLight ? '🌙' : '☀️';
+      });
+    }
   </script>
 </body>
 </html>
