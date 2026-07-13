@@ -230,6 +230,68 @@
       text-align: center;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
+
+    /* ─── SLIDING THEME SWITCH ─── */
+    .theme-switch-container {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border);
+      padding: 4px 8px;
+      border-radius: 20px;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+    body.light-theme .theme-switch-container {
+      background: rgba(0, 0, 0, 0.03);
+    }
+    .theme-switch-container:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-glow);
+    }
+    body.light-theme .theme-switch-container:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+    .theme-switch-track {
+      position: relative;
+      width: 36px;
+      height: 18px;
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 9px;
+      transition: background 0.3s;
+    }
+    body.light-theme .theme-switch-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    .theme-switch-thumb {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--primary);
+      transition: left 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    }
+    body.light-theme .theme-switch-thumb {
+      left: 20px;
+      background: var(--primary-dark);
+    }
+    .theme-switch-icon {
+      font-size: 0.75rem;
+      opacity: 0.4;
+      transition: opacity 0.2s;
+    }
+    body.light-theme .theme-switch-icon:first-child {
+      opacity: 1;
+    }
+    body:not(.light-theme) .theme-switch-icon:last-child {
+      opacity: 1;
+    }
+
   </style>
 </head>
 <body>
@@ -245,7 +307,13 @@
     <div class="header">
       <h2 style="font-size:1.25rem; font-weight:800; margin:0;">📸 Photo Booth</h2>
       <div style="display:flex; gap:10px; align-items:center;">
-        <button class="back-btn" id="themeToggleBtn" style="padding:8px 12px; font-size:1rem;" title="Toggle Light/Dark Mode">🌓</button>
+        <div class="theme-switch-container" id="themeSwitch" title="Toggle Light/Dark Mode" style="padding: 4px 6px;">
+          <span class="theme-switch-icon" style="font-size:0.7rem;">☀️</span>
+          <div class="theme-switch-track" style="width:28px; height:14px; border-radius:7px;">
+            <div class="theme-switch-thumb" style="width:10px; height:10px; left:2px; top:2px;"></div>
+          </div>
+          <span class="theme-switch-icon" style="font-size:0.7rem;">🌙</span>
+        </div>
         <a class="back-btn" id="backBtn" href="#">Dashboard</a>
       </div>
     </div>
@@ -496,15 +564,11 @@
     };
 
     // Theme Toggle Functionality
-    const themeBtn = document.getElementById('themeToggleBtn');
-    if (themeBtn) {
-      const savedTheme = localStorage.getItem('theme_preference') || 'dark';
-      themeBtn.textContent = savedTheme === 'light' ? '🌙' : '☀️';
-      
-      themeBtn.addEventListener('click', () => {
+    const themeSwitch = document.getElementById('themeSwitch');
+    if (themeSwitch) {
+      themeSwitch.addEventListener('click', () => {
         const isLight = document.body.classList.toggle('light-theme');
         localStorage.setItem('theme_preference', isLight ? 'light' : 'dark');
-        themeBtn.textContent = isLight ? '🌙' : '☀️';
       });
     }
   </script>
