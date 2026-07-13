@@ -483,18 +483,15 @@
         <!-- Editor Controls (Left) -->
         <div class="editor-controls animate-in animate-in-delay-1">
           <div>
-            <label class="form-label" style="font-weight: 700;">1. Choose Layout Preset</label>
-            <div class="preset-grid" style="margin-top: 8px;">
-              <div class="preset-card active" data-preset="1">Glassmorphism</div>
-              <div class="preset-card" data-preset="2">Vintage Serif</div>
-              <div class="preset-card" data-preset="3">Tokyo Minimal</div>
-              <div class="preset-card" data-preset="4">Warm Sunset</div>
-              <div class="preset-card" data-preset="5">Neon Cyberpunk</div>
+            <label class="form-label" style="font-weight: 800; font-size:1.05rem; display:block; margin-bottom:12px;">🎭 Theme Studio Presets</label>
+            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;" id="themeCardsList">
+              <!-- Populated by JS dynamically with preview/apply actions -->
             </div>
           </div>
 
           <div>
-            <label class="form-label" style="font-weight: 700;">2. Select Three Theme Colors</label>
+            <label class="form-label" style="font-weight: 800; font-size:1.05rem; display:block; margin-bottom:12px; border-top:1px solid var(--border); padding-top:16px;">🎨 Custom Theme Builder</label>
+            <label class="form-label" style="font-weight: 700; margin-top:8px;">Choose Palette Colors</label>
             <div class="color-pickers" style="margin-top: 8px;">
               <div class="color-row">
                 <span class="color-label">Primary Color</span>
@@ -502,6 +499,24 @@
                   <span class="color-hex" id="hexPrimary">#6366f1</span>
                   <div class="color-picker-dot" id="dotPrimary">
                     <input type="color" id="inputPrimary" value="#6366f1" />
+                  </div>
+                </div>
+              </div>
+              <div class="color-row">
+                <span class="color-label">Secondary Color</span>
+                <div class="color-input-wrap">
+                  <span class="color-hex" id="hexSecondary">#f1f5f9</span>
+                  <div class="color-picker-dot" id="dotSecondary">
+                    <input type="color" id="inputSecondary" value="#f1f5f9" />
+                  </div>
+                </div>
+              </div>
+              <div class="color-row">
+                <span class="color-label">Accent Color</span>
+                <div class="color-input-wrap">
+                  <span class="color-hex" id="hexAccent">#3b82f6</span>
+                  <div class="color-picker-dot" id="dotAccent">
+                    <input type="color" id="inputAccent" value="#3b82f6" />
                   </div>
                 </div>
               </div>
@@ -523,17 +538,37 @@
                   </div>
                 </div>
               </div>
+              <div class="color-row">
+                <span class="color-label">Text Color</span>
+                <div class="color-input-wrap">
+                  <span class="color-hex" id="hexText">#ffffff</span>
+                  <div class="color-picker-dot" id="dotText">
+                    <input type="color" id="inputText" value="#ffffff" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
           <div>
-            <label class="form-label" style="font-weight: 700;">3. Font Typography</label>
+            <label class="form-label" style="font-weight: 700;">3. Typography Fonts</label>
             <select id="fontFamily" class="font-control" style="margin-top: 8px;">
-              <option value="Poppins">Poppins (Sans-Serif)</option>
-              <option value="Inter">Inter (Sans-Serif)</option>
-              <option value="Playfair Display">Playfair Display (Elegant Serif)</option>
-              <option value="Montserrat">Montserrat (Modern)</option>
-              <option value="Courier New">Courier New (Monospace)</option>
+              <option value="Poppins">Poppins (Modern Sans)</option>
+              <option value="Inter">Inter (Apple Clean)</option>
+              <option value="Nunito">Nunito (Friendly Cozy)</option>
+              <option value="Cormorant Garamond">Cormorant Garamond (Premium Luxury)</option>
+              <option value="DM Sans">DM Sans (Warm Bakery)</option>
+              <option value="Manrope">Manrope (Fresh Vegan)</option>
+              <option value="Montserrat">Montserrat (Bold Modern)</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="form-label" style="font-weight: 700;">Custom Button Style</label>
+            <select id="buttonStyle" class="font-control" style="margin-top: 8px;">
+              <option value="rounded">Rounded Corners</option>
+              <option value="pill">Pill Shaped</option>
+              <option value="sharp">Sharp Edges</option>
             </select>
           </div>
 
@@ -574,7 +609,8 @@
             </div>
           </div>
 
-          <button id="saveThemeBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Save Theme Settings</button>
+          <button id="saveThemeBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%;">🚀 Save Custom Theme Settings</button>
+          <button id="resetThemeBtn" class="btn btn-secondary" style="margin-top: 4px; width: 100%;">↩️ Reset to Default Theme</button>
         </div>
 
         <!-- Live Visual Preview Mockup (Right) -->
@@ -657,20 +693,288 @@
     import "/js/logout-handler.js?v=3";
     import { supabase } from "/js/supabase-config.js?v=3";
     import { themeAPI } from "/js/loyalty-api.js?v=3";
+
+    const THEME_PRESETS = {
+      modern_minimal: {
+        name: "Modern Minimal",
+        description: "Apple-inspired clean aesthetic. Perfect for modern eateries.",
+        primaryColor: "#0f172a",
+        secondaryColor: "#f1f5f9",
+        backgroundColor: "#ffffff",
+        cardColor: "#ffffff",
+        textColor: "#0f172a",
+        mutedColor: "#64748b",
+        accentColor: "#3b82f6",
+        fontHeading: "Inter",
+        fontBody: "Inter",
+        borderRadius: "12px",
+        buttonStyle: "rounded",
+        shadow: "0 4px 20px rgba(0,0,0,0.05)",
+        border: "1px solid rgba(15,23,42,0.06)",
+        animationStyle: "fast-fade",
+        glassEffect: "none"
+      },
+      warm_sunset: {
+        name: "Warm Sunset",
+        description: "Soft orange, beige and cream. Warm, welcoming atmosphere.",
+        primaryColor: "#d97706",
+        secondaryColor: "#fef3c7",
+        backgroundColor: "#faf7f0",
+        cardColor: "#ffffff",
+        textColor: "#78350f",
+        mutedColor: "#b45309",
+        accentColor: "#f59e0b",
+        fontHeading: "Nunito",
+        fontBody: "Nunito",
+        borderRadius: "16px",
+        buttonStyle: "pill",
+        shadow: "0 6px 24px rgba(217,119,6,0.08)",
+        border: "1px solid rgba(217,119,6,0.1)",
+        animationStyle: "gentle-fade",
+        glassEffect: "none"
+      },
+      glassmorphism: {
+        name: "Glassmorphism",
+        description: "Frosted glass floating UI. Modern, premium and futuristic.",
+        primaryColor: "#6366f1",
+        secondaryColor: "rgba(99,102,241,0.15)",
+        backgroundColor: "#09090f",
+        cardColor: "rgba(255,255,255,0.04)",
+        textColor: "#f1f5f9",
+        mutedColor: "#94a3b8",
+        accentColor: "#06b6d4",
+        fontHeading: "Poppins",
+        fontBody: "Poppins",
+        borderRadius: "24px",
+        buttonStyle: "pill",
+        shadow: "0 8px 32px rgba(0,0,0,0.37)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        animationStyle: "glass-hover",
+        glassEffect: "blur(16px)"
+      },
+      luxury_noir: {
+        name: "Luxury Noir",
+        description: "Premium gold and deep black. High-end, luxury dining aura.",
+        primaryColor: "#d4af37",
+        secondaryColor: "#1a1a1a",
+        backgroundColor: "#0a0a0a",
+        cardColor: "#121212",
+        textColor: "#ffffff",
+        mutedColor: "#a0a0a0",
+        accentColor: "#d4af37",
+        fontHeading: "Cormorant Garamond",
+        fontBody: "Cormorant Garamond",
+        borderRadius: "0px",
+        buttonStyle: "sharp",
+        shadow: "0 8px 30px rgba(212,175,55,0.05)",
+        border: "1px solid #d4af37",
+        animationStyle: "slow-transition",
+        glassEffect: "none"
+      },
+      coffee_house: {
+        name: "Coffee House",
+        description: "Rich chocolate brown and cream tones. Cozy cafe style.",
+        primaryColor: "#4a2c2a",
+        secondaryColor: "#ebd8c3",
+        backgroundColor: "#f7f1e5",
+        cardColor: "#ffffff",
+        textColor: "#2c1716",
+        mutedColor: "#8c6a5e",
+        accentColor: "#7c5c52",
+        fontHeading: "DM Sans",
+        fontBody: "DM Sans",
+        borderRadius: "14px",
+        buttonStyle: "rounded",
+        shadow: "0 6px 18px rgba(74,44,42,0.06)",
+        border: "1px solid rgba(74,44,42,0.08)",
+        animationStyle: "soft-lift",
+        glassEffect: "none"
+      },
+      organic_nature: {
+        name: "Organic Nature",
+        description: "Fresh greens and leaf accents. Ideal for vegan & healthy diets.",
+        primaryColor: "#15803d",
+        secondaryColor: "#dcfce7",
+        backgroundColor: "#f0fdfa",
+        cardColor: "#ffffff",
+        textColor: "#14532d",
+        mutedColor: "#166534",
+        accentColor: "#22c55e",
+        fontHeading: "Manrope",
+        fontBody: "Manrope",
+        borderRadius: "20px",
+        buttonStyle: "rounded",
+        shadow: "0 4px 16px rgba(21,128,61,0.06)",
+        border: "1px solid rgba(21,128,61,0.08)",
+        animationStyle: "natural-floating",
+        glassEffect: "none"
+      }
+    };
+
+    function loadGoogleFont(fontName) {
+      if (!fontName) return;
+      const fontId = 'gfont-' + fontName.toLowerCase().replace(/\s+/g, '-');
+      if (document.getElementById(fontId)) return;
+      const link = document.createElement('link');
+      link.id = fontId;
+      link.rel = 'stylesheet';
+      link.href = `https://fonts.googleapis.com/css2?family=${fontName.replace(/\s+/g, '+')}:wght@300;400;500;600;700;800;900&display=swap`;
+      document.head.appendChild(link);
+    }
+
+    function applyThemeSettingsUnused(settings, restName) {
+      let activePreset = null;
+      if (settings.theme && THEME_PRESETS[settings.theme]) {
+        activePreset = THEME_PRESETS[settings.theme];
+      } else {
+        // Load custom settings
+        activePreset = {
+          ...THEME_PRESETS.modern_minimal,
+          primaryColor: settings.primaryColor || THEME_PRESETS.modern_minimal.primaryColor,
+          secondaryColor: settings.secondaryColor || THEME_PRESETS.modern_minimal.secondaryColor,
+          backgroundColor: settings.backgroundColor || THEME_PRESETS.modern_minimal.backgroundColor,
+          cardColor: settings.cardColor || THEME_PRESETS.modern_minimal.cardColor,
+          textColor: settings.textColor || THEME_PRESETS.modern_minimal.textColor,
+          accentColor: settings.accentColor || THEME_PRESETS.modern_minimal.accentColor,
+          fontHeading: settings.fontFamily || THEME_PRESETS.modern_minimal.fontHeading,
+          fontBody: settings.fontFamily || THEME_PRESETS.modern_minimal.fontBody,
+          borderRadius: settings.borderRadius || THEME_PRESETS.modern_minimal.borderRadius,
+          buttonStyle: settings.buttonStyle || THEME_PRESETS.modern_minimal.buttonStyle,
+          shadow: settings.shadow || THEME_PRESETS.modern_minimal.shadow,
+        };
+      }
+
+      loadGoogleFont(activePreset.fontHeading);
+      loadGoogleFont(activePreset.fontBody);
+
+      let btnRadius = "8px";
+      if (activePreset.buttonStyle === "pill") btnRadius = "50px";
+      else if (activePreset.buttonStyle === "sharp") btnRadius = "0px";
+      else if (activePreset.buttonStyle === "rounded") btnRadius = "8px";
+      else if (activePreset.borderRadius) btnRadius = activePreset.borderRadius;
+
+      const styleId = "bite-theme-styles";
+      let styleEl = document.getElementById(styleId);
+      if (!styleEl) {
+        styleEl = document.createElement("style");
+        styleEl.id = styleId;
+        document.head.appendChild(styleEl);
+      }
+
+      styleEl.textContent = `
+        :root {
+          --primary: ${activePreset.primaryColor};
+          --primary-light: ${activePreset.primaryColor}dd;
+          --border-glow: ${activePreset.primaryColor}33;
+          --bg: ${activePreset.backgroundColor};
+          --bg-card: ${activePreset.cardColor};
+          --bg-elevated: ${activePreset.backgroundColor === '#ffffff' || activePreset.backgroundColor === '#faf7f0' || activePreset.backgroundColor === '#f8fafc' || activePreset.backgroundColor === '#f7f1e5' ? '#f1f5f9' : '#18181f'};
+          --bg-glass: ${activePreset.backgroundColor === '#ffffff' || activePreset.backgroundColor === '#faf7f0' || activePreset.backgroundColor === '#f8fafc' || activePreset.backgroundColor === '#f7f1e5' ? 'rgba(255,255,255,0.85)' : 'rgba(17,17,24,0.85)'};
+          --text: ${activePreset.textColor};
+          --text-sec: ${activePreset.mutedColor || '#64748b'};
+          --text-muted: ${activePreset.mutedColor || '#94a3b8'};
+          --accent: ${activePreset.accentColor};
+          --border: ${activePreset.border || 'rgba(0,0,0,0.08)'};
+          --shadow: ${activePreset.shadow || 'none'};
+          --border-radius: ${activePreset.borderRadius || '12px'};
+          --button-radius: ${btnRadius};
+          --font: '${activePreset.fontBody}', sans-serif;
+          --font-display: '${activePreset.fontHeading}', sans-serif;
+          --glass-effect: ${activePreset.glassEffect || 'none'};
+        }
+
+        :root {
+          --radius-sm: calc(var(--border-radius) * 0.5);
+          --radius-md: calc(var(--border-radius) * 0.75);
+          --radius-lg: var(--border-radius);
+          --radius-xl: calc(var(--border-radius) * 1.5);
+          --radius-2xl: calc(var(--border-radius) * 2);
+        }
+
+        .btn, .qty-btn, .selector-btn, .sw-btn-back, .sw-btn-next, .form-control, .theme-switch-container {
+          border-radius: var(--button-radius) !important;
+        }
+
+        .dish-card, .cart-drawer, .modal {
+          backdrop-filter: var(--glass-effect) !important;
+          box-shadow: var(--shadow) !important;
+        }
+
+        ${activePreset.animationStyle === 'glass-hover' ? `
+          .dish-card {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+          }
+          .dish-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px var(--border-glow) !important;
+            border-color: var(--primary) !important;
+          }
+        ` : ''}
+
+        ${activePreset.animationStyle === 'slow-transition' ? `
+          .dish-card {
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
+          }
+          .dish-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary) !important;
+          }
+        ` : ''}
+
+        ${activePreset.animationStyle === 'soft-lift' ? `
+          .dish-card {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+          }
+          .dish-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
+          }
+        ` : ''}
+
+        ${activePreset.animationStyle === 'natural-floating' ? `
+          .dish-card {
+            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          }
+          .dish-card:hover {
+            transform: translateY(-6px);
+          }
+        ` : ''}
+
+        ${activePreset.animationStyle === 'gentle-fade' ? `
+          .dish-card {
+            transition: transform 0.3s ease, opacity 0.3s ease;
+          }
+          .dish-card:hover {
+            transform: translateY(-3px);
+          }
+        ` : ''}
+
+        ${activePreset.animationStyle === 'fast-fade' ? `
+          .dish-card {
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+          }
+          .dish-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.06) !important;
+          }
+        ` : ''}
+      `;
+    }
+
     import { showToast } from "/js/utils.js?v=3";
 
     let restaurantId = null;
     let restaurant = null;
     let themeSettings = {
-      theme: "1",
-      fontFamily: "Poppins",
-      primaryColor: "#6366f1",
-      secondaryColor: "#a855f7",
-      backgroundColor: "#0f172a",
-      cardColor: "rgba(30, 41, 59, 0.7)",
-      textColor: "#f8fafc",
-      buttonColor: "#6366f1",
-      buttonTextColor: "#ffffff",
+      theme: "modern_minimal",
+      fontFamily: "Inter",
+      primaryColor: "#0f172a",
+      secondaryColor: "#f1f5f9",
+      backgroundColor: "#ffffff",
+      cardColor: "#ffffff",
+      textColor: "#0f172a",
+      accentColor: "#3b82f6",
+      buttonStyle: "rounded",
       buttonRadius: "12px",
       welcomeTitle: "",
       welcomeSubtitle: "",
@@ -738,7 +1042,57 @@
       }
       
       updateLivePreview();
+      renderThemeStudioCards();
     })();
+
+    // Reset Theme Settings
+    const resetBtn = document.getElementById('resetThemeBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to reset your branding to the default theme?')) return;
+        
+        themeSettings = {
+          theme: "modern_minimal",
+          fontFamily: "Inter",
+          primaryColor: "#0f172a",
+          secondaryColor: "#f1f5f9",
+          backgroundColor: "#ffffff",
+          cardColor: "#ffffff",
+          textColor: "#0f172a",
+          accentColor: "#3b82f6",
+          buttonStyle: "rounded",
+          buttonRadius: "12px",
+          welcomeTitle: "",
+          welcomeSubtitle: "",
+          logoUrl: "",
+          bannerUrl: ""
+        };
+
+        const btn = document.getElementById('resetThemeBtn');
+        btn.disabled = true;
+        btn.textContent = 'Resetting...';
+
+        try {
+          await themeAPI.save(restaurantId, themeSettings);
+          // Reset UPI field
+          const { error: upiError } = await supabase
+            .from('restaurants')
+            .update({ upi_id: '' })
+            .eq('id', restaurantId);
+          if (upiError) throw upiError;
+
+          loadThemeControls();
+          updateLivePreview();
+          renderThemeStudioCards();
+          showToast('🎉 Branding reset to Default Modern Minimal theme!', 'success');
+        } catch (err) {
+          showToast('Error: ' + err.message, 'error');
+        } finally {
+          btn.disabled = false;
+          btn.textContent = '↩️ Reset to Default Theme';
+        }
+      });
+    }
 
     function loadThemeControls() {
       // Set presets active card
@@ -828,43 +1182,80 @@
       }
     }
 
-    // Controls Event Listeners
-    document.querySelectorAll('.preset-card').forEach(card => {
-      card.addEventListener('click', () => {
-        document.querySelectorAll('.preset-card').forEach(c => c.classList.remove('active'));
-        card.classList.add('active');
-        themeSettings.theme = card.dataset.preset;
-        updateLivePreview();
-      });
-    });
+
 
     // Color Pickers
     document.getElementById('inputPrimary').addEventListener('input', (e) => {
       const val = e.target.value;
       themeSettings.primaryColor = val;
+      themeSettings.theme = 'custom';
       document.getElementById('hexPrimary').textContent = val;
       updateLivePreview();
+      renderThemeStudioCards();
+    });
+
+    document.getElementById('inputSecondary').addEventListener('input', (e) => {
+      const val = e.target.value;
+      themeSettings.secondaryColor = val;
+      themeSettings.theme = 'custom';
+      document.getElementById('hexSecondary').textContent = val;
+      updateLivePreview();
+      renderThemeStudioCards();
+    });
+
+    document.getElementById('inputAccent').addEventListener('input', (e) => {
+      const val = e.target.value;
+      themeSettings.accentColor = val;
+      themeSettings.theme = 'custom';
+      document.getElementById('hexAccent').textContent = val;
+      updateLivePreview();
+      renderThemeStudioCards();
     });
 
     document.getElementById('inputBg').addEventListener('input', (e) => {
       const val = e.target.value;
       themeSettings.backgroundColor = val;
+      themeSettings.theme = 'custom';
       document.getElementById('hexBg').textContent = val;
       updateLivePreview();
+      renderThemeStudioCards();
     });
 
     document.getElementById('inputCard').addEventListener('input', (e) => {
       const val = e.target.value;
       themeSettings.cardColor = val;
+      themeSettings.theme = 'custom';
       document.getElementById('hexCard').textContent = val;
       updateLivePreview();
+      renderThemeStudioCards();
+    });
+
+    document.getElementById('inputText').addEventListener('input', (e) => {
+      const val = e.target.value;
+      themeSettings.textColor = val;
+      themeSettings.theme = 'custom';
+      document.getElementById('hexText').textContent = val;
+      updateLivePreview();
+      renderThemeStudioCards();
     });
 
     // Font
     document.getElementById('fontFamily').addEventListener('change', (e) => {
       themeSettings.fontFamily = e.target.value;
+      themeSettings.theme = 'custom';
       updateLivePreview();
+      renderThemeStudioCards();
     });
+    
+    // Button Style
+    if (document.getElementById('buttonStyle')) {
+      document.getElementById('buttonStyle').addEventListener('change', (e) => {
+        themeSettings.buttonStyle = e.target.value;
+        themeSettings.theme = 'custom';
+        updateLivePreview();
+        renderThemeStudioCards();
+      });
+    }
 
     // Radius
     document.querySelectorAll('.btn-radius-opt').forEach(opt => {
@@ -872,7 +1263,9 @@
         document.querySelectorAll('.btn-radius-opt').forEach(o => o.classList.remove('active'));
         opt.classList.add('active');
         themeSettings.buttonRadius = opt.dataset.radius;
+        themeSettings.theme = 'custom';
         updateLivePreview();
+        renderThemeStudioCards();
       });
     });
 
