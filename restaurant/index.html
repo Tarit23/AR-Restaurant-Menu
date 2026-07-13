@@ -384,7 +384,12 @@
               <td style="padding:10px;"><strong>Table ${order.table_number}</strong></td>
               <td style="padding:10px;">${order.customer_name || 'Walk-in'} <span style="font-size:0.72rem; color:var(--text-muted);">(${createdTime})</span></td>
               <td style="padding:10px; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${itemsStr}">${itemsStr}</td>
-              <td style="padding:10px; color:var(--success); font-weight:700;">₹${finalAmt.toLocaleString('en-IN')}</td>
+              <td style="padding:10px; color:var(--success); font-weight:700;">
+                ₹${finalAmt.toLocaleString('en-IN')}<br/>
+                <span style="font-size:0.7rem; color:var(--text-muted); font-weight:normal; text-transform:capitalize;">
+                  ${order.payment_method?.replace(/_/g, ' ') || 'Cash'} (<span style="color:${order.payment_status === 'paid' ? 'var(--success)' : 'var(--danger)'}; font-weight:bold; text-transform:uppercase;">${order.payment_status || 'Pending'}</span>)
+                </span>
+              </td>
               <td style="padding:10px;"><span class="order-status-badge ${badgeClass}">${order.status}</span></td>
               <td style="padding:10px;">${actionBtn}</td>
             </tr>

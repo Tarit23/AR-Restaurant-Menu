@@ -566,6 +566,14 @@
             </div>
           </div>
 
+          <div>
+            <label class="form-label" style="font-weight: 700;">7. Payment Settings (UPI)</label>
+            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">Enter your UPI ID to dynamically generate payment QR codes for customers at table checkout.</p>
+            <div class="form-group">
+              <input type="text" id="upiId" class="form-control" placeholder="e.g. restaurant@okaxis or 9876543210@paytm" />
+            </div>
+          </div>
+
           <button id="saveThemeBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%;">Save Theme Settings</button>
         </div>
 
@@ -763,6 +771,9 @@
       // Images
       document.getElementById('logoUrl').value = themeSettings.logoUrl || '';
       document.getElementById('bannerUrl').value = themeSettings.bannerUrl || '';
+      if (document.getElementById('upiId')) {
+        document.getElementById('upiId').value = restaurant.upi_id || '';
+      }
     }
 
     function updateLivePreview() {
@@ -895,7 +906,17 @@
 
       try {
         await themeAPI.save(restaurantId, themeSettings);
-        showToast('🎉 UI Theme and custom colors saved successfully!', 'success');
+
+        // Save UPI ID directly to restaurants table
+        const upiVal = document.getElementById('upiId').value.trim();
+        const { error: upiError } = await supabase
+          .from('restaurants')
+          .update({ upi_id: upiVal })
+          .eq('id', restaurantId);
+
+        if (upiError) throw upiError;
+
+        showToast('🎉 UI Theme, custom colors, and payment settings saved successfully!', 'success');
       } catch (err) {
         showToast('Error: ' + err.message, 'error');
       } finally {

@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;600;700;800;900&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Montserrat:wght@400;600;700;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 
   <!--
     PERFORMANCE: Prefetch ar.html and model-viewer while user browses menu.
@@ -1269,6 +1270,14 @@
           <label class="form-label" style="font-size: 0.75rem;">Email (for Loyalty Points)</label>
           <input type="email" id="checkoutEmail" class="form-control" placeholder="your@email.com" style="padding: 6px 12px; font-size: 0.8rem;" />
         </div>
+        <div style="margin-top: 12px; display: flex; flex-direction: column; gap: 6px;">
+          <label class="form-label" style="font-size: 0.75rem; font-weight:700;">Payment Option</label>
+          <select id="checkoutPaymentMethod" class="form-control" style="padding: 6px 12px; font-size: 0.8rem; border-radius:8px;" onchange="syncDrawerPaymentToPage(this.value)">
+            <option value="cash">💵 Cash Payment</option>
+            <option value="upi">📱 UPI (Instant QR)</option>
+            <option value="pay_after_eating">🍽️ Pay After Eating</option>
+          </select>
+        </div>
       </div>
 
       <button class="btn btn-primary" id="checkoutSubmitBtn" style="width:100%; margin-top: 16px; padding: 10px;" onclick="submitTableOrder()">
@@ -1585,6 +1594,7 @@
         const { data: restaurant, error: rErr } = await supabase
           .from('restaurants').select('*').eq('id', id).single();
 
+        window._restaurantInfo = restaurant;
         if (rErr || !restaurant) {
           document.getElementById('heroTitle').textContent = 'Restaurant not found';
           document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-title">Restaurant Not Found</div><div class="empty-text">Please scan the correct QR code.</div></div>`;
@@ -1762,12 +1772,13 @@
       const isAndroid = /android/i.test(navigator.userAgent);
       const isIOS = /ipad|iphone|ipod/i.test(navigator.userAgent) && !window.MSStream;
 
+      setTimeout(updateCardQtyButtons, 50);
       grid.innerHTML = items.map((item, i) => {
         const isFav = window._favoriteIds && window._favoriteIds.includes(item.id);
         const heartChar = isFav ? '❤️' : '🤍';
 
         return `
-          <div class="dish-card" style="animation-delay:${i * 0.04}s; position:relative; cursor:pointer;" onclick="openDishDetail('${item.id}')">
+          <div class="dish-card" data-dish-id="${item.id}" style="animation-delay:${i * 0.04}s; position:relative; cursor:pointer;" onclick="openDishDetail('${item.id}')">
             
             <!-- Favorite Heart Icon -->
             <button class="btn-favorite-heart" onclick="toggleFavorite(event, '${item.id}')" id="favHeart-${item.id}">
@@ -1792,9 +1803,11 @@
             <div class="dish-footer" style="display:flex; flex-direction:column; gap:8px; width:100%; border-top: 1px solid var(--border); padding: 14px 18px; margin-top: auto; box-sizing: border-box;">
               <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
                 <div class="ui-dish-price">₹${item.price.toLocaleString('en-IN')}</div>
-                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="padding: 6px 14px; font-weight: 700; border-radius: 20px;">
-                  🛒 Add
-                </button>
+                <div class="dish-footer-action-btn">
+                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="padding: 6px 14px; font-weight: 700; border-radius: 20px;">
+                    🛒 Add
+                  </button>
+                </div>
               </div>
               ${arEnabled
                 ? (() => {
@@ -1938,6 +1951,7 @@
       setTimeout(() => { btn.style.transform = 'scale(1)'; }, 200);
 
       updateCartUI();
+      toggleCartDrawer(true);
     };
 
     function updateCartBadge() {
@@ -1955,7 +1969,117 @@
       }
       updateCartBadge();
       updateCartUI();
+      toggleCartDrawer(true);
     };
+
+    // Card Quantity Controls & Sync
+    function updateCardQtyButtons() {
+      document.querySelectorAll('.dish-card').forEach(card => {
+        const id = card.getAttribute('data-dish-id');
+        if (!id) return;
+        const cartItem = cart.find(c => c.id === id);
+        const qty = cartItem ? cartItem.quantity : 0;
+        const btnContainer = card.querySelector('.dish-footer-action-btn');
+        if (!btnContainer) return;
+        
+        if (qty > 0) {
+          btnContainer.innerHTML = `
+            <div class="card-qty-controller" onclick="event.stopPropagation();" style="display:flex; align-items:center; gap:8px; background:var(--bg-elevated); border:1px solid var(--border); padding:2px; border-radius:20px;">
+              <button class="qty-btn" onclick="changeCartQty('${id}', -1)" style="background:var(--primary); color:#fff; border:none; width:26px; height:26px; border-radius:50%; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">-</button>
+              <span style="font-weight:700; font-size:0.9rem; min-width:18px; text-align:center; color:var(--text);">${qty}</span>
+              <button class="qty-btn" onclick="changeCartQty('${id}', 1)" style="background:var(--primary); color:#fff; border:none; width:26px; height:26px; border-radius:50%; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">+</button>
+            </div>
+          `;
+        } else {
+          btnContainer.innerHTML = `
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${id}', 1)" style="padding: 6px 14px; font-weight: 700; border-radius: 20px;">
+              🛒 Add
+            </button>
+          `;
+        }
+      });
+    }
+
+    window.syncDrawerPaymentToPage = (val) => {
+      window.selectPaymentMethod(val);
+    };
+
+    window.selectPaymentMethod = (method) => {
+      document.querySelectorAll('.payment-option-card').forEach(el => {
+        el.classList.remove('active');
+        el.style.borderColor = 'var(--border)';
+        el.style.background = 'none';
+      });
+
+      let activeEl;
+      if (method === 'cash') activeEl = document.getElementById('payOptCash');
+      else if (method === 'upi') activeEl = document.getElementById('payOptUpi');
+      else if (method === 'pay_after_eating') activeEl = document.getElementById('payOptAfter');
+
+      if (activeEl) {
+        activeEl.classList.add('active');
+        activeEl.style.borderColor = 'var(--primary)';
+        activeEl.style.background = 'rgba(99,102,241,0.08)';
+        const radio = activeEl.querySelector('input[type="radio"]');
+        if (radio) radio.checked = true;
+      }
+
+      const drawerSelect = document.getElementById('checkoutPaymentMethod');
+      if (drawerSelect) drawerSelect.value = method;
+
+      const upiSection = document.getElementById('upiQrCodeContainer');
+      if (method === 'upi') {
+        if (upiSection) upiSection.style.display = 'block';
+        generateUpiQrCode();
+      } else {
+        if (upiSection) upiSection.style.display = 'none';
+      }
+    };
+
+    async function generateUpiQrCode() {
+      const upiId = window._restaurantInfo?.upi_id || 'paytmqr281005050811@paytm'; // Demo Paytm QR or custom UPI
+      const merchantName = window._restaurantInfo?.name || 'AR Restaurant';
+      
+      const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
+      let discount = 0;
+      if (appliedVoucher) {
+        if (appliedVoucher.type === 'discount_flat') {
+          discount = parseFloat(appliedVoucher.value);
+        } else if (appliedVoucher.type === 'discount_percent') {
+          discount = Math.floor(subtotal * (parseFloat(appliedVoucher.value) / 100));
+        }
+      }
+      const totalAmount = Math.max(0, subtotal - discount);
+
+      const upiPayAmount = document.getElementById('upiPayAmount');
+      if (upiPayAmount) upiPayAmount.textContent = `₹${totalAmount.toLocaleString('en-IN')}`;
+      
+      const upiMerchantName = document.getElementById('upiMerchantName');
+      if (upiMerchantName) upiMerchantName.textContent = merchantName;
+      
+      const upiDisplayId = document.getElementById('upiDisplayId');
+      if (upiDisplayId) upiDisplayId.textContent = upiId;
+
+      const demoBadge = document.getElementById('upiDemoBadge');
+      if (demoBadge) {
+        demoBadge.style.display = window._restaurantInfo?.upi_id ? 'none' : 'block';
+      }
+
+      const upiUri = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(merchantName)}&am=${totalAmount}&cu=INR`;
+      const canvas = document.getElementById('upiQrCanvas');
+      if (canvas && window.QRCode) {
+        try {
+          await QRCode.toCanvas(canvas, upiUri, {
+            width: 150,
+            margin: 1,
+            color: { dark: '#000000', light: '#ffffff' }
+          });
+        } catch (err) {
+          console.error('Error generating UPI QR code:', err);
+        }
+      }
+    }
+
 
     function updateCartUI() {
       const container = document.getElementById('cartDrawerBody');
@@ -2022,6 +2146,8 @@
         document.getElementById('cartDiscountRow').style.display = 'none';
       }
       document.getElementById('cartTotal').textContent = `₹${total.toLocaleString('en-IN')}`;
+
+      updateCardQtyButtons();
 
       // In-page Order list
       if (pageCartContainer) {
@@ -2096,6 +2222,49 @@
                   <button class="btn btn-secondary" onclick="applyPageVoucherCode()" style="border-radius:10px; padding: 8px 16px;">Apply</button>
                 </div>
                 <div id="pageVoucherStatusMsg" style="font-size: 0.72rem; font-weight: 600;"></div>
+              </div>
+
+              <!-- Payment Method selection -->
+              <div class="form-group">
+                <label class="form-label" style="font-weight: 700;">Select Payment Option</label>
+                <div class="payment-selector-group" style="display:flex; flex-direction:column; gap:8px; margin-top:8px;">
+                  <label class="payment-option-card active" id="payOptCash" style="display:flex; align-items:center; gap:10px; padding:12px; border: 1.5px solid var(--primary); border-radius:10px; background:rgba(99,102,241,0.08); cursor:pointer;">
+                    <input type="radio" name="payment_method" value="cash" checked style="display:none;" onchange="selectPaymentMethod('cash')" />
+                    <span style="font-size:1.2rem;">💵</span>
+                    <div style="flex:1;">
+                      <div style="font-weight:700; font-size:0.9rem; color:var(--text);">Cash Payment</div>
+                      <div style="font-size:0.75rem; color:var(--text-sec);">Pay directly via cash at table</div>
+                    </div>
+                  </label>
+                  
+                  <label class="payment-option-card" id="payOptUpi" style="display:flex; align-items:center; gap:10px; padding:12px; border: 1.5px solid var(--border); border-radius:10px; cursor:pointer;">
+                    <input type="radio" name="payment_method" value="upi" style="display:none;" onchange="selectPaymentMethod('upi')" />
+                    <span style="font-size:1.2rem;">📱</span>
+                    <div style="flex:1;">
+                      <div style="font-weight:700; font-size:0.9rem; color:var(--text);">UPI Payment (Instant QR)</div>
+                      <div style="font-size:0.75rem; color:var(--text-sec);">Scan UPI QR Code to pay now</div>
+                    </div>
+                  </label>
+                  
+                  <label class="payment-option-card" id="payOptAfter" style="display:flex; align-items:center; gap:10px; padding:12px; border: 1.5px solid var(--border); border-radius:10px; cursor:pointer;">
+                    <input type="radio" name="payment_method" value="pay_after_eating" style="display:none;" onchange="selectPaymentMethod('pay_after_eating')" />
+                    <span style="font-size:1.2rem;">🍽️</span>
+                    <div style="flex:1;">
+                      <div style="font-weight:700; font-size:0.9rem; color:var(--text);">Pay After Eating</div>
+                      <div style="font-size:0.75rem; color:var(--text-sec);">Pay via Cash/UPI at the counter later</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <!-- UPI QR Code container -->
+              <div id="upiQrCodeContainer" style="display:none; text-align:center; padding:16px; border:1px solid var(--border); border-radius:12px; background:rgba(255,255,255,0.02); margin-top:4px;">
+                <div id="upiDemoBadge" style="display:none; background:rgba(245,158,11,0.15); color:#f59e0b; border:1px solid rgba(245,158,11,0.3); padding:6px 12px; border-radius:8px; font-size:0.72rem; font-weight:700; margin-bottom:12px; text-align:center;">
+                  ⚠️ Demo UPI QR Code (Configure UPI ID in Dashboard to receive live payments)
+                </div>
+                <canvas id="upiQrCanvas" style="max-width: 150px; margin: 0 auto; background:#fff; padding:6px; border-radius:8px; display:block;"></canvas>
+                <div style="font-size:0.8rem; color:var(--text); margin-top:8px;">Scan to pay <strong id="upiPayAmount" style="color:var(--primary-light);">₹0</strong> to <span id="upiMerchantName" style="font-weight:700;">Restaurant</span></div>
+                <div style="font-size:0.75rem; color:var(--text-sec); font-weight:600; margin-top:2px;">UPI ID: <span id="upiDisplayId" style="color:var(--text);"></span></div>
               </div>
 
               <button class="btn btn-primary" style="width:100%; padding:12px; border-radius:12px; font-size:1rem; margin-top:8px;" onclick="submitPageTableOrder()">
@@ -2290,7 +2459,20 @@
             total_amount: subtotal,
             discount_amount: discount,
             status: 'pending',
-            voucher_code: appliedVoucher ? appliedVoucher.code : null
+            voucher_code: appliedVoucher ? appliedVoucher.code : null,
+            payment_method: (() => {
+              const drawerSelect = document.getElementById('checkoutPaymentMethod');
+              const pageRadio = document.querySelector('input[name="payment_method"]:checked');
+              if (pageRadio) return pageRadio.value;
+              if (drawerSelect) return drawerSelect.value;
+              return 'cash';
+            })(),
+            payment_status: (() => {
+              const drawerSelect = document.getElementById('checkoutPaymentMethod');
+              const pageRadio = document.querySelector('input[name="payment_method"]:checked');
+              const method = pageRadio ? pageRadio.value : (drawerSelect ? drawerSelect.value : 'cash');
+              return method === 'upi' ? 'paid' : 'pending';
+            })()
           }])
           .select()
           .single();
