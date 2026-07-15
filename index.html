@@ -7,6 +7,19 @@
   <meta name="description" content="Transform your restaurant with premium 3D & AR menus, tableside ordering, customer analytics, and automated loyalty rewards. No app required." />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   
+  <!-- Prevent Theme Flash on Page Load -->
+  <script>
+    (function() {
+      const storedTheme = localStorage.getItem('bite-theme');
+      if (storedTheme) {
+        document.documentElement.setAttribute('data-theme', storedTheme);
+      } else {
+        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        document.documentElement.setAttribute('data-theme', systemPrefersDark ? 'dark' : 'light');
+      }
+    })();
+  </script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
 
@@ -27,6 +40,16 @@
       --max-width: 1280px;
     }
 
+    [data-theme="light"] {
+      --dark: #f8fafc;
+      --surface: #ffffff;
+      --surface-hover: #f1f5f9;
+      --text: #0f172a;
+      --text-secondary: #64748b;
+      --border: rgba(15, 23, 42, 0.08);
+      --border-glow: rgba(15, 23, 42, 0.16);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -44,6 +67,7 @@
       line-height: 1.6;
       overflow-x: hidden;
       -webkit-font-smoothing: antialiased;
+      transition: background-color 0.3s ease, color 0.3s ease;
     }
 
     /* Auth Loader Overlay */
@@ -144,12 +168,6 @@
       transform: translateY(-2px);
     }
 
-    .btn-accent {
-      background: linear-gradient(135deg, var(--accent) 0%, #b8972e 100%);
-      color: #0b0b0b;
-      box-shadow: 0 4px 16px rgba(255, 209, 102, 0.2);
-    }
-
     /* Sticky Navbar */
     .navbar {
       position: fixed;
@@ -161,7 +179,7 @@
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
     .navbar.scrolled {
-      background: rgba(11, 11, 11, 0.8);
+      background: var(--dark);
       backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
       height: 68px;
@@ -219,6 +237,25 @@
       gap: 16px;
     }
 
+    .theme-toggle-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .theme-toggle-btn:hover {
+      background: var(--surface-hover);
+      border-color: var(--primary-border);
+    }
+
     /* Hero Section */
     .hero {
       position: relative;
@@ -259,7 +296,7 @@
     }
 
     .hero-title span {
-      background: linear-gradient(135deg, #fff 30%, var(--primary) 100%);
+      background: linear-gradient(135deg, var(--text) 30%, var(--primary) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -274,10 +311,30 @@
 
     .hero-buttons {
       display: flex;
+      flex-direction: column;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
+    .hero-btns-row {
+      display: flex;
       gap: 16px;
     }
 
-    /* Hero Mockup (Inspired by domainscan.tools clean floating elements) */
+    .hero-trust-labels {
+      display: flex;
+      gap: 16px;
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+    .hero-trust-labels span {
+      color: var(--primary);
+      font-weight: bold;
+    }
+
+    /* Hero Mockup */
     .hero-mockup-wrap {
       position: relative;
       display: flex;
@@ -346,6 +403,7 @@
       border-bottom: 1px solid var(--border);
       padding: 60px 0;
       text-align: center;
+      transition: all 0.3s;
     }
 
     .stats-grid {
@@ -366,15 +424,16 @@
     }
 
     .stat-item p {
-      font-size: 0.85rem;
+      font-size: 0.82rem;
       color: var(--text-secondary);
       text-transform: uppercase;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.08em;
+      font-weight: 600;
     }
 
-    /* Problem vs Solution Split */
+    /* Problem Section */
     .problem-section {
-      background: radial-gradient(circle at 10% 80%, rgba(220,38,38,0.04) 0%, rgba(0,0,0,0) 60%);
+      background: radial-gradient(circle at 10% 80%, rgba(220,38,38,0.03) 0%, rgba(0,0,0,0) 60%);
     }
 
     .problem-grid {
@@ -434,7 +493,7 @@
       padding: 32px;
       display: flex;
       flex-direction: column;
-      gap: 20px;
+      gap: 16px;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       position: relative;
       overflow: hidden;
@@ -464,11 +523,11 @@
     }
 
     .bento-icon {
-      font-size: 1.8rem;
+      font-size: 1.6rem;
       color: var(--primary);
       background: rgba(249, 115, 22, 0.08);
-      width: 48px;
-      height: 48px;
+      width: 44px;
+      height: 44px;
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -477,7 +536,7 @@
 
     .bento-title {
       font-family: var(--font-display);
-      font-size: 1.3rem;
+      font-size: 1.35rem;
       font-weight: 700;
       color: var(--text);
     }
@@ -485,65 +544,155 @@
     .bento-desc {
       font-size: 0.9rem;
       color: var(--text-secondary);
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
-    /* Workflow Interactive Steps */
-    .timeline-steps {
-      display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 20px;
-      position: relative;
-      margin-top: 60px;
+    .bento-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
     }
-
-    .timeline-step {
-      text-align: center;
-      position: relative;
-      z-index: 2;
-    }
-
-    .step-badge {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      background: var(--surface);
+    .bento-tag {
+      background: var(--surface-hover);
       border: 1px solid var(--border);
-      color: var(--primary);
+      border-radius: 30px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    /* How BiteXR Works - Timeline grid cards */
+    .timeline-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      margin-top: 50px;
+      position: relative;
+    }
+    .timeline-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .timeline-card:hover {
+      border-color: var(--primary-border);
+      transform: translateY(-2px);
+    }
+    .timeline-card-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin: 0 auto 16px;
+      font-weight: 800;
+      font-size: 0.8rem;
+      margin-bottom: 16px;
+      box-shadow: 0 0 10px var(--primary-glow);
+    }
+    .timeline-card-title {
+      font-family: var(--font-display);
+      font-size: 1.15rem;
       font-weight: 700;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
-      transition: all 0.3s;
+      margin-bottom: 12px;
+      color: var(--text);
     }
-
-    .timeline-step:hover .step-badge {
-      background: var(--primary);
-      color: #fff;
-      border-color: var(--primary);
-      box-shadow: 0 0 16px var(--primary-glow);
-    }
-
-    .step-title {
-      font-size: 0.9rem;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-    .step-desc {
-      font-size: 0.78rem;
+    .timeline-card-desc {
+      font-size: 0.85rem;
       color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .timeline-card-list {
+      margin-top: 12px;
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .timeline-card-list li {
+      font-size: 0.78rem;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .timeline-card-list li::before {
+      content: '✓';
+      color: var(--primary);
+      font-weight: bold;
     }
 
-    .timeline-line {
+    /* Experience Food Mockup grid */
+    .ar-exp-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    .table-visual-card {
+      width: 100%;
+      height: 420px;
+      border-radius: 28px;
+      overflow: hidden;
+      position: relative;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      border: 1px solid var(--border);
+    }
+    .table-visual-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .ar-camera-view {
+      background: linear-gradient(135deg, rgba(20,20,25,0.9) 0%, rgba(10,10,12,0.95) 100%);
+      width: 100%;
+      height: 100%;
+      border-radius: 24px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--border);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      overflow: hidden;
+    }
+    
+    .ar-grid-overlay {
       position: absolute;
-      top: 20px;
-      left: 8%;
-      right: 8%;
-      height: 1px;
-      background: linear-gradient(90deg, var(--border) 0%, var(--primary-border) 50%, var(--border) 100%);
-      z-index: 1;
+      inset: 0;
+      background-size: 30px 30px;
+      background-image: 
+        linear-gradient(to right, rgba(249,115,22,0.06) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(249,115,22,0.06) 1px, transparent 1px);
+      perspective: 500px;
+      transform: rotateX(60deg) translateY(-30px);
+      opacity: 0.5;
+    }
+
+    .ar-badge-float {
+      background: rgba(30, 30, 35, 0.6);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 12px;
+      position: absolute;
+      font-size: 0.72rem;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      animation: floatMotion 3.5s ease-in-out infinite alternate;
     }
 
     /* Dashboard Showcase Mockup */
@@ -658,47 +807,6 @@
       box-shadow: 0 0 10px var(--primary-glow);
     }
 
-    /* Themes Showcase Marketplace */
-    .theme-carousel-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-top: 50px;
-    }
-
-    .theme-show-card {
-      background: rgba(255, 255, 255, 0.02);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      overflow: hidden;
-      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-    .theme-show-card:hover {
-      border-color: var(--primary-border);
-      transform: translateY(-4px);
-    }
-
-    .theme-thumbnail {
-      height: 180px;
-      background-size: cover;
-      background-position: center;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .theme-thumbnail::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(0deg, #151515 0%, rgba(0,0,0,0) 80%);
-    }
-
-    .theme-show-body {
-      padding: 24px;
-      background: var(--surface);
-    }
-
     /* Accordion FAQ */
     .faq-list {
       max-width: 800px;
@@ -751,15 +859,6 @@
       transform: rotate(45deg);
     }
 
-    /* Full Width AR Banner Showcase */
-    .ar-showcase-bg {
-      background: linear-gradient(180deg, #0b0b0b 0%, #151515 50%, #0b0b0b 100%);
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 100px 0;
-      position: relative;
-    }
-
     /* CTA Card Box */
     .cta-box {
       background: linear-gradient(135deg, rgba(249,115,22,0.08) 0%, rgba(255,255,255,0.01) 100%);
@@ -783,7 +882,7 @@
       text-align: center;
     }
     .section-title span {
-      background: linear-gradient(135deg, #fff 40%, var(--primary) 100%);
+      background: linear-gradient(135deg, var(--text) 40%, var(--primary) 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
@@ -801,6 +900,10 @@
       border-top: 1px solid var(--border);
       padding: 80px 0 40px;
       background: #09090b;
+      transition: background-color 0.3s;
+    }
+    [data-theme="light"] .footer {
+      background: #f1f5f9;
     }
 
     .footer-grid {
@@ -858,6 +961,15 @@
         margin-right: auto;
       }
       .hero-buttons {
+        align-items: center;
+      }
+      .hero-btns-row {
+        flex-direction: column;
+        width: 100%;
+        max-width: 320px;
+      }
+      .hero-trust-labels {
+        flex-wrap: wrap;
         justify-content: center;
       }
       .stats-grid {
@@ -872,8 +984,12 @@
       .bento-card.col-2 {
         grid-column: span 1;
       }
-      .timeline-steps {
-        grid-template-columns: repeat(3, 1fr);
+      .timeline-grid {
+        grid-template-columns: 1fr;
+      }
+      .ar-exp-grid {
+        grid-template-columns: 1fr;
+        gap: 32px;
       }
       .dashboard-mockup-inner {
         grid-template-columns: 1fr;
@@ -881,9 +997,6 @@
       }
       .mock-sidebar {
         display: none;
-      }
-      .theme-carousel-grid {
-        grid-template-columns: 1fr;
       }
       .footer-grid {
         grid-template-columns: 1fr;
@@ -908,11 +1021,15 @@
       </a>
       <div class="nav-links">
         <a href="#features" class="nav-link">Features</a>
+        <a href="#how-it-works" class="nav-link">How it works</a>
         <a href="#demo" class="nav-link">Live Demo</a>
-        <a href="#themes" class="nav-link">Themes</a>
         <a href="#faq" class="nav-link">FAQ</a>
       </div>
       <div class="nav-actions">
+        <!-- Dark/Light Mode Toggle -->
+        <button class="theme-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Light/Dark Theme">
+          <span id="themeToggleIcon">🌙</span>
+        </button>
         <a href="/login.html" class="btn btn-secondary btn-sm" style="padding: 8px 20px;">Login</a>
         <a href="/signup.html" class="btn btn-primary btn-sm" style="padding: 8px 20px;">Get Started</a>
       </div>
@@ -935,8 +1052,15 @@
           AR menus, 3D food previews, loyalty rewards, smart tableside ordering, and real-time customer analytics—all in one unified SaaS platform.
         </p>
         <div class="hero-buttons">
-          <a href="/signup.html" class="btn btn-primary btn-lg">Book Free Demo</a>
-          <a href="#demo" class="btn btn-secondary btn-lg">View Live Demo</a>
+          <div class="hero-btns-row">
+            <a href="/signup.html" class="btn btn-primary btn-lg">Start 30-Day Free Trial</a>
+            <a href="#demo" class="btn btn-secondary btn-lg">Watch Live Demo</a>
+          </div>
+          <div class="hero-trust-labels">
+            <span>✓</span> No Credit Card Required
+            <span>✓</span> Setup in Minutes
+            <span>✓</span> Cancel Anytime
+          </div>
         </div>
       </div>
       <div class="hero-mockup-wrap reveal" style="transition-delay: 0.15s;">
@@ -975,7 +1099,7 @@
         <!-- Floating element 1: Stats card -->
         <div class="mockup-float-card float-card-1">
           <div style="font-size: 0.65rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em;">Revenue Today</div>
-          <div style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-top: 4px;">₹48,250</div>
+          <div style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-top: 4px;">₹18,250</div>
           <div style="font-size: 0.6rem; color: #10b981; margin-top: 2px;">▲ +12% vs yesterday</div>
         </div>
 
@@ -985,7 +1109,7 @@
             <div style="font-size:1.1rem;">🏆</div>
             <div>
               <div style="font-size: 0.72rem; font-weight: 700; color: #fff;">Gold Member</div>
-              <div style="font-size: 0.6rem; color: var(--primary-light);">480 Reward Points</div>
+              <div style="font-size: 0.6rem; color: var(--primary-light);">180 Reward Points</div>
             </div>
           </div>
         </div>
@@ -994,26 +1118,26 @@
     </div>
   </section>
 
-  <!-- Trust Section -->
+  <!-- Trust Section (With Believable Startup Metrics) -->
   <section class="trust-stats reveal">
     <div class="container">
-      <p style="font-size:0.82rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-secondary); margin-bottom:32px;">Trusted by Modern Restaurants & Fast-Growing Chains</p>
+      <p style="font-size:0.82rem; text-transform:uppercase; letter-spacing:0.12em; color:var(--text-secondary); margin-bottom:32px;">Growing with Modern Restaurants & Cafes</p>
       <div class="stats-grid">
         <div class="stat-item">
-          <h3><span class="stat-counter" data-target="250">0</span>+</h3>
-          <p>Active Restaurants</p>
+          <h3><span class="stat-counter" data-target="20">0</span>+</h3>
+          <p>Restaurant Partners</p>
         </div>
         <div class="stat-item">
-          <h3><span class="stat-counter" data-target="15">0</span>M+</h3>
+          <h3><span class="stat-counter" data-target="1500">0</span>+</h3>
           <p>Menu Views</p>
         </div>
         <div class="stat-item">
-          <h3><span class="stat-counter" data-target="850">0</span>K+</h3>
-          <p>Orders Processed</p>
+          <h3><span class="stat-counter" data-target="350">0</span>+</h3>
+          <p>Orders Managed</p>
         </div>
         <div class="stat-item">
-          <h3><span class="stat-counter" data-target="32">0</span>%</h3>
-          <p>Avg Order Value Lift</p>
+          <h3><span class="stat-counter" data-target="98">0</span>%</h3>
+          <p>Positive Demo Feedback</p>
         </div>
       </div>
     </div>
@@ -1058,97 +1182,221 @@
     </div>
   </section>
 
-  <!-- Bento Feature Grid -->
+  <!-- Bento Features Section Grouped by Categories -->
   <section id="features" class="section-spacing reveal">
     <div class="container">
       <h2 class="section-title">Everything You Need To <span>Scale Sales</span></h2>
       <p class="section-desc">Immersive interactive dining features packed inside a single clean, high-performance web platform.</p>
       
       <div class="bento-grid">
-        <!-- Card 1 -->
+        <!-- Card 1: Smart Digital Menu -->
         <div class="bento-card col-2">
-          <div class="bento-icon">✨</div>
-          <h3 class="bento-title">3D & AR Food Previews</h3>
-          <p class="bento-desc">Stunning real-time WebXR augmented reality projections. Guests preview dishes in 3D right on their table directly inside their mobile browser—no app downloads required.</p>
+          <div class="bento-icon">🍽️</div>
+          <h3 class="bento-title">Smart Digital Menu</h3>
+          <p class="bento-desc">Deploy tableside QR codes to load lightning-fast menus. Features search filters, categories navigation, detailed dish descriptions, food benefit callouts, allergens warnings, and direct ingredient/nutrition breakdowns.</p>
+          <div class="bento-list">
+            <span class="bento-tag">QR Based Menu</span>
+            <span class="bento-tag">Nutrition Labels</span>
+            <span class="bento-tag">Allergens Warnings</span>
+            <span class="bento-tag">Dish Search</span>
+          </div>
         </div>
-        <!-- Card 2 -->
+
+        <!-- Card 2: AR Experience -->
         <div class="bento-card">
-          <div class="bento-icon">📱</div>
-          <h3 class="bento-title">Smart QR Menus</h3>
-          <p class="bento-desc">Custom branded QR codes for tables. Dynamically maps guests to table numbers for instant order placing.</p>
+          <div class="bento-icon">✨</div>
+          <h3 class="bento-title">AR Experience</h3>
+          <p class="bento-desc">Stunning real-time WebXR projections. Customers rotate and zoom real-scale 3D food items directly inside the browser—no app required.</p>
+          <div class="bento-list">
+            <span class="bento-tag">WebXR Ready</span>
+            <span class="bento-tag">Real Scale</span>
+            <span class="bento-tag">Interactive Rotation</span>
+          </div>
         </div>
-        <!-- Card 3 -->
+
+        <!-- Card 3: Customer Engagement -->
         <div class="bento-card">
           <div class="bento-icon">🎁</div>
-          <h3 class="bento-title">Smart Loyalty CRM</h3>
-          <p class="bento-desc">Automated point accumulation, coupons, and interactive game features like Lucky Spin wheels that drive guest retention.</p>
+          <h3 class="bento-title">Customer Engagement</h3>
+          <p class="bento-desc">Hook customers with automated loyalty campaigns. Gift rewards, referral schemes, customized coupons, favorites list, and gamified lucky spins.</p>
+          <div class="bento-list">
+            <span class="bento-tag">Loyalty Points</span>
+            <span class="bento-tag">Lucky Spin Wheels</span>
+            <span class="bento-tag">Referrals</span>
+          </div>
         </div>
-        <!-- Card 4 -->
+
+        <!-- Card 4: Restaurant Management -->
         <div class="bento-card col-2">
           <div class="bento-icon">📊</div>
-          <h3 class="bento-title">Real-time KDS & Analytics</h3>
-          <p class="bento-desc">Full central control dashboard. Instant updates to pricing, KDS kitchen orders board sync, waiter alerts, and revenue analytics for single or multi-branch restaurants.</p>
+          <h3 class="bento-title">Restaurant Management</h3>
+          <p class="bento-desc">Central operator dashboard for tables. Monitor active order logs, update pricing on-the-fly, manage branches, configure menu cards, and generate branded table QR codes instantly.</p>
+          <div class="bento-list">
+            <span class="bento-tag">Order Tracking</span>
+            <span class="bento-tag">QR Code Generator</span>
+            <span class="bento-tag">Multi-Branch Sync</span>
+            <span class="bento-tag">Live Menu Editor</span>
+          </div>
         </div>
-        <!-- Card 5 -->
+
+        <!-- Card 5: Custom Branding -->
         <div class="bento-card">
-          <div class="bento-icon">🛒</div>
-          <h3 class="bento-title">Seamless Table Checkout</h3>
-          <p class="bento-desc">Waiters collect cash, checkout post-meal, or scan automatically generated UPI QR codes for instant digital checkout.</p>
-        </div>
-        <!-- Card 6 -->
-        <div class="bento-card col-2">
           <div class="bento-icon">🎨</div>
-          <h3 class="bento-title">Premium Design Studio</h3>
-          <p class="bento-desc">10 gorgeous designer presets (Glassmorphism, Luxury Noir, Coffee House) with complete color customization to brand the digital experience to match your cafe's aura.</p>
+          <h3 class="bento-title">Custom Branding</h3>
+          <p class="bento-desc">Personalize BiteXR to match your brand identity. Set logos, choose color combinations, design hero banners, and pick typography presets.</p>
+          <div class="bento-list">
+            <span class="bento-tag">Theme Presets</span>
+            <span class="bento-tag">Light & Dark Modes</span>
+            <span class="bento-tag">Custom Logo/Cover</span>
+          </div>
+        </div>
+
+        <!-- Card 6: Business Growth -->
+        <div class="bento-card col-2">
+          <div class="bento-icon">📈</div>
+          <h3 class="bento-title">Business Growth</h3>
+          <p class="bento-desc">Track sales statistics, monitor scan rates, discover popular dishes, audit loyalty member reports, and analyze returning customer behaviors with real-time revenue graphs.</p>
+          <div class="bento-list">
+            <span class="bento-tag">Dish Analytics</span>
+            <span class="bento-tag">Returning Customers Reports</span>
+            <span class="bento-tag">Revenue Insights</span>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Interactive Workflow Steps -->
-  <section class="section-spacing reveal" style="background: rgba(255,255,255,0.01); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
+  <!-- How BiteXR Works -->
+  <section id="how-it-works" class="section-spacing reveal" style="background: rgba(255,255,255,0.01); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
     <div class="container">
-      <h2 class="section-title">How BiteXR <span>Drives Revenue</span></h2>
-      <p class="section-desc">A frictionless onboarding process that immediately modernizes your tableside experience.</p>
+      <h2 class="section-title">How BiteXR <span>Works</span></h2>
+      <p class="section-desc">From QR scan to customer loyalty in just a few frictionless steps.</p>
       
-      <div class="timeline-steps">
-        <div class="timeline-line"></div>
-        <div class="timeline-step">
-          <div class="step-badge">1</div>
-          <h4 class="step-title">Join Platform</h4>
-          <p class="step-desc">Register your restaurant profile on BiteXR.</p>
+      <div class="timeline-grid">
+        <!-- Step 1 -->
+        <div class="timeline-card">
+          <div class="timeline-card-badge">1</div>
+          <h4 class="timeline-card-title">Creates Account</h4>
+          <p class="timeline-card-desc">Sign up as a restaurant owner, upload dishes, customize colors, and configure your restaurant profile branding.</p>
+          <ul class="timeline-card-list">
+            <li>Upload menu details</li>
+            <li>Choose UI theme preset</li>
+            <li>Add merchant logo</li>
+          </ul>
         </div>
-        <div class="timeline-step">
-          <div class="step-badge">2</div>
-          <h4 class="step-title">Upload Menu</h4>
-          <p class="step-desc">Input dishes, add ingredients & 3D models.</p>
+
+        <!-- Step 2 -->
+        <div class="timeline-card">
+          <div class="timeline-card-badge">2</div>
+          <h4 class="timeline-card-title">Generate QR Codes</h4>
+          <p class="timeline-card-desc">Get unique tableside QR codes generated automatically mapped to specific table numbers in your dashboard.</p>
+          <ul class="timeline-card-list">
+            <li>Branded QR layout</li>
+            <li>Tables assignment list</li>
+            <li>Print & place on tables</li>
+          </ul>
         </div>
-        <div class="timeline-step">
-          <div class="step-badge">3</div>
-          <h4 class="step-title">Branded QR</h4>
-          <p class="step-desc">Receive custom table QR codes ready for tables.</p>
+
+        <!-- Step 3 -->
+        <div class="timeline-card">
+          <div class="timeline-card-badge">3</div>
+          <h4 class="timeline-card-title">Customer Scans</h4>
+          <p class="timeline-card-desc">Customers sit at the table, scan the code with their smartphone, and open the menu instantly in Safari/Chrome.</p>
+          <ul class="timeline-card-list">
+            <li>No app downloads</li>
+            <li>Zero signup barrier</li>
+            <li>Instant load time</li>
+          </ul>
         </div>
-        <div class="timeline-step">
-          <div class="step-badge">4</div>
-          <h4 class="step-title">Guests Scan</h4>
-          <p class="step-desc">Customers open digital menu inside mobile browsers.</p>
+
+        <!-- Step 4 -->
+        <div class="timeline-card">
+          <div class="timeline-card-badge">4</div>
+          <h4 class="timeline-card-title">Customer Explores</h4>
+          <p class="timeline-card-desc">Guests search items, inspect ingredients/nutrition filters, spin lucky wheels, and preview food in realistic AR.</p>
+          <ul class="timeline-card-list">
+            <li>3D AR projection</li>
+            <li>Nutrition breakdowns</li>
+            <li>Interactive gamification</li>
+          </ul>
         </div>
-        <div class="timeline-step">
-          <div class="step-badge">5</div>
-          <h4 class="step-title">Interactive Order</h4>
-          <p class="step-desc">Customers view AR previews, checkout and pay.</p>
+
+        <!-- Step 5 -->
+        <div class="timeline-card">
+          <div class="timeline-card-badge">5</div>
+          <h4 class="timeline-card-title">Places Order</h4>
+          <p class="timeline-card-desc">Customers add items to cart and check out. The kitchen board syncs the order and status updates instantly.</p>
+          <ul class="timeline-card-list">
+            <li>Direct kitchen sync</li>
+            <li>Post-meal tableside payment</li>
+            <li>Waitstaff alert options</li>
+          </ul>
         </div>
-        <div class="timeline-step">
-          <div class="step-badge">6</div>
-          <h4 class="step-title">Restaurant Grows</h4>
-          <p class="step-desc">Retain guests automatically with loyalty rewards.</p>
+
+        <!-- Step 6 -->
+        <div class="timeline-card">
+          <div class="timeline-card-badge">6</div>
+          <h4 class="timeline-card-title font-display">Earns Loyalty</h4>
+          <p class="timeline-card-desc">Guests earn loyalty reward points on their checkout email, receiving custom discounts and birthday rewards automatically.</p>
+          <ul class="timeline-card-list">
+            <li>Increase repeat visits</li>
+            <li>Coupons distribution</li>
+            <li>Automated loyalty reports</li>
+          </ul>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Dashboard Showcase Section -->
-  <section id="demo" class="section-spacing reveal">
+  <!-- Experience Food Before You Order (Realistic tableside AR mockup) -->
+  <section class="section-spacing reveal">
+    <div class="container ar-exp-grid">
+      <div>
+        <div class="hero-badge">AR Projection Interface</div>
+        <h2 class="section-title" style="text-align: left; margin-bottom: 20px;">Experience Food <span>Before You Order</span></h2>
+        <p class="hero-subtitle" style="margin-bottom: 24px; text-align:left;">
+          Customers scan the table QR code and instantly preview dishes in high-fidelity Augmented Reality directly on their table before placing an order. Reduces order anxiety, minimizes food waste, and elevates the dining experience.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <div style="display:flex; gap:12px; align-items:center;">
+            <div style="width: 24px; height: 24px; background: rgba(249,115,22,0.15); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--primary); font-size:0.75rem; font-weight:700;">✓</div>
+            <span style="font-size:0.9rem; font-weight:500;">Realistic lighting & real-scale food proportions</span>
+          </div>
+          <div style="display:flex; gap:12px; align-items:center;">
+            <div style="width: 24px; height: 24px; background: rgba(249,115,22,0.15); border-radius:50%; display:flex; align-items:center; justify-content:center; color:var(--primary); font-size:0.75rem; font-weight:700;">✓</div>
+            <span style="font-size:0.9rem; font-weight:500;">Spin, zoom, and explore ingredients layers</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="position:relative; display:flex; justify-content:center;">
+        <!-- Camera simulator with floating burger -->
+        <div class="ar-camera-view" style="width:100%; max-width:440px; height:460px;">
+          <div class="ar-grid-overlay"></div>
+          
+          <!-- Virtual Burger Floating -->
+          <div style="font-size: 10rem; z-index:3; filter: drop-shadow(0 12px 30px rgba(0,0,0,0.5)); transform: translateY(-10px); animation: floatMotion 3s ease-in-out infinite alternate;">🍔</div>
+          
+          <!-- Floating UI Badges -->
+          <div class="ar-badge-float" style="top:40px; left:20px; animation-delay: 0.5s;">
+            <span>🔥</span> <strong>540 Calories</strong>
+          </div>
+          <div class="ar-badge-float" style="top:110px; right:20px; animation-delay: 1.5s;">
+            <span>🥩</span> <strong>Protein: 28g</strong>
+          </div>
+          <div class="ar-badge-float" style="bottom:120px; left:30px; animation-delay: 2.5s;">
+            <span>🥑</span> <strong>Fresh Ingredients</strong>
+          </div>
+          <div class="ar-badge-float" style="bottom:50px; right:40px; animation-delay: 0s;">
+            <span>🏆</span> <strong>+20 Points</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Central Dashboard Console Mockup -->
+  <section id="demo" class="section-spacing reveal" style="background: rgba(255,255,255,0.01); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
     <div class="container">
       <h2 class="section-title">Designed For <span>High-Volume Operators</span></h2>
       <p class="section-desc">Manage menus, change themes, distribute loyalty cards, and audit branches from one centralized console.</p>
@@ -1209,81 +1457,6 @@
     </div>
   </section>
 
-  <!-- Theme Studio Showcase -->
-  <section id="themes" class="section-spacing reveal" style="background: rgba(255,255,255,0.01); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
-    <div class="container">
-      <h2 class="section-title">Design Presets <span>Theme Marketplace</span></h2>
-      <p class="section-desc">One-click designer presets that update fonts, colors, and layout templates across the entire menu instantly.</p>
-      
-      <div class="theme-carousel-grid">
-        <!-- Theme 1 -->
-        <div class="theme-show-card">
-          <div class="theme-thumbnail" style="background-image: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(99,102,241,0.1) 100%);">
-            <div style="font-size:3rem;">✨</div>
-          </div>
-          <div class="theme-show-body">
-            <h4 style="font-weight: 700; margin-bottom:4px;">Glassmorphism</h4>
-            <p style="font-size:0.75rem; color:var(--primary); font-weight:700; margin-bottom:8px;">PREMIUM CAFES & BARS</p>
-            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:16px;">Frosted glass floating panels, backdrop blur filters, and glowing hover states.</p>
-            <div style="display:flex; gap:10px;">
-              <a href="/login.html" class="btn btn-secondary btn-sm" style="flex:1; font-size:0.75rem; padding:6px 0;">Preview</a>
-              <a href="/login.html" class="btn btn-primary btn-sm" style="flex:1; font-size:0.75rem; padding:6px 0;">Apply</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Theme 2 -->
-        <div class="theme-show-card">
-          <div class="theme-thumbnail" style="background-image: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(217,119,6,0.1) 100%);">
-            <div style="font-size:3rem;">🌅</div>
-          </div>
-          <div class="theme-show-body">
-            <h4 style="font-weight: 700; margin-bottom:4px;">Warm Sunset</h4>
-            <p style="font-size:0.75rem; color:var(--primary); font-weight:700; margin-bottom:8px;">FAMILY RESTAURANTS</p>
-            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:16px;">Warm amber gradients, friendly cozy card structures, and soft typography.</p>
-            <div style="display:flex; gap:10px;">
-              <a href="/login.html" class="btn btn-secondary btn-sm" style="flex:1; font-size:0.75rem; padding:6px 0;">Preview</a>
-              <a href="/login.html" class="btn btn-primary btn-sm" style="flex:1; font-size:0.75rem; padding:6px 0;">Apply</a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Theme 3 -->
-        <div class="theme-show-card">
-          <div class="theme-thumbnail" style="background-image: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(212,175,55,0.1) 100%);">
-            <div style="font-size:3rem;">💎</div>
-          </div>
-          <div class="theme-show-body">
-            <h4 style="font-weight: 700; margin-bottom:4px;">Luxury Noir</h4>
-            <p style="font-size:0.75rem; color:var(--primary); font-weight:700; margin-bottom:8px;">FINE DINING OPERATORS</p>
-            <p style="font-size:0.8rem; color:var(--text-secondary); margin-bottom:16px;">Charcoal backgrounds, serif headings, sharp angles, and elegant gold borders.</p>
-            <div style="display:flex; gap:10px;">
-              <a href="/login.html" class="btn btn-secondary btn-sm" style="flex:1; font-size:0.75rem; padding:6px 0;">Preview</a>
-              <a href="/login.html" class="btn btn-primary btn-sm" style="flex:1; font-size:0.75rem; padding:6px 0;">Apply</a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- AR Showcase Banner -->
-  <section class="ar-showcase-bg reveal">
-    <div class="bg-glow" style="top:-50px; left:30%; opacity:0.3;"></div>
-    <div class="container" style="text-align:center;">
-      <h2 class="section-title">Pre-rendered <span>WebXR AR Engine</span></h2>
-      <p class="section-desc" style="margin-bottom:40px;">Deliver hyper-realistic dishes onto customer tables without loading delays.</p>
-      
-      <!-- Simulated Interactive floating dish visual -->
-      <div style="position:relative; width:100%; max-width:600px; height:320px; border:1px solid var(--border); border-radius:24px; margin:0 auto; background:rgba(255,255,255,0.02); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; overflow:hidden;">
-        <div style="font-size: 7.5rem; animation: floatMotion 3s ease-in-out infinite alternate;">🍔</div>
-        <div style="position:absolute; bottom:20px; background:rgba(249,115,22,0.15); color:var(--primary); padding:6px 20px; border-radius:30px; font-size:0.75rem; font-weight:700; border:1px solid var(--primary-border);">
-          Interactive 3D Preview Engine
-        </div>
-      </div>
-    </div>
-  </section>
-
   <!-- FAQ Section -->
   <section id="faq" class="section-spacing reveal">
     <div class="container">
@@ -1329,13 +1502,18 @@
   <section class="section-spacing reveal">
     <div class="container">
       <div class="cta-box">
-        <h2 class="hero-title" style="font-size:2.8rem; margin-bottom:16px;">Ready to Modernize <span>Your Dining Room?</span></h2>
+        <h2 class="hero-title" style="font-size:2.8rem; margin-bottom:16px;">Ready to Transform <span>Your Restaurant Experience?</span></h2>
         <p style="color:var(--text-secondary); max-width:600px; margin:0 auto 32px; font-size:1.05rem;">
           Increase guest retention, boost average order values, and deploy beautiful 3D AR menu experiences in under 48 hours.
         </p>
-        <div style="display:flex; gap:16px; justify-content:center;">
-          <a href="/signup.html" class="btn btn-primary btn-lg">Get Started Free</a>
-          <a href="/signup.html" class="btn btn-secondary btn-lg">Book Custom Demo</a>
+        <div style="display:flex; flex-direction:column; gap:12px; align-items:center;">
+          <div style="display:flex; gap:16px; justify-content:center;">
+            <a href="/signup.html" class="btn btn-primary btn-lg">Start 30-Day Free Trial</a>
+            <a href="#demo" class="btn btn-secondary btn-lg">Watch Live Demo</a>
+          </div>
+          <div style="font-size: 0.8rem; color:var(--text-secondary); font-weight:500;">
+            <span>✓</span> First 15 Restaurants Get Free Setup
+          </div>
         </div>
       </div>
     </div>
@@ -1356,28 +1534,33 @@
       <div class="footer-links-col">
         <h4>Product</h4>
         <a href="#features" class="footer-link">Features</a>
-        <a href="#themes" class="footer-link">Presets</a>
-        <a href="#demo" class="footer-link">Live Demo</a>
+        <a href="#pricing" class="footer-link">Pricing</a>
+        <a href="#demo" class="footer-link">Demo</a>
+        <a href="/restaurant/theme.html" class="footer-link">Templates</a>
+        <a href="/restaurant/index.html" class="footer-link">Restaurant Dashboard</a>
       </div>
       <div class="footer-links-col">
         <h4>Company</h4>
-        <a href="#" class="footer-link">About Us</a>
-        <a href="#" class="footer-link">Careers</a>
-        <a href="#" class="footer-link">Privacy Policy</a>
+        <a href="#" class="footer-link">About</a>
+        <a href="#" class="footer-link">Privacy</a>
+        <a href="#" class="footer-link">Terms</a>
+        <a href="mailto:support@bitexr.com" class="footer-link">Contact</a>
       </div>
       <div class="footer-links-col">
-        <h4>Contact</h4>
-        <a href="mailto:support@bitexr.com" class="footer-link">support@bitexr.com</a>
-        <a href="#" class="footer-link">Documentation Help</a>
-        <a href="#" class="footer-link">Enterprise Sales</a>
+        <h4>Resources</h4>
+        <a href="#" class="footer-link">Documentation</a>
+        <a href="#" class="footer-link">Support</a>
+        <a href="#faq" class="footer-link">FAQs</a>
+        <a href="#" class="footer-link">Newsletter</a>
       </div>
     </div>
     <div class="container footer-bottom">
       <p>&copy; 2026 BiteXR Platform. All rights reserved. AR-Powered digital menu experiences.</p>
       <div style="display:flex; gap:16px;">
-        <a href="#" class="footer-link">Twitter</a>
-        <a href="#" class="footer-link">LinkedIn</a>
         <a href="#" class="footer-link">Instagram</a>
+        <a href="#" class="footer-link">Facebook</a>
+        <a href="#" class="footer-link">LinkedIn</a>
+        <a href="#" class="footer-link">GitHub</a>
       </div>
     </div>
   </footer>
@@ -1452,7 +1635,7 @@
       entries.forEach(entry => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
-          observer.unobserve(entry.target); // Animates once
+          observer.unobserve(entry.target);
         }
       });
     };
@@ -1472,7 +1655,7 @@
       stats.forEach(stat => {
         const target = parseInt(stat.dataset.target);
         let count = 0;
-        const speed = target / 60; // 60 frames approx
+        const speed = target / 60;
         const update = () => {
           count += speed;
           if (count < target) {
@@ -1486,7 +1669,6 @@
       });
     };
 
-    // Trigger stats animation when Trust section reveals
     const statsSection = document.querySelector('.trust-stats');
     if (statsSection) {
       const statsObserver = new IntersectionObserver((entries, observer) => {
@@ -1522,6 +1704,25 @@
         card.style.setProperty('--mouse-y', `${y}px`);
       });
     });
+
+    // 7. Dark/Light Mode toggle helper actions
+    window.toggleTheme = () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('bite-theme', newTheme);
+      updateThemeToggleIcon(newTheme);
+    };
+
+    function updateThemeToggleIcon(theme) {
+      const iconSpan = document.getElementById('themeToggleIcon');
+      if (iconSpan) {
+        iconSpan.textContent = theme === 'dark' ? '🌙' : '☀️';
+      }
+    }
+
+    // Sync theme icon on load
+    updateThemeToggleIcon(document.documentElement.getAttribute('data-theme') || 'dark');
 
     // Run auth check on load
     checkAuth();
