@@ -1212,133 +1212,258 @@
 <style>
     /* ─── TEMPLATE ENGINE CSS STYLES ─── */
     
-    /* Modern Minimal Template */
+    /* 1. Modern Minimal Template (Apple style, clean, lots of spacing) */
     .template-modern-minimal {
-      background-color: #ffffff !important;
-      color: #0f172a !important;
+      --font-display: 'Inter', sans-serif !important;
+      --font: 'Inter', sans-serif !important;
+      --button-radius: 8px !important;
+      --border-radius: 12px !important;
+      --shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
+    }
+    /* Light Mode Option */
+    body.light-theme.template-modern-minimal {
+      --bg: #ffffff !important;
+      --bg-card: #ffffff !important;
+      --bg-elevated: #f8fafc !important;
+      --text: #0f172a !important;
+      --text-sec: #64748b !important;
+      --border: rgba(15,23,42,0.06) !important;
+    }
+    /* Dark Mode Option */
+    body:not(.light-theme).template-modern-minimal {
+      --bg: #0b0f19 !important;
+      --bg-card: #111827 !important;
+      --bg-elevated: #1f2937 !important;
+      --text: #f9fafb !important;
+      --text-sec: #9ca3af !important;
+      --border: rgba(255,255,255,0.08) !important;
     }
     .template-modern-minimal .header {
-      background: #ffffff !important;
-      border-bottom: 1px solid rgba(15,23,42,0.06) !important;
+      background: var(--bg-card) !important;
+      border-bottom: 1px solid var(--border) !important;
     }
     .template-modern-minimal .dish-card {
-      background: #ffffff !important;
-      border: 1px solid rgba(15,23,42,0.06) !important;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
-      border-radius: 12px !important;
-      padding: 16px !important;
+      background: var(--bg-card) !important;
+      border: 1px solid var(--border) !important;
+      padding: 18px !important;
+      transition: transform 0.2s ease, box-shadow 0.2s ease !important;
     }
-    .template-modern-minimal .tm-price {
-      font-size: 1.15rem;
-      font-weight: 800;
-      color: var(--primary);
-    }
-    .template-modern-minimal .tm-desc {
-      font-size: 0.78rem;
-      color: #64748b;
-      margin-top: 6px;
+    .template-modern-minimal .dish-card:hover {
+      transform: translateY(-4px) !important;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.06) !important;
     }
 
-    /* Glass Premium Template */
+    /* 2. Glass Premium Template (Frosted panels, blur, neon accents) */
     .template-glass-premium {
-      background-color: #09090f !important;
-      color: #f1f5f9 !important;
+      --font-display: 'Poppins', sans-serif !important;
+      --font: 'Poppins', sans-serif !important;
+      --button-radius: 99px !important;
+      --border-radius: 24px !important;
+      --glass-effect: blur(20px) !important;
+    }
+    /* Light Mode Option */
+    body.light-theme.template-glass-premium {
+      --bg: #f1f5f9 !important;
+      --bg-card: rgba(255, 255, 255, 0.45) !important;
+      --bg-elevated: rgba(255, 255, 255, 0.6) !important;
+      --text: #0f172a !important;
+      --text-sec: #475569 !important;
+      --border: rgba(15, 23, 42, 0.08) !important;
+      --shadow: 0 8px 32px rgba(15,23,42,0.05) !important;
+    }
+    /* Dark Mode Option */
+    body:not(.light-theme).template-glass-premium {
+      --bg: #09090f !important;
+      --bg-card: rgba(255, 255, 255, 0.03) !important;
+      --bg-elevated: rgba(255, 255, 255, 0.06) !important;
+      --text: #f1f5f9 !important;
+      --text-sec: #94a3b8 !important;
+      --border: rgba(255, 255, 255, 0.08) !important;
+      --shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
     }
     .template-glass-premium .dish-card {
-      background: rgba(255, 255, 255, 0.03) !important;
-      backdrop-filter: blur(20px) !important;
-      border: 1px solid rgba(255, 255, 255, 0.08) !important;
-      border-radius: 24px !important;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+      background: var(--bg-card) !important;
+      backdrop-filter: var(--glass-effect) !important;
+      border: 1px solid var(--border) !important;
       padding: 20px !important;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease !important;
     }
-    .template-glass-premium .tg-price {
-      font-weight: 700;
-      color: var(--primary-light);
+    .template-glass-premium .dish-card:hover {
+      transform: translateY(-6px) !important;
+      box-shadow: 0 12px 30px var(--border-glow) !important;
+      border-color: var(--primary) !important;
     }
     .template-glass-premium .tg-ar-badge {
       position: absolute;
-      top: 10px;
-      left: 10px;
+      top: 12px;
+      left: 12px;
       background: var(--primary);
       color: #fff;
       font-size: 0.65rem;
       font-weight: 800;
-      padding: 3px 8px;
+      padding: 4px 10px;
       border-radius: 20px;
       text-transform: uppercase;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
-    /* Coffee House Template */
+    /* 3. Coffee House Template (Warm wood/creme cozy aesthetics) */
     .template-coffee-house {
-      background-color: #faf6f0 !important;
-      color: #27130a !important;
+      --font-display: 'DM Sans', sans-serif !important;
+      --font: 'DM Sans', sans-serif !important;
+      --button-radius: 12px !important;
+      --border-radius: 16px !important;
+      --shadow: 0 6px 16px rgba(154,52,18,0.04) !important;
+    }
+    /* Light Mode Option */
+    body.light-theme.template-coffee-house {
+      --bg: #faf6f0 !important;
+      --bg-card: #ffffff !important;
+      --bg-elevated: #f5ebe0 !important;
+      --text: #27130a !important;
+      --text-sec: #7c421f !important;
+      --border: #e7d7c1 !important;
+    }
+    /* Dark Mode Option */
+    body:not(.light-theme).template-coffee-house {
+      --bg: #221108 !important;
+      --bg-card: #2c180e !important;
+      --bg-elevated: #3d2315 !important;
+      --text: #f7ebe1 !important;
+      --text-sec: #d5bdaf !important;
+      --border: #523423 !important;
     }
     .template-coffee-house .dish-card {
-      background: #ffffff !important;
-      border: 1px solid rgba(154,52,18,0.08) !important;
-      border-radius: 14px !important;
-      box-shadow: 0 6px 16px rgba(154,52,18,0.05) !important;
+      background: var(--bg-card) !important;
+      border: 1px solid var(--border) !important;
+      padding: 16px !important;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease !important;
     }
-    .template-coffee-house .tc-price {
-      font-family: var(--font-display) !important;
-      color: #7c421f;
-      font-weight: 700;
+    .template-coffee-house .dish-card:hover {
+      transform: translateY(-5px) !important;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
     }
 
-    /* Luxury Noir Template */
+    /* 4. Luxury Noir Template (Premium luxury black & gold serif headings) */
     .template-luxury-noir {
-      background-color: #0a0a0a !important;
-      color: #ffffff !important;
+      --font-display: 'Cormorant Garamond', serif !important;
+      --font: 'Cormorant Garamond', serif !important;
+      --button-radius: 0px !important;
+      --border-radius: 0px !important;
+      --shadow: 0 8px 30px rgba(212,175,55,0.04) !important;
+    }
+    /* Light Mode Option */
+    body.light-theme.template-luxury-noir {
+      --bg: #fbfbfb !important;
+      --bg-card: #ffffff !important;
+      --bg-elevated: #eaeaea !important;
+      --text: #111111 !important;
+      --text-sec: #6e5d2b !important;
+      --border: #b8972e !important;
+    }
+    /* Dark Mode Option */
+    body:not(.light-theme).template-luxury-noir {
+      --bg: #050505 !important;
+      --bg-card: #0d0d0d !important;
+      --bg-elevated: #161616 !important;
+      --text: #ffffff !important;
+      --text-sec: #a08540 !important;
+      --border: #d4af37 !important;
     }
     .template-luxury-noir .dish-card {
-      background: #121212 !important;
-      border: 1px solid #d4af37 !important;
-      border-radius: 0px !important;
-      box-shadow: 0 8px 30px rgba(212,175,55,0.04) !important;
+      background: var(--bg-card) !important;
+      border: 1px solid var(--border) !important;
+      padding: 18px !important;
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease !important;
     }
-    .template-luxury-noir .tl-price {
-      color: #d4af37;
-      font-family: 'Cormorant Garamond', serif;
-      font-size: 1.25rem;
+    .template-luxury-noir .dish-card:hover {
+      transform: translateY(-2px) !important;
+      border-color: var(--primary) !important;
     }
 
-    /* Organic Nature Template */
+    /* 5. Organic Nature Template (Green/cream natural leaf aesthetics) */
     .template-organic-nature {
-      background-color: #f0fdfa !important;
-      color: #14532d !important;
+      --font-display: 'Manrope', sans-serif !important;
+      --font: 'Manrope', sans-serif !important;
+      --button-radius: 16px !important;
+      --border-radius: 20px !important;
+      --shadow: 0 4px 16px rgba(21,128,61,0.04) !important;
+    }
+    /* Light Mode Option */
+    body.light-theme.template-organic-nature {
+      --bg: #f0fdf4 !important;
+      --bg-card: #ffffff !important;
+      --bg-elevated: #dcfce7 !important;
+      --text: #14532d !important;
+      --text-sec: #166534 !important;
+      --border: #bbf7d0 !important;
+    }
+    /* Dark Mode Option */
+    body:not(.light-theme).template-organic-nature {
+      --bg: #051b0c !important;
+      --bg-card: #082f14 !important;
+      --bg-elevated: #14532d !important;
+      --text: #f0fdf4 !important;
+      --text-sec: #a7f3d0 !important;
+      --border: #166534 !important;
     }
     .template-organic-nature .dish-card {
-      background: #ffffff !important;
-      border: 1px solid rgba(21,128,61,0.06) !important;
-      border-radius: 20px !important;
-      box-shadow: 0 4px 16px rgba(21,128,61,0.04) !important;
+      background: var(--bg-card) !important;
+      border: 1px solid var(--border) !important;
+      padding: 18px !important;
+      transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    }
+    .template-organic-nature .dish-card:hover {
+      transform: translateY(-6px) !important;
     }
     .template-organic-nature .to-leaf-badge {
       position: absolute;
-      top: 10px;
-      right: 10px;
+      top: 12px;
+      right: 12px;
       background: #15803d;
       color: #fff;
       font-size: 0.65rem;
-      padding: 3px 8px;
+      font-weight: 700;
+      padding: 4px 10px;
       border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(21,128,61,0.15);
     }
 
-    /* Tokyo Zen Template */
+    /* 6. Tokyo Zen Template (Minimal editorial Japanese layout with sharp corners) */
     .template-tokyo-zen {
-      background-color: #fbfbfa !important;
-      color: #1c1917 !important;
+      --font-display: 'Playfair Display', serif !important;
+      --font: 'Inter', sans-serif !important;
+      --button-radius: 0px !important;
+      --border-radius: 2px !important;
+      --shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+    }
+    /* Light Mode Option */
+    body.light-theme.template-tokyo-zen {
+      --bg: #fbfbfa !important;
+      --bg-card: #ffffff !important;
+      --bg-elevated: #f5f5f4 !important;
+      --text: #1c1917 !important;
+      --text-sec: #78716c !important;
+      --border: #e7e5e4 !important;
+    }
+    /* Dark Mode Option */
+    body:not(.light-theme).template-tokyo-zen {
+      --bg: #121110 !important;
+      --bg-card: #1a1918 !important;
+      --bg-elevated: #2e2b2a !important;
+      --text: #faf8f5 !important;
+      --text-sec: #a8a29e !important;
+      --border: #44403c !important;
     }
     .template-tokyo-zen .dish-card {
-      background: #ffffff !important;
-      border: 1px solid #e7e5e4 !important;
-      border-radius: 2px !important;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+      background: var(--bg-card) !important;
+      border: 1px solid var(--border) !important;
+      padding: 16px !important;
+      transition: transform 0.3s ease, border-color 0.3s ease !important;
     }
-    .template-tokyo-zen .tz-price {
-      color: #dc2626;
-      font-weight: 700;
+    .template-tokyo-zen .dish-card:hover {
+      transform: translateY(-3px) !important;
+      border-color: var(--primary) !important;
     }
     </style>
 </head>
