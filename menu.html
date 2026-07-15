@@ -1209,6 +1209,138 @@
     }
 
   </style>
+<style>
+    /* ─── TEMPLATE ENGINE CSS STYLES ─── */
+    
+    /* Modern Minimal Template */
+    .template-modern-minimal {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+    }
+    .template-modern-minimal .header {
+      background: #ffffff !important;
+      border-bottom: 1px solid rgba(15,23,42,0.06) !important;
+    }
+    .template-modern-minimal .dish-card {
+      background: #ffffff !important;
+      border: 1px solid rgba(15,23,42,0.06) !important;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
+      border-radius: 12px !important;
+      padding: 16px !important;
+    }
+    .template-modern-minimal .tm-price {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .template-modern-minimal .tm-desc {
+      font-size: 0.78rem;
+      color: #64748b;
+      margin-top: 6px;
+    }
+
+    /* Glass Premium Template */
+    .template-glass-premium {
+      background-color: #09090f !important;
+      color: #f1f5f9 !important;
+    }
+    .template-glass-premium .dish-card {
+      background: rgba(255, 255, 255, 0.03) !important;
+      backdrop-filter: blur(20px) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      border-radius: 24px !important;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3) !important;
+      padding: 20px !important;
+    }
+    .template-glass-premium .tg-price {
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+    .template-glass-premium .tg-ar-badge {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+
+    /* Coffee House Template */
+    .template-coffee-house {
+      background-color: #faf6f0 !important;
+      color: #27130a !important;
+    }
+    .template-coffee-house .dish-card {
+      background: #ffffff !important;
+      border: 1px solid rgba(154,52,18,0.08) !important;
+      border-radius: 14px !important;
+      box-shadow: 0 6px 16px rgba(154,52,18,0.05) !important;
+    }
+    .template-coffee-house .tc-price {
+      font-family: var(--font-display) !important;
+      color: #7c421f;
+      font-weight: 700;
+    }
+
+    /* Luxury Noir Template */
+    .template-luxury-noir {
+      background-color: #0a0a0a !important;
+      color: #ffffff !important;
+    }
+    .template-luxury-noir .dish-card {
+      background: #121212 !important;
+      border: 1px solid #d4af37 !important;
+      border-radius: 0px !important;
+      box-shadow: 0 8px 30px rgba(212,175,55,0.04) !important;
+    }
+    .template-luxury-noir .tl-price {
+      color: #d4af37;
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.25rem;
+    }
+
+    /* Organic Nature Template */
+    .template-organic-nature {
+      background-color: #f0fdfa !important;
+      color: #14532d !important;
+    }
+    .template-organic-nature .dish-card {
+      background: #ffffff !important;
+      border: 1px solid rgba(21,128,61,0.06) !important;
+      border-radius: 20px !important;
+      box-shadow: 0 4px 16px rgba(21,128,61,0.04) !important;
+    }
+    .template-organic-nature .to-leaf-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: #15803d;
+      color: #fff;
+      font-size: 0.65rem;
+      padding: 3px 8px;
+      border-radius: 8px;
+    }
+
+    /* Tokyo Zen Template */
+    .template-tokyo-zen {
+      background-color: #fbfbfa !important;
+      color: #1c1917 !important;
+    }
+    .template-tokyo-zen .dish-card {
+      background: #ffffff !important;
+      border: 1px solid #e7e5e4 !important;
+      border-radius: 2px !important;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+    }
+    .template-tokyo-zen .tz-price {
+      color: #dc2626;
+      font-weight: 700;
+    }
+    </style>
 </head>
 <body>
   <script>
@@ -1620,10 +1752,31 @@
     const params       = new URLSearchParams(window.location.search);
     const restaurantId = params.get('restaurant');
 
-        const THEME_PRESETS = {
+            const THEME_PRESETS = {
+      default: {
+        name: "🍕 BiteXR Default",
+        bestFor: "Standard digital menu experience",
+        description: "BiteXR signature dark/light layout. Quick lists and default spacing.",
+        primaryColor: "#6366f1",
+        secondaryColor: "#1e1b4b",
+        backgroundColor: "#0a0a0f",
+        cardColor: "#11111a",
+        textColor: "#ffffff",
+        accentColor: "#a855f7",
+        fontHeading: "Poppins",
+        fontBody: "Poppins",
+        borderRadius: "12px",
+        buttonStyle: "rounded",
+        shadow: "0 4px 16px rgba(99,102,241,0.12)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        animationStyle: "fast-fade",
+        glassEffect: "none",
+        template: "default"
+      },
       modern_minimal: {
         name: "⚪ Modern Minimal",
-        description: "Apple-inspired clean aesthetic. White, clean cards, lots of spacing.",
+        bestFor: "Modern Cafes & Fast Food",
+        description: "Apple-inspired white layouts, large typography, soft shadow cards.",
         primaryColor: "#0f172a",
         secondaryColor: "#f1f5f9",
         backgroundColor: "#ffffff",
@@ -1638,30 +1791,13 @@
         shadow: "0 4px 20px rgba(0,0,0,0.03)",
         border: "1px solid rgba(15,23,42,0.06)",
         animationStyle: "fast-fade",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "modern_minimal"
       },
-      warm_sunset: {
-        name: "🌅 Warm Sunset",
-        description: "Warm orange, beige, and wooden textures. Cozy welcoming vibes.",
-        primaryColor: "#d97706",
-        secondaryColor: "#fef3c7",
-        backgroundColor: "#faf7f0",
-        cardColor: "#ffffff",
-        textColor: "#78350f",
-        mutedColor: "#b45309",
-        accentColor: "#f97316",
-        fontHeading: "Nunito",
-        fontBody: "Nunito",
-        borderRadius: "18px",
-        buttonStyle: "pill",
-        shadow: "0 6px 20px rgba(249,115,22,0.06)",
-        border: "1px solid rgba(217,119,6,0.08)",
-        animationStyle: "gentle-fade",
-        glassEffect: "none"
-      },
-      glassmorphism: {
-        name: "✨ Glassmorphism",
-        description: "Frosted glass floating UI, transparency blur, and glows.",
+      glass_premium: {
+        name: "✨ Glass Premium",
+        bestFor: "Luxury Cafes & Cocktail Bars",
+        description: "Frosted glass UI overlays, floating buttons, and glowing accents.",
         primaryColor: "#6366f1",
         secondaryColor: "rgba(99,102,241,0.15)",
         backgroundColor: "#09090f",
@@ -1676,11 +1812,13 @@
         shadow: "0 8px 32px rgba(0,0,0,0.3)",
         border: "1px solid rgba(255,255,255,0.08)",
         animationStyle: "glass-hover",
-        glassEffect: "blur(20px)"
+        glassEffect: "blur(20px)",
+        template: "glass_premium"
       },
       luxury_noir: {
         name: "💎 Luxury Noir",
-        description: "Premium gold and deep black. High-end fine dining aura.",
+        bestFor: "Fine Dining & Steakhouses",
+        description: "Premium gold border details and deep black. High-end dining elegance.",
         primaryColor: "#d4af37",
         secondaryColor: "#1a1a1a",
         backgroundColor: "#0a0a0a",
@@ -1695,11 +1833,13 @@
         shadow: "0 8px 30px rgba(212,175,55,0.04)",
         border: "1px solid #d4af37",
         animationStyle: "slow-transition",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "luxury_noir"
       },
       organic_nature: {
         name: "🌿 Organic Nature",
-        description: "Fresh mint green and earth tones. Ideal for vegan & healthy cafés.",
+        bestFor: "Vegan Cafes & Healthy Restaurants",
+        description: "Mint leaf greens, creams, and organic shapes with natural gradients.",
         primaryColor: "#15803d",
         secondaryColor: "#dcfce7",
         backgroundColor: "#f0fdfa",
@@ -1714,11 +1854,34 @@
         shadow: "0 4px 16px rgba(21,128,61,0.04)",
         border: "1px solid rgba(21,128,61,0.06)",
         animationStyle: "natural-floating",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "organic_nature"
+      },
+      tokyo_zen: {
+        name: "🏮 Tokyo Zen",
+        bestFor: "Japanese, Ramen & Asian Dining",
+        description: "Editorial layouts, paper texture, minimal headings with red highlights.",
+        primaryColor: "#dc2626",
+        secondaryColor: "#fee2e2",
+        backgroundColor: "#fbfbfa",
+        cardColor: "#ffffff",
+        textColor: "#1c1917",
+        mutedColor: "#78716c",
+        accentColor: "#b91c1c",
+        fontHeading: "Playfair Display",
+        fontBody: "Inter",
+        borderRadius: "2px",
+        buttonStyle: "sharp",
+        shadow: "0 2px 8px rgba(0,0,0,0.02)",
+        border: "1px solid #e7e5e4",
+        animationStyle: "slow-transition",
+        glassEffect: "none",
+        template: "tokyo_zen"
       },
       ocean_breeze: {
         name: "🌊 Ocean Breeze",
-        description: "Fresh seafood style. Cool blue, aqua, and sea white gradients.",
+        bestFor: "Seafood Restaurants & Beach Bars",
+        description: "Seaside navy text, waves of blue/aqua gradients, and fresh borders.",
         primaryColor: "#0284c7",
         secondaryColor: "#e0f2fe",
         backgroundColor: "#f0f9ff",
@@ -1733,11 +1896,13 @@
         shadow: "0 6px 18px rgba(14,165,233,0.05)",
         border: "1px solid rgba(14,165,233,0.06)",
         animationStyle: "soft-lift",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "default"
       },
       rustic_wood: {
         name: "🪵 Rustic Wood",
-        description: "Brown wood textures and warm ambient tones. Perfect for steakhouses.",
+        bestFor: "BBQ & Local Grills",
+        description: "Log cabin brown wood textures and warm ambient accents.",
         primaryColor: "#854d0e",
         secondaryColor: "#fef3c7",
         backgroundColor: "#fcf8f2",
@@ -1752,11 +1917,13 @@
         shadow: "0 4px 14px rgba(133,77,14,0.04)",
         border: "1px solid rgba(133,77,14,0.08)",
         animationStyle: "gentle-fade",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "default"
       },
       elegant_bistro: {
         name: "🍷 Elegant Bistro",
-        description: "Burgundy wine colors and vintage serifs. European dining style.",
+        bestFor: "European Bistros & Wine Cellars",
+        description: "Wine cellars burgundy, serif typography, and premium card transitions.",
         primaryColor: "#9d174d",
         secondaryColor: "#fce7f3",
         backgroundColor: "#fdfafe",
@@ -1771,11 +1938,13 @@
         shadow: "0 6px 20px rgba(157,23,77,0.03)",
         border: "1px solid rgba(157,23,77,0.08)",
         animationStyle: "slow-transition",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "default"
       },
       coffee_house: {
         name: "☕ Coffee House",
-        description: "Rich espresso brown and cream tones. Warm bakery vibe.",
+        bestFor: "Cafes, Bakeries & Coffee Shops",
+        description: "Espresso chocolate brown crema and cozy cream cards.",
         primaryColor: "#7c421f",
         secondaryColor: "#f5ebe0",
         backgroundColor: "#faf6f0",
@@ -1790,26 +1959,8 @@
         shadow: "0 6px 16px rgba(154,52,18,0.05)",
         border: "1px solid rgba(154,52,18,0.08)",
         animationStyle: "soft-lift",
-        glassEffect: "none"
-      },
-      midnight_premium: {
-        name: "🌙 Midnight Premium",
-        description: "Deep carbon dark mode with premium gold accents.",
-        primaryColor: "#ea580c",
-        secondaryColor: "#27272a",
-        backgroundColor: "#09090b",
-        cardColor: "#18181b",
-        textColor: "#fafafa",
-        mutedColor: "#ea580c",
-        accentColor: "#f97316",
-        fontHeading: "Poppins",
-        fontBody: "Poppins",
-        borderRadius: "22px",
-        buttonStyle: "pill",
-        shadow: "0 8px 24px rgba(249,115,22,0.08)",
-        border: "1px solid rgba(249,115,22,0.15)",
-        animationStyle: "glass-hover",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "coffee_house"
       }
     };
 
@@ -1825,6 +1976,22 @@
     }
 
     function applyThemeSettings(settings, restName) {
+      // Toggle body template classes
+      const activeTemp = settings.template || settings.theme || 'default';
+      // Remove previous templates
+      document.body.className = document.body.className.replace(/\btemplate-\S+/g, '');
+      document.body.classList.add('template-' + activeTemp.replace(/_/g, '-'));
+
+      // Toggle optional feature elements visibility
+      if (settings.enableSpinWheel === false) {
+        const spinBtn = document.getElementById('spinWheelBtn');
+        if (spinBtn) spinBtn.style.display = 'none';
+      }
+      if (settings.enableLoyalty === false) {
+        const rewardsBtn = document.getElementById('rewardsHeaderBtn');
+        if (rewardsBtn) rewardsBtn.style.display = 'none';
+      }
+
       let activePreset = null;
       if (settings.theme && THEME_PRESETS[settings.theme]) {
         activePreset = THEME_PRESETS[settings.theme];
@@ -2169,7 +2336,156 @@
       grid.innerHTML = items.map((item, i) => {
         const isFav = window._favoriteIds && window._favoriteIds.includes(item.id);
         const heartChar = isFav ? '❤️' : '🤍';
+        const settings = window._restaurantInfo?.theme_settings || {};
+        const activeTemplate = settings.template || settings.theme || 'default';
 
+        const hasImage = !!item.image_url;
+        const imgHtml = hasImage 
+          ? `<img class="dish-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />`
+          : `<div class="dish-img-placeholder">🍽️</div>`;
+        
+        const unavailHtml = !item.is_available 
+          ? `<div class="dish-unavail-overlay"><div class="dish-unavail-label">Unavailable</div></div>` 
+          : '';
+
+        const modelData = (item.model_url || item.usdz_url)
+          ? { model_url: item.model_url, usdz_url: item.usdz_url }
+          : getFallbackModel(item);
+        
+        const cardArUrl = buildArUrl({ ...item, ...modelData }, isAndroid, isIOS);
+        const arBtnHtml = arEnabled 
+          ? `<a class="btn-ar" href="${cardArUrl}" onclick="event.stopPropagation();" ${isIOS && modelData.usdz_url ? 'rel="ar"' : ''} style="width:100%; display:inline-flex; justify-content:center; text-decoration:none; box-sizing: border-box; margin-top:8px;">📱 View in AR</a>`
+          : '';
+
+        // Template 1: Modern Minimal
+        if (activeTemplate === 'modern_minimal') {
+          return `
+            <div class="dish-card tm-card" data-dish-id="${item.id}" onclick="openDishDetail('${item.id}')">
+              <button class="btn-favorite-heart" onclick="toggleFavorite(event, '${item.id}')" id="favHeart-${item.id}">${heartChar}</button>
+              <div class="dish-img-wrap">
+                ${imgHtml}
+                ${unavailHtml}
+              </div>
+              <div class="dish-body">
+                <div class="dish-name">${item.name}</div>
+                <div class="tm-price" style="font-weight:800; font-size:1.1rem; color:var(--primary); margin: 4px 0;">₹${item.price.toLocaleString('en-IN')}</div>
+                ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
+              </div>
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; font-weight:700; border-radius:8px;">🛒 Add to Cart</button>
+                ${arBtnHtml}
+              </div>
+            </div>`;
+        }
+
+        // Template 2: Glass Premium
+        if (activeTemplate === 'glass_premium') {
+          return `
+            <div class="dish-card tg-card" data-dish-id="${item.id}" onclick="openDishDetail('${item.id}')">
+              <button class="btn-favorite-heart" onclick="toggleFavorite(event, '${item.id}')" id="favHeart-${item.id}">${heartChar}</button>
+              <div class="dish-img-wrap">
+                ${imgHtml}
+                <div class="tg-ar-badge">AR 3D</div>
+                ${unavailHtml}
+              </div>
+              <div class="dish-body">
+                <div class="dish-name">${item.name}</div>
+                <div class="tg-price" style="font-weight:700; color:var(--primary-light); margin: 4px 0;">₹${item.price.toLocaleString('en-IN')}</div>
+                ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
+              </div>
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:50px; font-weight:700;">🛒 Add</button>
+                ${arBtnHtml}
+              </div>
+            </div>`;
+        }
+
+        // Template 3: Coffee House
+        if (activeTemplate === 'coffee_house') {
+          return `
+            <div class="dish-card tc-card" data-dish-id="${item.id}" onclick="openDishDetail('${item.id}')">
+              <button class="btn-favorite-heart" onclick="toggleFavorite(event, '${item.id}')" id="favHeart-${item.id}">${heartChar}</button>
+              <div class="dish-img-wrap">
+                ${imgHtml}
+                ${unavailHtml}
+              </div>
+              <div class="dish-body">
+                <div class="dish-name">${item.name}</div>
+                <div class="tc-price" style="color:#7c421f; font-weight:700; margin: 4px 0;">☕ ₹${item.price.toLocaleString('en-IN')}</div>
+                ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
+              </div>
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:10px; font-weight:700;">Add +</button>
+                ${arBtnHtml}
+              </div>
+            </div>`;
+        }
+
+        // Template 4: Luxury Noir
+        if (activeTemplate === 'luxury_noir') {
+          return `
+            <div class="dish-card tl-card" data-dish-id="${item.id}" onclick="openDishDetail('${item.id}')">
+              <button class="btn-favorite-heart" onclick="toggleFavorite(event, '${item.id}')" id="favHeart-${item.id}">${heartChar}</button>
+              <div class="dish-img-wrap">
+                ${imgHtml}
+                ${unavailHtml}
+              </div>
+              <div class="dish-body">
+                <div class="dish-name">${item.name}</div>
+                <div class="tl-price" style="color:#d4af37; font-family:'Cormorant Garamond', serif; font-size:1.15rem; margin:4px 0;">₹${item.price.toLocaleString('en-IN')}</div>
+                ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
+              </div>
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:0; font-weight:700;">Add to Table</button>
+                ${arBtnHtml}
+              </div>
+            </div>`;
+        }
+
+        // Template 5: Organic Nature
+        if (activeTemplate === 'organic_nature') {
+          return `
+            <div class="dish-card to-card" data-dish-id="${item.id}" onclick="openDishDetail('${item.id}')">
+              <button class="btn-favorite-heart" onclick="toggleFavorite(event, '${item.id}')" id="favHeart-${item.id}">${heartChar}</button>
+              <div class="dish-img-wrap">
+                ${imgHtml}
+                <div class="to-leaf-badge">🌿 Organic</div>
+                ${unavailHtml}
+              </div>
+              <div class="dish-body">
+                <div class="dish-name">${item.name}</div>
+                <div class="to-price" style="font-weight:700; color:#15803d; margin: 4px 0;">₹${item.price.toLocaleString('en-IN')}</div>
+                ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
+              </div>
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:16px; font-weight:700;">🛒 Add</button>
+                ${arBtnHtml}
+              </div>
+            </div>`;
+        }
+
+        // Template 6: Tokyo Zen
+        if (activeTemplate === 'tokyo_zen') {
+          return `
+            <div class="dish-card tz-card" data-dish-id="${item.id}" onclick="openDishDetail('${item.id}')">
+              <button class="btn-favorite-heart" onclick="toggleFavorite(event, '${item.id}')" id="favHeart-${item.id}">${heartChar}</button>
+              <div class="dish-img-wrap">
+                ${imgHtml}
+                ${unavailHtml}
+              </div>
+              <div class="dish-body">
+                <div class="dish-name">${item.name}</div>
+                <div class="tz-price" style="color:#dc2626; font-weight:700; margin: 4px 0;">円 ${item.price.toLocaleString('en-IN')}</div>
+                ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
+              </div>
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:2px; font-weight:700;">注文 Add</button>
+                ${arBtnHtml}
+              </div>
+            </div>`;
+        }
+
+        // Default Template
         return `
           <div class="dish-card" data-dish-id="${item.id}" style="animation-delay:${i * 0.04}s; position:relative; cursor:pointer;" onclick="openDishDetail('${item.id}')">
             
@@ -2179,16 +2495,14 @@
             </button>
 
             <div class="dish-img-wrap">
-              ${item.image_url
-                ? `<img class="dish-img" src="${item.image_url}" alt="${item.name}" loading="lazy" />`
-                : `<div class="dish-img-placeholder">🍽️</div>`}
+              ${imgHtml}
               <div class="dish-ar-badge">AR</div>
-              ${!item.is_available ? `<div class="dish-unavail-overlay"><div class="dish-unavail-label">Unavailable</div></div>` : ''}
+              ${unavailHtml}
             </div>
             <div class="dish-body">
               <div class="dish-name">${item.name}</div>
               ${item.category ? `<div style="font-size:0.78rem;color:var(--text-muted);margin-top:1px;margin-bottom:2px;">${item.category}</div>` : ''}
-              ${item.description ? `
+              ${item.description && settings.showIngredients !== false ? `
                 <div class="dish-desc" id="desc-${item.id}">${escHtml(item.description)}</div>
                 ${buildDescChips(item.description)}
               ` : ''}
@@ -2202,17 +2516,7 @@
                   </button>
                 </div>
               </div>
-              ${arEnabled
-                ? (() => {
-                    const modelData = (item.model_url || item.usdz_url)
-                      ? { model_url: item.model_url, usdz_url: item.usdz_url }
-                      : getFallbackModel(item);
-                    const cardArUrl = buildArUrl({ ...item, ...modelData }, isAndroid, isIOS);
-                    return `<a class="btn-ar" href="${cardArUrl}" onclick="event.stopPropagation();" ${isIOS && modelData.usdz_url ? 'rel="ar"' : ''} style="width:100%; display:inline-flex; justify-content:center; text-decoration:none; box-sizing: border-box;">
-                       📱 View in AR
-                     </a>`;
-                  })()
-                : ''}
+              ${arBtnHtml}
             </div>
           </div>`;
       }).join('');

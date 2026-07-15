@@ -652,6 +652,46 @@
               </div>
             </div>
 
+            <!-- Visibility Feature Toggles -->
+            <div style="border-top:1px solid var(--border); padding-top:16px; margin-top:8px;">
+              <label class="form-label" style="font-weight: 800; font-size:1.05rem; display:block; margin-bottom:12px;">⚙️ Features & Visibility Toggles</label>
+              
+              <div style="display:flex; flex-direction:column; gap:12px;">
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
+                  <input type="checkbox" id="showNutrition" />
+                  <span>Show Nutrition Information</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
+                  <input type="checkbox" id="showIngredients" />
+                  <span>Show Ingredients List</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
+                  <input type="checkbox" id="showBenefits" />
+                  <span>Show Food Benefits</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
+                  <input type="checkbox" id="showRatings" />
+                  <span>Show Dish Ratings & Reviews</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
+                  <input type="checkbox" id="enableAR" />
+                  <span>Enable 3D AR Previews Button</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
+                  <input type="checkbox" id="enableLoyalty" />
+                  <span>Enable Customer Loyalty Points CRM</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
+                  <input type="checkbox" id="enableSpinWheel" />
+                  <span>Enable AI Spin & Choose Wheel</span>
+                </label>
+                <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-size:0.85rem;">
+                  <input type="checkbox" id="enableOffers" />
+                  <span>Enable Voucher Coupons & Special Offers</span>
+                </label>
+              </div>
+            </div>
+
             <!-- Action buttons -->
             <button id="saveThemeBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%;">🚀 Save Custom Theme Settings</button>
             <button id="resetThemeBtn" class="btn btn-secondary" style="margin-top: 4px; width: 100%;">↩️ Reset to Default Theme</button>
@@ -740,11 +780,31 @@
     import { themeAPI } from "/js/loyalty-api.js?v=3";
     import { showToast } from "/js/utils.js?v=3";
 
-    const THEME_PRESETS = {
+        const THEME_PRESETS = {
+      default: {
+        name: "🍕 BiteXR Default",
+        bestFor: "Standard digital menu experience",
+        description: "BiteXR signature dark/light layout. Quick lists and default spacing.",
+        primaryColor: "#6366f1",
+        secondaryColor: "#1e1b4b",
+        backgroundColor: "#0a0a0f",
+        cardColor: "#11111a",
+        textColor: "#ffffff",
+        accentColor: "#a855f7",
+        fontHeading: "Poppins",
+        fontBody: "Poppins",
+        borderRadius: "12px",
+        buttonStyle: "rounded",
+        shadow: "0 4px 16px rgba(99,102,241,0.12)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        animationStyle: "fast-fade",
+        glassEffect: "none",
+        template: "default"
+      },
       modern_minimal: {
         name: "⚪ Modern Minimal",
-        bestFor: "Almost Every Restaurant",
-        description: "White, clean cards, lots of spacing, clean Apple-like style.",
+        bestFor: "Modern Cafes & Fast Food",
+        description: "Apple-inspired white layouts, large typography, soft shadow cards.",
         primaryColor: "#0f172a",
         secondaryColor: "#f1f5f9",
         backgroundColor: "#ffffff",
@@ -759,32 +819,13 @@
         shadow: "0 4px 20px rgba(0,0,0,0.03)",
         border: "1px solid rgba(15,23,42,0.06)",
         animationStyle: "fast-fade",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "modern_minimal"
       },
-      warm_sunset: {
-        name: "🌅 Warm Sunset",
-        bestFor: "Cafes, Family Restaurants",
-        description: "Warm orange, beige, wooden textures. Cozy welcoming vibes.",
-        primaryColor: "#d97706",
-        secondaryColor: "#fef3c7",
-        backgroundColor: "#faf7f0",
-        cardColor: "#ffffff",
-        textColor: "#78350f",
-        mutedColor: "#b45309",
-        accentColor: "#f97316",
-        fontHeading: "Nunito",
-        fontBody: "Nunito",
-        borderRadius: "18px",
-        buttonStyle: "pill",
-        shadow: "0 6px 20px rgba(249,115,22,0.06)",
-        border: "1px solid rgba(217,119,6,0.08)",
-        animationStyle: "gentle-fade",
-        glassEffect: "none"
-      },
-      glassmorphism: {
-        name: "✨ Glassmorphism",
-        bestFor: "Premium Cafes, Modern Restaurants",
-        description: "Frosted glass floating UI, transparency blur, and glows.",
+      glass_premium: {
+        name: "✨ Glass Premium",
+        bestFor: "Luxury Cafes & Cocktail Bars",
+        description: "Frosted glass UI overlays, floating buttons, and glowing accents.",
         primaryColor: "#6366f1",
         secondaryColor: "rgba(99,102,241,0.15)",
         backgroundColor: "#09090f",
@@ -799,12 +840,13 @@
         shadow: "0 8px 32px rgba(0,0,0,0.3)",
         border: "1px solid rgba(255,255,255,0.08)",
         animationStyle: "glass-hover",
-        glassEffect: "blur(20px)"
+        glassEffect: "blur(20px)",
+        template: "glass_premium"
       },
       luxury_noir: {
         name: "💎 Luxury Noir",
-        bestFor: "Fine Dining",
-        description: "Premium gold and deep black. High-end fine dining aura.",
+        bestFor: "Fine Dining & Steakhouses",
+        description: "Premium gold border details and deep black. High-end dining elegance.",
         primaryColor: "#d4af37",
         secondaryColor: "#1a1a1a",
         backgroundColor: "#0a0a0a",
@@ -819,12 +861,13 @@
         shadow: "0 8px 30px rgba(212,175,55,0.04)",
         border: "1px solid #d4af37",
         animationStyle: "slow-transition",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "luxury_noir"
       },
       organic_nature: {
         name: "🌿 Organic Nature",
-        bestFor: "Healthy Cafes, Vegan Restaurants",
-        description: "Fresh mint green and earth tones. Ideal for vegan & healthy cafés.",
+        bestFor: "Vegan Cafes & Healthy Restaurants",
+        description: "Mint leaf greens, creams, and organic shapes with natural gradients.",
         primaryColor: "#15803d",
         secondaryColor: "#dcfce7",
         backgroundColor: "#f0fdfa",
@@ -839,12 +882,34 @@
         shadow: "0 4px 16px rgba(21,128,61,0.04)",
         border: "1px solid rgba(21,128,61,0.06)",
         animationStyle: "natural-floating",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "organic_nature"
+      },
+      tokyo_zen: {
+        name: "🏮 Tokyo Zen",
+        bestFor: "Japanese, Ramen & Asian Dining",
+        description: "Editorial layouts, paper texture, minimal headings with red highlights.",
+        primaryColor: "#dc2626",
+        secondaryColor: "#fee2e2",
+        backgroundColor: "#fbfbfa",
+        cardColor: "#ffffff",
+        textColor: "#1c1917",
+        mutedColor: "#78716c",
+        accentColor: "#b91c1c",
+        fontHeading: "Playfair Display",
+        fontBody: "Inter",
+        borderRadius: "2px",
+        buttonStyle: "sharp",
+        shadow: "0 2px 8px rgba(0,0,0,0.02)",
+        border: "1px solid #e7e5e4",
+        animationStyle: "slow-transition",
+        glassEffect: "none",
+        template: "tokyo_zen"
       },
       ocean_breeze: {
         name: "🌊 Ocean Breeze",
-        bestFor: "Seafood Restaurants",
-        description: "Fresh seafood style. Cool blue, aqua, and sea white gradients.",
+        bestFor: "Seafood Restaurants & Beach Bars",
+        description: "Seaside navy text, waves of blue/aqua gradients, and fresh borders.",
         primaryColor: "#0284c7",
         secondaryColor: "#e0f2fe",
         backgroundColor: "#f0f9ff",
@@ -859,12 +924,13 @@
         shadow: "0 6px 18px rgba(14,165,233,0.05)",
         border: "1px solid rgba(14,165,233,0.06)",
         animationStyle: "soft-lift",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "default"
       },
       rustic_wood: {
         name: "🪵 Rustic Wood",
-        bestFor: "BBQ, Steakhouse, Local Restaurants",
-        description: "Brown wood textures and warm ambient tones. Perfect for steakhouses.",
+        bestFor: "BBQ & Local Grills",
+        description: "Log cabin brown wood textures and warm ambient accents.",
         primaryColor: "#854d0e",
         secondaryColor: "#fef3c7",
         backgroundColor: "#fcf8f2",
@@ -879,12 +945,13 @@
         shadow: "0 4px 14px rgba(133,77,14,0.04)",
         border: "1px solid rgba(133,77,14,0.08)",
         animationStyle: "gentle-fade",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "default"
       },
       elegant_bistro: {
         name: "🍷 Elegant Bistro",
-        bestFor: "European Restaurants",
-        description: "Burgundy wine colors and vintage serifs. European dining style.",
+        bestFor: "European Bistros & Wine Cellars",
+        description: "Wine cellars burgundy, serif typography, and premium card transitions.",
         primaryColor: "#9d174d",
         secondaryColor: "#fce7f3",
         backgroundColor: "#fdfafe",
@@ -899,12 +966,13 @@
         shadow: "0 6px 20px rgba(157,23,77,0.03)",
         border: "1px solid rgba(157,23,77,0.08)",
         animationStyle: "slow-transition",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "default"
       },
       coffee_house: {
         name: "☕ Coffee House",
-        bestFor: "Cafes & Bakeries",
-        description: "Rich espresso brown and cream tones. Warm bakery vibe.",
+        bestFor: "Cafes, Bakeries & Coffee Shops",
+        description: "Espresso chocolate brown crema and cozy cream cards.",
         primaryColor: "#7c421f",
         secondaryColor: "#f5ebe0",
         backgroundColor: "#faf6f0",
@@ -919,27 +987,8 @@
         shadow: "0 6px 16px rgba(154,52,18,0.05)",
         border: "1px solid rgba(154,52,18,0.08)",
         animationStyle: "soft-lift",
-        glassEffect: "none"
-      },
-      midnight_premium: {
-        name: "🌙 Midnight Premium",
-        bestFor: "Rooftop Bars & Luxury Restaurants",
-        description: "Deep carbon dark mode with premium gold accents.",
-        primaryColor: "#ea580c",
-        secondaryColor: "#27272a",
-        backgroundColor: "#09090b",
-        cardColor: "#18181b",
-        textColor: "#fafafa",
-        mutedColor: "#ea580c",
-        accentColor: "#f97316",
-        fontHeading: "Poppins",
-        fontBody: "Poppins",
-        borderRadius: "22px",
-        buttonStyle: "pill",
-        shadow: "0 8px 24px rgba(249,115,22,0.08)",
-        border: "1px solid rgba(249,115,22,0.15)",
-        animationStyle: "glass-hover",
-        glassEffect: "none"
+        glassEffect: "none",
+        template: "coffee_house"
       }
     };
 
@@ -971,7 +1020,16 @@
       welcomeTitle: "",
       welcomeSubtitle: "",
       logoUrl: "",
-      bannerUrl: ""
+      bannerUrl: "",
+      // Feature Visibility Controls
+      showNutrition: true,
+      showIngredients: true,
+      showBenefits: true,
+      showRatings: true,
+      enableAR: true,
+      enableLoyalty: true,
+      enableSpinWheel: true,
+      enableOffers: true
     };
 
     const urlParams = new URLSearchParams(window.location.search);
@@ -1052,8 +1110,9 @@
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <strong style="font-size:0.95rem; color:var(--text-primary);">${preset.name}</strong>
             </div>
-            <div style="font-size:0.75rem; color:var(--primary-light); font-weight:700;">Best for: ${preset.bestFor}</div>
+            <div style="font-size:0.72rem; color:var(--primary-light); font-weight:700;">Best for: ${preset.bestFor}</div>
             <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">${preset.description}</p>
+            <div style="font-size:0.7rem; color:var(--text-muted); font-style:italic;">Template Design Layout: ${preset.template || 'Default'}</div>
             <div style="display:flex; gap:10px; margin-top:8px;">
               <button class="btn btn-secondary btn-sm" onclick="previewPresetTheme('${key}')" style="flex:1; padding:6px; font-size:0.75rem;">👁️ Preview</button>
               <button class="btn btn-primary btn-sm" id="applyBtn-${key}" onclick="applyPresetTheme('${key}')" style="flex:1; padding:6px; font-size:0.75rem;">🚀 Apply</button>
@@ -1069,6 +1128,7 @@
       
       // Update local settings structure to mirror preset
       themeSettings.theme = presetKey;
+      themeSettings.template = preset.template || presetKey;
       themeSettings.primaryColor = preset.primaryColor;
       themeSettings.secondaryColor = preset.secondaryColor;
       themeSettings.accentColor = preset.accentColor;
@@ -1265,6 +1325,16 @@
       if (document.getElementById('upiId') && restaurant) {
         document.getElementById('upiId').value = restaurant.upi_id || '';
       }
+
+      // Feature Toggles Checkbox sync
+      document.getElementById('showNutrition').checked = themeSettings.showNutrition !== false;
+      document.getElementById('showIngredients').checked = themeSettings.showIngredients !== false;
+      document.getElementById('showBenefits').checked = themeSettings.showBenefits !== false;
+      document.getElementById('showRatings').checked = themeSettings.showRatings !== false;
+      document.getElementById('enableAR').checked = themeSettings.enableAR !== false;
+      document.getElementById('enableLoyalty').checked = themeSettings.enableLoyalty !== false;
+      document.getElementById('enableSpinWheel').checked = themeSettings.enableSpinWheel !== false;
+      document.getElementById('enableOffers').checked = themeSettings.enableOffers !== false;
     }
 
     function updateLivePreview() {
@@ -1403,6 +1473,16 @@
           themeSettings.welcomeSubtitle = document.getElementById('welcomeSubtitle').value.trim();
           themeSettings.logoUrl = document.getElementById('logoUrl').value.trim();
           themeSettings.bannerUrl = document.getElementById('bannerUrl').value.trim();
+
+          // Read checkbox states
+          themeSettings.showNutrition = document.getElementById('showNutrition').checked;
+          themeSettings.showIngredients = document.getElementById('showIngredients').checked;
+          themeSettings.showBenefits = document.getElementById('showBenefits').checked;
+          themeSettings.showRatings = document.getElementById('showRatings').checked;
+          themeSettings.enableAR = document.getElementById('enableAR').checked;
+          themeSettings.enableLoyalty = document.getElementById('enableLoyalty').checked;
+          themeSettings.enableSpinWheel = document.getElementById('enableSpinWheel').checked;
+          themeSettings.enableOffers = document.getElementById('enableOffers').checked;
           
           await themeAPI.save(restaurantId, themeSettings);
 
@@ -1433,6 +1513,7 @@
         if (!confirm('Are you sure you want to reset to the default theme?')) return;
         themeSettings = {
           theme: "modern_minimal",
+          template: "modern_minimal",
           fontFamily: "Inter",
           colorMode: "3-color",
           primaryColor: "#0f172a",
@@ -1446,7 +1527,15 @@
           welcomeTitle: "",
           welcomeSubtitle: "",
           logoUrl: "",
-          bannerUrl: ""
+          bannerUrl: "",
+          showNutrition: true,
+          showIngredients: true,
+          showBenefits: true,
+          showRatings: true,
+          enableAR: true,
+          enableLoyalty: true,
+          enableSpinWheel: true,
+          enableOffers: true
         };
 
         resetBtn.disabled = true;
