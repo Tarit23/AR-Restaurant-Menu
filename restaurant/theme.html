@@ -495,7 +495,7 @@
         </div>
       </div>
 
-      <div class="theme-editor-container">
+            <div class="theme-editor-container">
         <!-- Editor Controls (Left) -->
         <div class="editor-controls animate-in animate-in-delay-1">
           <!-- Tab Switcher -->
@@ -506,134 +506,155 @@
 
           <!-- Presets Studio Panel -->
           <div id="themePresetsPanel" style="display:flex; flex-direction:column; gap:12px;">
-            <div style="display:flex; flex-direction:column; gap:12px;" id="themeCardsList">
-              <!-- Populated by JS dynamically with preview/apply actions -->
+            <label class="form-label" style="font-weight: 800; font-size:1.05rem; display:block; margin-bottom:4px;">🎭 Choose Layout Preset / Template</label>
+            <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;" id="themeCardsList">
+              <!-- Dynamically populated theme preset cards -->
             </div>
           </div>
 
-          <!-- Custom Builder Panel -->
+          <!-- Custom Builder Panel (Hidden by default) -->
           <div id="themeCustomPanel" style="display:none; flex-direction:column; gap:20px;">
             <label class="form-label" style="font-weight: 800; font-size:1.05rem; display:block; margin-bottom:4px;">🎨 Custom Theme Builder</label>
-            <label class="form-label" style="font-weight: 700;">Choose Palette Colors</label>
-            <div class="color-pickers" style="margin-top: 8px;">
-              <div class="color-row">
-                <span class="color-label">Primary Color</span>
-                <div class="color-input-wrap">
-                  <span class="color-hex" id="hexPrimary">#6366f1</span>
-                  <div class="color-picker-dot" id="dotPrimary">
-                    <input type="color" id="inputPrimary" value="#6366f1" />
+            
+            <!-- Color Combination Mode -->
+            <div>
+              <label class="form-label" style="font-weight: 700;">Color Combination Mode</label>
+              <select id="colorModeSelect" class="font-control" style="margin-top: 8px;" onchange="changeColorMode(this.value)">
+                <option value="2-color">🎨 2-Color Mode (Primary & Background)</option>
+                <option value="3-color" selected>🎨 3-Color Mode (Primary, Secondary & Background)</option>
+                <option value="custom">🎨 Custom Mode (All 6 Colors)</option>
+              </select>
+            </div>
+
+            <!-- Palette Colors -->
+            <div>
+              <label class="form-label" style="font-weight: 700;">Select Colors</label>
+              <div class="color-pickers" style="margin-top: 8px;">
+                <div class="color-row" id="rowPrimary">
+                  <span class="color-label">Primary Color</span>
+                  <div class="color-input-wrap">
+                    <span class="color-hex" id="hexPrimary">#6366f1</span>
+                    <div class="color-picker-dot" id="dotPrimary">
+                      <input type="color" id="inputPrimary" value="#6366f1" />
+                    </div>
+                  </div>
+                </div>
+                <div class="color-row" id="rowSecondary">
+                  <span class="color-label">Secondary Color</span>
+                  <div class="color-input-wrap">
+                    <span class="color-hex" id="hexSecondary">#f1f5f9</span>
+                    <div class="color-picker-dot" id="dotSecondary">
+                      <input type="color" id="inputSecondary" value="#f1f5f9" />
+                    </div>
+                  </div>
+                </div>
+                <div class="color-row" id="rowAccent">
+                  <span class="color-label">Accent Color</span>
+                  <div class="color-input-wrap">
+                    <span class="color-hex" id="hexAccent">#3b82f6</span>
+                    <div class="color-picker-dot" id="dotAccent">
+                      <input type="color" id="inputAccent" value="#3b82f6" />
+                    </div>
+                  </div>
+                </div>
+                <div class="color-row" id="rowBg">
+                  <span class="color-label">Background</span>
+                  <div class="color-input-wrap">
+                    <span class="color-hex" id="hexBg">#0f172a</span>
+                    <div class="color-picker-dot" id="dotBg">
+                      <input type="color" id="inputBg" value="#0f172a" />
+                    </div>
+                  </div>
+                </div>
+                <div class="color-row" id="rowCard">
+                  <span class="color-label">Card Color</span>
+                  <div class="color-input-wrap">
+                    <span class="color-hex" id="hexCard">#1e293b</span>
+                    <div class="color-picker-dot" id="dotCard">
+                      <input type="color" id="inputCard" value="#1e293b" />
+                    </div>
+                  </div>
+                </div>
+                <div class="color-row" id="rowText">
+                  <span class="color-label">Text Color</span>
+                  <div class="color-input-wrap">
+                    <span class="color-hex" id="hexText">#ffffff</span>
+                    <div class="color-picker-dot" id="dotText">
+                      <input type="color" id="inputText" value="#ffffff" />
+                    </div>
                   </div>
                 </div>
               </div>
-              <div class="color-row">
-                <span class="color-label">Secondary Color</span>
-                <div class="color-input-wrap">
-                  <span class="color-hex" id="hexSecondary">#f1f5f9</span>
-                  <div class="color-picker-dot" id="dotSecondary">
-                    <input type="color" id="inputSecondary" value="#f1f5f9" />
-                  </div>
-                </div>
-              </div>
-              <div class="color-row">
-                <span class="color-label">Accent Color</span>
-                <div class="color-input-wrap">
-                  <span class="color-hex" id="hexAccent">#3b82f6</span>
-                  <div class="color-picker-dot" id="dotAccent">
-                    <input type="color" id="inputAccent" value="#3b82f6" />
-                  </div>
-                </div>
-              </div>
-              <div class="color-row">
-                <span class="color-label">Background</span>
-                <div class="color-input-wrap">
-                  <span class="color-hex" id="hexBg">#0f172a</span>
-                  <div class="color-picker-dot" id="dotBg">
-                    <input type="color" id="inputBg" value="#0f172a" />
-                  </div>
-                </div>
-              </div>
-              <div class="color-row">
-                <span class="color-label">Card Color</span>
-                <div class="color-input-wrap">
-                  <span class="color-hex" id="hexCard">#1e293b</span>
-                  <div class="color-picker-dot" id="dotCard">
-                    <input type="color" id="inputCard" value="#1e293b" />
-                  </div>
-                </div>
-              </div>
-              <div class="color-row">
-                <span class="color-label">Text Color</span>
-                <div class="color-input-wrap">
-                  <span class="color-hex" id="hexText">#ffffff</span>
-                  <div class="color-picker-dot" id="dotText">
-                    <input type="color" id="inputText" value="#ffffff" />
-                  </div>
-                </div>
+            </div>
+
+            <!-- Typography -->
+            <div>
+              <label class="form-label" style="font-weight: 700;">Typography Fonts</label>
+              <select id="fontFamily" class="font-control" style="margin-top: 8px;">
+                <option value="Poppins">Poppins (Modern Sans)</option>
+                <option value="Inter">Inter (Apple Clean)</option>
+                <option value="Nunito">Nunito (Friendly Cozy)</option>
+                <option value="Cormorant Garamond">Cormorant Garamond (Premium Luxury)</option>
+                <option value="DM Sans">DM Sans (Warm Bakery)</option>
+                <option value="Manrope">Manrope (Fresh Vegan)</option>
+                <option value="Montserrat">Montserrat (Bold Modern)</option>
+              </select>
+            </div>
+
+            <!-- Button Style -->
+            <div>
+              <label class="form-label" style="font-weight: 700;">Custom Button Style</label>
+              <select id="buttonStyle" class="font-control" style="margin-top: 8px;">
+                <option value="rounded">Rounded Corners</option>
+                <option value="pill">Pill Shaped</option>
+                <option value="sharp">Sharp Edges</option>
+              </select>
+            </div>
+
+            <!-- Button Corner Radius -->
+            <div>
+              <label class="form-label" style="font-weight: 700;">Button Corner Radius</label>
+              <div class="btn-radius-group" style="margin-top: 8px;">
+                <div class="btn-radius-opt active" data-radius="12px">Rounded</div>
+                <div class="btn-radius-opt" data-radius="30px">Pill</div>
+                <div class="btn-radius-opt" data-radius="0px">Sharp</div>
               </div>
             </div>
-          </div>
 
-          <div>
-            <label class="form-label" style="font-weight: 700;">3. Typography Fonts</label>
-            <select id="fontFamily" class="font-control" style="margin-top: 8px;">
-              <option value="Poppins">Poppins (Modern Sans)</option>
-              <option value="Inter">Inter (Apple Clean)</option>
-              <option value="Nunito">Nunito (Friendly Cozy)</option>
-              <option value="Cormorant Garamond">Cormorant Garamond (Premium Luxury)</option>
-              <option value="DM Sans">DM Sans (Warm Bakery)</option>
-              <option value="Manrope">Manrope (Fresh Vegan)</option>
-              <option value="Montserrat">Montserrat (Bold Modern)</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="form-label" style="font-weight: 700;">Custom Button Style</label>
-            <select id="buttonStyle" class="font-control" style="margin-top: 8px;">
-              <option value="rounded">Rounded Corners</option>
-              <option value="pill">Pill Shaped</option>
-              <option value="sharp">Sharp Edges</option>
-            </select>
-          </div>
-
-          <div>
-            <label class="form-label" style="font-weight: 700;">4. Button Corner Radius</label>
-            <div class="btn-radius-group" style="margin-top: 8px;">
-              <div class="btn-radius-opt active" data-radius="12px">Rounded</div>
-              <div class="btn-radius-opt" data-radius="30px">Pill</div>
-              <div class="btn-radius-opt" data-radius="0px">Sharp</div>
+            <!-- Welcome Text Banners -->
+            <div>
+              <label class="form-label" style="font-weight: 700;">Custom Menu Banner Header</label>
+              <div class="form-group" style="margin-top: 8px;">
+                <input type="text" id="welcomeTitle" class="form-control" placeholder="Welcome Title (e.g. Welcome to Phoenix Cafe)" />
+              </div>
+              <div class="form-group">
+                <input type="text" id="welcomeSubtitle" class="form-control" placeholder="Welcome Subtitle (e.g. Experience Culinary Art)" />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <label class="form-label" style="font-weight: 700;">5. Custom Menu Banner Header</label>
-            <div class="form-group" style="margin-top: 8px;">
-              <input type="text" id="welcomeTitle" class="form-control" placeholder="Welcome Title (e.g. Welcome to Phoenix Cafe)" />
+            <!-- Logos and Banner Images -->
+            <div>
+              <label class="form-label" style="font-weight: 700;">Logo & Banner Link</label>
+              <div class="form-group" style="margin-top: 8px;">
+                <input type="text" id="logoUrl" class="form-control" placeholder="Logo image URL" />
+              </div>
+              <div class="form-group">
+                <input type="text" id="bannerUrl" class="form-control" placeholder="Hero banner image URL" />
+              </div>
             </div>
-            <div class="form-group">
-              <input type="text" id="welcomeSubtitle" class="form-control" placeholder="Welcome Subtitle (e.g. Experience Culinary Art)" />
-            </div>
-          </div>
 
-          <div>
-            <label class="form-label" style="font-weight: 700;">6. Logo & Banner Link</label>
-            <div class="form-group" style="margin-top: 8px;">
-              <input type="text" id="logoUrl" class="form-control" placeholder="Logo image URL" />
+            <!-- UPI Merchant Payments Config -->
+            <div>
+              <label class="form-label" style="font-weight: 700;">Payment Settings (UPI)</label>
+              <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">Enter your UPI ID to dynamically generate payment QR codes for customers at table checkout.</p>
+              <div class="form-group">
+                <input type="text" id="upiId" class="form-control" placeholder="e.g. restaurant@okaxis or 9876543210@paytm" />
+              </div>
             </div>
-            <div class="form-group">
-              <input type="text" id="bannerUrl" class="form-control" placeholder="Hero banner image URL" />
-            </div>
-          </div>
 
-          <div>
-            <label class="form-label" style="font-weight: 700;">7. Payment Settings (UPI)</label>
-            <p style="font-size:0.75rem; color:var(--text-muted); margin-bottom:8px;">Enter your UPI ID to dynamically generate payment QR codes for customers at table checkout.</p>
-            <div class="form-group">
-              <input type="text" id="upiId" class="form-control" placeholder="e.g. restaurant@okaxis or 9876543210@paytm" />
-            </div>
-          </div>
-
-          <button id="saveThemeBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%;">🚀 Save Custom Theme Settings</button>
-          <button id="resetThemeBtn" class="btn btn-secondary" style="margin-top: 4px; width: 100%;">↩️ Reset to Default Theme</button>
+            <!-- Action buttons -->
+            <button id="saveThemeBtn" class="btn btn-primary" style="margin-top: 10px; width: 100%;">🚀 Save Custom Theme Settings</button>
+            <button id="resetThemeBtn" class="btn btn-secondary" style="margin-top: 4px; width: 100%;">↩️ Reset to Default Theme</button>
           </div> <!-- Close themeCustomPanel -->
         </div>
 
@@ -717,11 +738,13 @@
     import "/js/logout-handler.js?v=3";
     import { supabase } from "/js/supabase-config.js?v=3";
     import { themeAPI } from "/js/loyalty-api.js?v=3";
+    import { showToast } from "/js/utils.js?v=3";
 
-        const THEME_PRESETS = {
+    const THEME_PRESETS = {
       modern_minimal: {
         name: "⚪ Modern Minimal",
-        description: "Apple-inspired clean aesthetic. White, clean cards, lots of spacing.",
+        bestFor: "Almost Every Restaurant",
+        description: "White, clean cards, lots of spacing, clean Apple-like style.",
         primaryColor: "#0f172a",
         secondaryColor: "#f1f5f9",
         backgroundColor: "#ffffff",
@@ -740,7 +763,8 @@
       },
       warm_sunset: {
         name: "🌅 Warm Sunset",
-        description: "Warm orange, beige, and wooden textures. Cozy welcoming vibes.",
+        bestFor: "Cafes, Family Restaurants",
+        description: "Warm orange, beige, wooden textures. Cozy welcoming vibes.",
         primaryColor: "#d97706",
         secondaryColor: "#fef3c7",
         backgroundColor: "#faf7f0",
@@ -759,6 +783,7 @@
       },
       glassmorphism: {
         name: "✨ Glassmorphism",
+        bestFor: "Premium Cafes, Modern Restaurants",
         description: "Frosted glass floating UI, transparency blur, and glows.",
         primaryColor: "#6366f1",
         secondaryColor: "rgba(99,102,241,0.15)",
@@ -778,6 +803,7 @@
       },
       luxury_noir: {
         name: "💎 Luxury Noir",
+        bestFor: "Fine Dining",
         description: "Premium gold and deep black. High-end fine dining aura.",
         primaryColor: "#d4af37",
         secondaryColor: "#1a1a1a",
@@ -797,6 +823,7 @@
       },
       organic_nature: {
         name: "🌿 Organic Nature",
+        bestFor: "Healthy Cafes, Vegan Restaurants",
         description: "Fresh mint green and earth tones. Ideal for vegan & healthy cafés.",
         primaryColor: "#15803d",
         secondaryColor: "#dcfce7",
@@ -816,6 +843,7 @@
       },
       ocean_breeze: {
         name: "🌊 Ocean Breeze",
+        bestFor: "Seafood Restaurants",
         description: "Fresh seafood style. Cool blue, aqua, and sea white gradients.",
         primaryColor: "#0284c7",
         secondaryColor: "#e0f2fe",
@@ -835,6 +863,7 @@
       },
       rustic_wood: {
         name: "🪵 Rustic Wood",
+        bestFor: "BBQ, Steakhouse, Local Restaurants",
         description: "Brown wood textures and warm ambient tones. Perfect for steakhouses.",
         primaryColor: "#854d0e",
         secondaryColor: "#fef3c7",
@@ -854,6 +883,7 @@
       },
       elegant_bistro: {
         name: "🍷 Elegant Bistro",
+        bestFor: "European Restaurants",
         description: "Burgundy wine colors and vintage serifs. European dining style.",
         primaryColor: "#9d174d",
         secondaryColor: "#fce7f3",
@@ -873,6 +903,7 @@
       },
       coffee_house: {
         name: "☕ Coffee House",
+        bestFor: "Cafes & Bakeries",
         description: "Rich espresso brown and cream tones. Warm bakery vibe.",
         primaryColor: "#7c421f",
         secondaryColor: "#f5ebe0",
@@ -892,6 +923,7 @@
       },
       midnight_premium: {
         name: "🌙 Midnight Premium",
+        bestFor: "Rooftop Bars & Luxury Restaurants",
         description: "Deep carbon dark mode with premium gold accents.",
         primaryColor: "#ea580c",
         secondaryColor: "#27272a",
@@ -922,158 +954,18 @@
       document.head.appendChild(link);
     }
 
-    function applyThemeSettingsUnused(settings, restName) {
-      let activePreset = null;
-      if (settings.theme && THEME_PRESETS[settings.theme]) {
-        activePreset = THEME_PRESETS[settings.theme];
-      } else {
-        // Load custom settings
-        activePreset = {
-          ...THEME_PRESETS.modern_minimal,
-          primaryColor: settings.primaryColor || THEME_PRESETS.modern_minimal.primaryColor,
-          secondaryColor: settings.secondaryColor || THEME_PRESETS.modern_minimal.secondaryColor,
-          backgroundColor: settings.backgroundColor || THEME_PRESETS.modern_minimal.backgroundColor,
-          cardColor: settings.cardColor || THEME_PRESETS.modern_minimal.cardColor,
-          textColor: settings.textColor || THEME_PRESETS.modern_minimal.textColor,
-          accentColor: settings.accentColor || THEME_PRESETS.modern_minimal.accentColor,
-          fontHeading: settings.fontFamily || THEME_PRESETS.modern_minimal.fontHeading,
-          fontBody: settings.fontFamily || THEME_PRESETS.modern_minimal.fontBody,
-          borderRadius: settings.borderRadius || THEME_PRESETS.modern_minimal.borderRadius,
-          buttonStyle: settings.buttonStyle || THEME_PRESETS.modern_minimal.buttonStyle,
-          shadow: settings.shadow || THEME_PRESETS.modern_minimal.shadow,
-        };
-      }
-
-      loadGoogleFont(activePreset.fontHeading);
-      loadGoogleFont(activePreset.fontBody);
-
-      let btnRadius = "8px";
-      if (activePreset.buttonStyle === "pill") btnRadius = "50px";
-      else if (activePreset.buttonStyle === "sharp") btnRadius = "0px";
-      else if (activePreset.buttonStyle === "rounded") btnRadius = "8px";
-      else if (activePreset.borderRadius) btnRadius = activePreset.borderRadius;
-
-      const styleId = "bite-theme-styles";
-      let styleEl = document.getElementById(styleId);
-      if (!styleEl) {
-        styleEl = document.createElement("style");
-        styleEl.id = styleId;
-        document.head.appendChild(styleEl);
-      }
-
-      styleEl.textContent = `
-        :root {
-          --primary: ${activePreset.primaryColor};
-          --primary-light: ${activePreset.primaryColor}dd;
-          --border-glow: ${activePreset.primaryColor}33;
-          --bg: ${activePreset.backgroundColor};
-          --bg-card: ${activePreset.cardColor};
-          --bg-elevated: ${activePreset.backgroundColor === '#ffffff' || activePreset.backgroundColor === '#faf7f0' || activePreset.backgroundColor === '#f8fafc' || activePreset.backgroundColor === '#f7f1e5' ? '#f1f5f9' : '#18181f'};
-          --bg-glass: ${activePreset.backgroundColor === '#ffffff' || activePreset.backgroundColor === '#faf7f0' || activePreset.backgroundColor === '#f8fafc' || activePreset.backgroundColor === '#f7f1e5' ? 'rgba(255,255,255,0.85)' : 'rgba(17,17,24,0.85)'};
-          --text: ${activePreset.textColor};
-          --text-sec: ${activePreset.mutedColor || '#64748b'};
-          --text-muted: ${activePreset.mutedColor || '#94a3b8'};
-          --accent: ${activePreset.accentColor};
-          --border: ${activePreset.border || 'rgba(0,0,0,0.08)'};
-          --shadow: ${activePreset.shadow || 'none'};
-          --border-radius: ${activePreset.borderRadius || '12px'};
-          --button-radius: ${btnRadius};
-          --font: '${activePreset.fontBody}', sans-serif;
-          --font-display: '${activePreset.fontHeading}', sans-serif;
-          --glass-effect: ${activePreset.glassEffect || 'none'};
-        }
-
-        :root {
-          --radius-sm: calc(var(--border-radius) * 0.5);
-          --radius-md: calc(var(--border-radius) * 0.75);
-          --radius-lg: var(--border-radius);
-          --radius-xl: calc(var(--border-radius) * 1.5);
-          --radius-2xl: calc(var(--border-radius) * 2);
-        }
-
-        .btn, .qty-btn, .selector-btn, .sw-btn-back, .sw-btn-next, .form-control, .theme-switch-container {
-          border-radius: var(--button-radius) !important;
-        }
-
-        .dish-card, .cart-drawer, .modal {
-          backdrop-filter: var(--glass-effect) !important;
-          box-shadow: var(--shadow) !important;
-        }
-
-        ${activePreset.animationStyle === 'glass-hover' ? `
-          .dish-card {
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-          }
-          .dish-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px var(--border-glow) !important;
-            border-color: var(--primary) !important;
-          }
-        ` : ''}
-
-        ${activePreset.animationStyle === 'slow-transition' ? `
-          .dish-card {
-            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease;
-          }
-          .dish-card:hover {
-            transform: translateY(-2px);
-            border-color: var(--primary) !important;
-          }
-        ` : ''}
-
-        ${activePreset.animationStyle === 'soft-lift' ? `
-          .dish-card {
-            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
-          }
-          .dish-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
-          }
-        ` : ''}
-
-        ${activePreset.animationStyle === 'natural-floating' ? `
-          .dish-card {
-            transition: transform 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-          }
-          .dish-card:hover {
-            transform: translateY(-6px);
-          }
-        ` : ''}
-
-        ${activePreset.animationStyle === 'gentle-fade' ? `
-          .dish-card {
-            transition: transform 0.3s ease, opacity 0.3s ease;
-          }
-          .dish-card:hover {
-            transform: translateY(-3px);
-          }
-        ` : ''}
-
-        ${activePreset.animationStyle === 'fast-fade' ? `
-          .dish-card {
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-          }
-          .dish-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 16px rgba(0,0,0,0.06) !important;
-          }
-        ` : ''}
-      `;
-    }
-
-    import { showToast } from "/js/utils.js?v=3";
-
     let restaurantId = null;
     let restaurant = null;
     let themeSettings = {
       theme: "modern_minimal",
       fontFamily: "Inter",
+      colorMode: "3-color",
       primaryColor: "#0f172a",
       secondaryColor: "#f1f5f9",
+      accentColor: "#3b82f6",
       backgroundColor: "#ffffff",
       cardColor: "#ffffff",
       textColor: "#0f172a",
-      accentColor: "#3b82f6",
       buttonStyle: "rounded",
       buttonRadius: "12px",
       welcomeTitle: "",
@@ -1121,9 +1013,9 @@
         return showToast('Error: No restaurant found to customize.', 'error');
       }
 
-      document.getElementById('topbarRestName').textContent    = restaurant.name;
-      document.getElementById('simRestName').textContent  = restaurant.name;
-      document.getElementById('simTitle').textContent  = restaurant.name + "'s Menu";
+      document.getElementById('topbarRestName').textContent = restaurant.name;
+      document.getElementById('simRestName').textContent = restaurant.name;
+      document.getElementById('simTitle').textContent = restaurant.name + "'s Menu";
 
       document.getElementById('menuToggle').addEventListener('click', () => {
         document.getElementById('sidebar').classList.toggle('open');
@@ -1146,7 +1038,73 @@
       
       // Focus preset tab initially
       switchThemeTab('presets');
+      // Apply initial color mode visibility toggling
+      changeColorMode(themeSettings.colorMode || '3-color');
     })();
+
+    window.renderThemeStudioCards = () => {
+      const presetsList = document.getElementById('themeCardsList');
+      if (!presetsList) return;
+      presetsList.innerHTML = Object.entries(THEME_PRESETS).map(([key, preset]) => {
+        const isActive = themeSettings.theme === key;
+        return `
+          <div class="theme-studio-card" style="border: 2px solid ${isActive ? 'var(--primary)' : 'var(--border)'}; background:${isActive ? 'rgba(99,102,241,0.08)' : 'var(--bg-elevated)'}; border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:8px; transition:all 0.2s;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong style="font-size:0.95rem; color:var(--text-primary);">${preset.name}</strong>
+            </div>
+            <div style="font-size:0.75rem; color:var(--primary-light); font-weight:700;">Best for: ${preset.bestFor}</div>
+            <p style="font-size:0.78rem; color:var(--text-muted); margin:0;">${preset.description}</p>
+            <div style="display:flex; gap:10px; margin-top:8px;">
+              <button class="btn btn-secondary btn-sm" onclick="previewPresetTheme('${key}')" style="flex:1; padding:6px; font-size:0.75rem;">👁️ Preview</button>
+              <button class="btn btn-primary btn-sm" id="applyBtn-${key}" onclick="applyPresetTheme('${key}')" style="flex:1; padding:6px; font-size:0.75rem;">🚀 Apply</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    window.previewPresetTheme = (presetKey) => {
+      const preset = THEME_PRESETS[presetKey];
+      if (!preset) return;
+      
+      // Update local settings structure to mirror preset
+      themeSettings.theme = presetKey;
+      themeSettings.primaryColor = preset.primaryColor;
+      themeSettings.secondaryColor = preset.secondaryColor;
+      themeSettings.accentColor = preset.accentColor;
+      themeSettings.backgroundColor = preset.backgroundColor;
+      themeSettings.cardColor = preset.cardColor;
+      themeSettings.textColor = preset.textColor;
+      themeSettings.fontFamily = preset.fontHeading;
+      themeSettings.buttonStyle = preset.buttonStyle;
+      themeSettings.buttonRadius = preset.borderRadius;
+      
+      loadThemeControls();
+      recalculateColors();
+      updateLivePreview();
+      renderThemeStudioCards();
+      showToast(`Previewing ${preset.name} preset!`, 'info');
+    };
+
+    window.applyPresetTheme = async (presetKey) => {
+      const btn = document.getElementById(`applyBtn-${presetKey}`);
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Applying...';
+      }
+      try {
+        previewPresetTheme(presetKey);
+        await themeAPI.save(restaurantId, themeSettings);
+        showToast(`🎉 ${THEME_PRESETS[presetKey].name} preset successfully saved and applied!`, 'success');
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.textContent = 'Apply';
+        }
+      }
+    };
 
     window.switchThemeTab = (tabName) => {
       const presetsBtn = document.getElementById('tabPresets');
@@ -1181,73 +1139,114 @@
       }
     };
 
-    // Reset Theme Settings
-    const resetBtn = document.getElementById('resetThemeBtn');
-    if (resetBtn) {
-      resetBtn.addEventListener('click', async () => {
-        if (!confirm('Are you sure you want to reset your branding to the default theme?')) return;
-        
-        themeSettings = {
-          theme: "modern_minimal",
-          fontFamily: "Inter",
-          primaryColor: "#0f172a",
-          secondaryColor: "#f1f5f9",
-          backgroundColor: "#ffffff",
-          cardColor: "#ffffff",
-          textColor: "#0f172a",
-          accentColor: "#3b82f6",
-          buttonStyle: "rounded",
-          buttonRadius: "12px",
-          welcomeTitle: "",
-          welcomeSubtitle: "",
-          logoUrl: "",
-          bannerUrl: ""
-        };
+    window.changeColorMode = (mode) => {
+      themeSettings.colorMode = mode;
+      
+      const rowSec = document.getElementById('rowSecondary');
+      const rowAccent = document.getElementById('rowAccent');
+      const rowCard = document.getElementById('rowCard');
+      const rowText = document.getElementById('rowText');
 
-        const btn = document.getElementById('resetThemeBtn');
-        btn.disabled = true;
-        btn.textContent = 'Resetting...';
+      if (mode === '2-color') {
+        if (rowSec) rowSec.style.display = 'none';
+        if (rowAccent) rowAccent.style.display = 'none';
+        if (rowCard) rowCard.style.display = 'none';
+        if (rowText) rowText.style.display = 'none';
+      } else if (mode === '3-color') {
+        if (rowSec) rowSec.style.display = 'flex';
+        if (rowAccent) rowAccent.style.display = 'none';
+        if (rowCard) rowCard.style.display = 'none';
+        if (rowText) rowText.style.display = 'none';
+      } else {
+        if (rowSec) rowSec.style.display = 'flex';
+        if (rowAccent) rowAccent.style.display = 'flex';
+        if (rowCard) rowCard.style.display = 'flex';
+        if (rowText) rowText.style.display = 'flex';
+      }
+      
+      recalculateColors();
+      updateLivePreview();
+    };
 
-        try {
-          await themeAPI.save(restaurantId, themeSettings);
-          // Reset UPI field
-          const { error: upiError } = await supabase
-            .from('restaurants')
-            .update({ upi_id: '' })
-            .eq('id', restaurantId);
-          if (upiError) throw upiError;
-
-          loadThemeControls();
-          updateLivePreview();
-          renderThemeStudioCards();
-          showToast('🎉 Branding reset to Default Modern Minimal theme!', 'success');
-        } catch (err) {
-          showToast('Error: ' + err.message, 'error');
-        } finally {
-          btn.disabled = false;
-          btn.textContent = '↩️ Reset to Default Theme';
-        }
-      });
+    function isDarkColor(hex) {
+      if (!hex || hex[0] !== '#') return false;
+      const rgb = parseInt(hex.substring(1), 16);
+      const r = (rgb >> 16) & 0xff;
+      const g = (rgb >> 8) & 0xff;
+      const b = (rgb >> 0) & 0xff;
+      const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      return luma < 128;
     }
 
-    function loadThemeControls() {
-      // Set presets active card
-      document.querySelectorAll('.preset-card').forEach(card => {
-        card.classList.toggle('active', card.dataset.preset === themeSettings.theme);
-      });
+    window.recalculateColors = () => {
+      const mode = themeSettings.colorMode || '3-color';
+      const primary = themeSettings.primaryColor || '#6366f1';
+      const bg = themeSettings.backgroundColor || '#ffffff';
+      
+      const isBgDark = isDarkColor(bg);
 
+      if (mode === '2-color') {
+        themeSettings.secondaryColor = primary + '26'; // ~15% luma tint
+        themeSettings.accentColor = primary;
+        themeSettings.cardColor = isBgDark ? '#18181b' : '#ffffff';
+        themeSettings.textColor = isBgDark ? '#ffffff' : '#0f172a';
+      } else if (mode === '3-color') {
+        themeSettings.accentColor = primary;
+        themeSettings.cardColor = isBgDark ? '#18181b' : '#ffffff';
+        themeSettings.textColor = isBgDark ? '#ffffff' : '#0f172a';
+      }
+      
+      // Update custom input picker display values
+      const secVal = document.getElementById('inputSecondary');
+      if (secVal) secVal.value = themeSettings.secondaryColor;
+      const hexSec = document.getElementById('hexSecondary');
+      if (hexSec) hexSec.textContent = themeSettings.secondaryColor;
+
+      const accentVal = document.getElementById('inputAccent');
+      if (accentVal) accentVal.value = themeSettings.accentColor;
+      const hexAccent = document.getElementById('hexAccent');
+      if (hexAccent) hexAccent.textContent = themeSettings.accentColor;
+
+      const cardVal = document.getElementById('inputCard');
+      if (cardVal) cardVal.value = themeSettings.cardColor;
+      const hexCard = document.getElementById('hexCard');
+      if (hexCard) hexCard.textContent = themeSettings.cardColor;
+
+      const textVal = document.getElementById('inputText');
+      if (textVal) textVal.value = themeSettings.textColor;
+      const hexText = document.getElementById('hexText');
+      if (hexText) hexText.textContent = themeSettings.textColor;
+    };
+
+    function loadThemeControls() {
       // Colors
-      document.getElementById('inputPrimary').value = themeSettings.primaryColor || '#6366f1';
-      document.getElementById('inputBg').value = themeSettings.backgroundColor || '#0f172a';
-      document.getElementById('inputCard').value = themeSettings.cardColor || 'rgba(30, 41, 59, 0.7)';
+      document.getElementById('inputPrimary').value = themeSettings.primaryColor || '#0f172a';
+      document.getElementById('inputSecondary').value = themeSettings.secondaryColor || '#f1f5f9';
+      document.getElementById('inputAccent').value = themeSettings.accentColor || '#3b82f6';
+      document.getElementById('inputBg').value = themeSettings.backgroundColor || '#ffffff';
+      document.getElementById('inputCard').value = themeSettings.cardColor || '#ffffff';
+      document.getElementById('inputText').value = themeSettings.textColor || '#0f172a';
       
       // Hex Labels
       document.getElementById('hexPrimary').textContent = themeSettings.primaryColor;
+      document.getElementById('hexSecondary').textContent = themeSettings.secondaryColor;
+      document.getElementById('hexAccent').textContent = themeSettings.accentColor;
       document.getElementById('hexBg').textContent = themeSettings.backgroundColor;
       document.getElementById('hexCard').textContent = themeSettings.cardColor;
+      document.getElementById('hexText').textContent = themeSettings.textColor;
+
+      // Color Mode Select
+      if (document.getElementById('colorModeSelect')) {
+        document.getElementById('colorModeSelect').value = themeSettings.colorMode || '3-color';
+      }
 
       // Font
-      document.getElementById('fontFamily').value = themeSettings.fontFamily || 'Poppins';
+      document.getElementById('fontFamily').value = themeSettings.fontFamily || 'Inter';
+      
+      // Button Style
+      if (document.getElementById('buttonStyle')) {
+        document.getElementById('buttonStyle').value = themeSettings.buttonStyle || 'rounded';
+      }
 
       // Corner radius
       document.querySelectorAll('.btn-radius-opt').forEach(opt => {
@@ -1261,129 +1260,279 @@
       // Images
       document.getElementById('logoUrl').value = themeSettings.logoUrl || '';
       document.getElementById('bannerUrl').value = themeSettings.bannerUrl || '';
-      if (document.getElementById('upiId')) {
+      
+      // UPI ID
+      if (document.getElementById('upiId') && restaurant) {
         document.getElementById('upiId').value = restaurant.upi_id || '';
       }
     }
 
     function updateLivePreview() {
-      const container = document.getElementById('simContent');
-      const elements = {
-        primary: themeSettings.primaryColor,
-        bg: themeSettings.backgroundColor,
-        card: themeSettings.cardColor,
-        radius: themeSettings.buttonRadius,
-        font: themeSettings.fontFamily,
-        title: themeSettings.welcomeTitle || (restaurant ? restaurant.name + "'s Menu" : "Phoenix Cafe's Menu"),
-        sub: themeSettings.welcomeSubtitle || "Fresh, delicious, and made with love.",
-        logo: themeSettings.logoUrl,
-        banner: themeSettings.bannerUrl
-      };
+      let activePreset = null;
+      if (themeSettings.theme && THEME_PRESETS[themeSettings.theme]) {
+        activePreset = THEME_PRESETS[themeSettings.theme];
+      } else {
+        activePreset = {
+          ...THEME_PRESETS.modern_minimal,
+          primaryColor: themeSettings.primaryColor,
+          secondaryColor: themeSettings.secondaryColor || '#f1f5f9',
+          backgroundColor: themeSettings.backgroundColor,
+          cardColor: themeSettings.cardColor,
+          textColor: themeSettings.textColor || '#0f172a',
+          accentColor: themeSettings.accentColor || '#3b82f6',
+          fontHeading: themeSettings.fontFamily,
+          fontBody: themeSettings.fontFamily,
+          borderRadius: themeSettings.buttonRadius || '12px',
+          buttonStyle: themeSettings.buttonStyle || 'rounded',
+          shadow: '0 4px 16px rgba(0,0,0,0.06)'
+        };
+      }
 
-      // Set Font family of sim body
-      container.style.fontFamily = `"${elements.font}", sans-serif`;
-      
-      // Colors
-      container.style.setProperty('--sim-primary', elements.primary);
-      container.style.setProperty('--sim-card', elements.card);
-      container.style.setProperty('--sim-btn-radius', elements.radius);
-      
-      // Apply background and clear previous classes
-      container.style.background = elements.bg;
-      container.style.color = '#f8fafc';
-      container.classList.remove('mock-template-1', 'mock-template-2', 'mock-template-3', 'mock-template-4', 'mock-template-5');
-      
-      // Apply Template Specific Styles
-      const presetId = themeSettings.theme;
-      container.classList.add(`mock-template-${presetId}`);
+      loadGoogleFont(activePreset.fontHeading);
+      loadGoogleFont(activePreset.fontBody);
 
-      // Set banner title/sub
-      document.getElementById('simTitle').textContent = elements.title;
-      document.getElementById('simSubtitle').textContent = elements.sub;
+      let btnRadius = "8px";
+      if (activePreset.buttonStyle === "pill") btnRadius = "50px";
+      else if (activePreset.buttonStyle === "sharp") btnRadius = "0px";
+      else if (activePreset.borderRadius) btnRadius = activePreset.borderRadius;
 
-      // Set custom banner background if URL exists
+      const previewStyleId = "preview-theme-styles";
+      let pStyle = document.getElementById(previewStyleId);
+      if (!pStyle) {
+        pStyle = document.createElement("style");
+        pStyle.id = previewStyleId;
+        document.head.appendChild(pStyle);
+      }
+
+      pStyle.textContent = `
+        #simContent {
+          --primary: ${activePreset.primaryColor};
+          --bg: ${activePreset.backgroundColor};
+          --bg-card: ${activePreset.cardColor};
+          --bg-elevated: ${activePreset.backgroundColor === '#ffffff' || activePreset.backgroundColor === '#faf7f0' || activePreset.backgroundColor === '#f8fafc' || activePreset.backgroundColor === '#f7f1e5' ? '#f1f5f9' : '#18181f'};
+          --text: ${activePreset.textColor};
+          --text-sec: ${activePreset.mutedColor || '#64748b'};
+          --accent: ${activePreset.accentColor};
+          --border: ${activePreset.border || 'rgba(0,0,0,0.08)'};
+          --border-radius: ${activePreset.borderRadius || '12px'};
+          --button-radius: ${btnRadius};
+          --font: '${activePreset.fontBody}', sans-serif;
+          --font-display: '${activePreset.fontHeading}', sans-serif;
+          --glass-effect: ${activePreset.glassEffect || 'none'};
+          --shadow: ${activePreset.shadow || 'none'};
+          
+          font-family: var(--font) !important;
+          background: var(--bg) !important;
+          color: var(--text) !important;
+        }
+
+        #simContent .sim-header {
+          background: var(--bg-card) !important;
+          border-bottom: 1px solid var(--border) !important;
+        }
+        #simContent .sim-logo span {
+          color: var(--text) !important;
+        }
+        #simContent .sim-cat-pill {
+          background: var(--primary) !important;
+          color: #ffffff !important;
+          border-radius: var(--button-radius) !important;
+        }
+        #simContent .sim-title {
+          font-family: var(--font-display) !important;
+          color: #ffffff !important;
+        }
+        #simContent .sim-subtitle {
+          color: rgba(255,255,255,0.8) !important;
+        }
+        #simContent .sim-dish-card {
+          background: var(--bg-card) !important;
+          border: 1px solid var(--border) !important;
+          border-radius: var(--border-radius) !important;
+          box-shadow: var(--shadow) !important;
+          backdrop-filter: var(--glass-effect) !important;
+        }
+        #simContent .sim-dish-name {
+          color: var(--text) !important;
+        }
+        #simContent .sim-dish-desc {
+          color: var(--text-sec) !important;
+        }
+        #simContent .sim-dish-price {
+          color: var(--primary) !important;
+        }
+        #simContent .sim-btn-ar {
+          background: var(--primary) !important;
+          border-radius: var(--button-radius) !important;
+          color: #ffffff !important;
+        }
+        #simContent .sim-floating-btn {
+          background: var(--primary) !important;
+          border-radius: 50% !important;
+        }
+      `;
+
       const bannerEl = document.getElementById('simHeroBg');
-      if (elements.banner) {
-        bannerEl.style.background = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${elements.banner}') center/cover`;
+      if (themeSettings.bannerUrl) {
+        bannerEl.style.background = `linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('${themeSettings.bannerUrl}') center/cover`;
       } else {
         bannerEl.style.background = 'rgba(255,255,255,0.02)';
       }
 
-      // Set custom logo if URL exists
       const logoEl = document.getElementById('simLogo');
-      if (elements.logo) {
-        logoEl.style.background = `url('${elements.logo}') center/cover`;
+      if (themeSettings.logoUrl) {
+        logoEl.style.background = `url('${themeSettings.logoUrl}') center/cover`;
       } else {
-        logoEl.style.background = elements.primary;
+        logoEl.style.background = activePreset.primaryColor;
       }
+
+      const restName = restaurant?.name || 'Restaurant';
+      document.getElementById('simTitle').textContent = themeSettings.welcomeTitle || `${restName}'s Menu`;
+      document.getElementById('simSubtitle').textContent = themeSettings.welcomeSubtitle || 'Fresh, delicious, and made with love.';
     }
 
+    // Save Action
+    const saveBtn = document.getElementById('saveThemeBtn');
+    if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+        saveBtn.disabled = true;
+        saveBtn.textContent = 'Saving...';
+        try {
+          // Read table details
+          themeSettings.welcomeTitle = document.getElementById('welcomeTitle').value.trim();
+          themeSettings.welcomeSubtitle = document.getElementById('welcomeSubtitle').value.trim();
+          themeSettings.logoUrl = document.getElementById('logoUrl').value.trim();
+          themeSettings.bannerUrl = document.getElementById('bannerUrl').value.trim();
+          
+          await themeAPI.save(restaurantId, themeSettings);
 
+          // Save UPI ID if edited
+          const newUpi = document.getElementById('upiId').value.trim();
+          const { error: upiError } = await supabase
+            .from('restaurants')
+            .update({ upi_id: newUpi })
+            .eq('id', restaurantId);
 
-    // Color Pickers
+          if (upiError) throw upiError;
+          if (restaurant) restaurant.upi_id = newUpi;
+
+          showToast('🎉 Custom Theme settings successfully saved!', 'success');
+        } catch (err) {
+          showToast('Error: ' + err.message, 'error');
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.textContent = '🚀 Save Custom Theme Settings';
+        }
+      });
+    }
+
+    // Reset Action
+    const resetBtn = document.getElementById('resetThemeBtn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to reset to the default theme?')) return;
+        themeSettings = {
+          theme: "modern_minimal",
+          fontFamily: "Inter",
+          colorMode: "3-color",
+          primaryColor: "#0f172a",
+          secondaryColor: "#f1f5f9",
+          accentColor: "#3b82f6",
+          backgroundColor: "#ffffff",
+          cardColor: "#ffffff",
+          textColor: "#0f172a",
+          buttonStyle: "rounded",
+          buttonRadius: "12px",
+          welcomeTitle: "",
+          welcomeSubtitle: "",
+          logoUrl: "",
+          bannerUrl: ""
+        };
+
+        resetBtn.disabled = true;
+        resetBtn.textContent = 'Resetting...';
+        try {
+          await themeAPI.save(restaurantId, themeSettings);
+          const { error: upiError } = await supabase
+            .from('restaurants')
+            .update({ upi_id: '' })
+            .eq('id', restaurantId);
+          if (upiError) throw upiError;
+
+          loadThemeControls();
+          changeColorMode('3-color');
+          showToast('🎉 Theme reset to Default Modern Minimal!', 'success');
+        } catch (err) {
+          showToast('Error: ' + err.message, 'error');
+        } finally {
+          resetBtn.disabled = false;
+          resetBtn.textContent = '↩️ Reset to Default Theme';
+        }
+      });
+    }
+
+    // Input Listeners
     document.getElementById('inputPrimary').addEventListener('input', (e) => {
-      const val = e.target.value;
-      themeSettings.primaryColor = val;
+      themeSettings.primaryColor = e.target.value;
+      document.getElementById('hexPrimary').textContent = e.target.value;
       themeSettings.theme = 'custom';
-      document.getElementById('hexPrimary').textContent = val;
+      recalculateColors();
       updateLivePreview();
       renderThemeStudioCards();
     });
 
     document.getElementById('inputSecondary').addEventListener('input', (e) => {
-      const val = e.target.value;
-      themeSettings.secondaryColor = val;
+      themeSettings.secondaryColor = e.target.value;
+      document.getElementById('hexSecondary').textContent = e.target.value;
       themeSettings.theme = 'custom';
-      document.getElementById('hexSecondary').textContent = val;
+      recalculateColors();
       updateLivePreview();
       renderThemeStudioCards();
     });
 
     document.getElementById('inputAccent').addEventListener('input', (e) => {
-      const val = e.target.value;
-      themeSettings.accentColor = val;
+      themeSettings.accentColor = e.target.value;
+      document.getElementById('hexAccent').textContent = e.target.value;
       themeSettings.theme = 'custom';
-      document.getElementById('hexAccent').textContent = val;
+      recalculateColors();
       updateLivePreview();
       renderThemeStudioCards();
     });
 
     document.getElementById('inputBg').addEventListener('input', (e) => {
-      const val = e.target.value;
-      themeSettings.backgroundColor = val;
+      themeSettings.backgroundColor = e.target.value;
+      document.getElementById('hexBg').textContent = e.target.value;
       themeSettings.theme = 'custom';
-      document.getElementById('hexBg').textContent = val;
+      recalculateColors();
       updateLivePreview();
       renderThemeStudioCards();
     });
 
     document.getElementById('inputCard').addEventListener('input', (e) => {
-      const val = e.target.value;
-      themeSettings.cardColor = val;
+      themeSettings.cardColor = e.target.value;
+      document.getElementById('hexCard').textContent = e.target.value;
       themeSettings.theme = 'custom';
-      document.getElementById('hexCard').textContent = val;
+      recalculateColors();
       updateLivePreview();
       renderThemeStudioCards();
     });
 
     document.getElementById('inputText').addEventListener('input', (e) => {
-      const val = e.target.value;
-      themeSettings.textColor = val;
+      themeSettings.textColor = e.target.value;
+      document.getElementById('hexText').textContent = e.target.value;
       themeSettings.theme = 'custom';
-      document.getElementById('hexText').textContent = val;
+      recalculateColors();
       updateLivePreview();
       renderThemeStudioCards();
     });
 
-    // Font
     document.getElementById('fontFamily').addEventListener('change', (e) => {
       themeSettings.fontFamily = e.target.value;
       themeSettings.theme = 'custom';
       updateLivePreview();
       renderThemeStudioCards();
     });
-    
-    // Button Style
+
     if (document.getElementById('buttonStyle')) {
       document.getElementById('buttonStyle').addEventListener('change', (e) => {
         themeSettings.buttonStyle = e.target.value;
@@ -1393,7 +1542,6 @@
       });
     }
 
-    // Radius
     document.querySelectorAll('.btn-radius-opt').forEach(opt => {
       opt.addEventListener('click', () => {
         document.querySelectorAll('.btn-radius-opt').forEach(o => o.classList.remove('active'));
@@ -1405,18 +1553,16 @@
       });
     });
 
-    // Banners text
     document.getElementById('welcomeTitle').addEventListener('input', (e) => {
       themeSettings.welcomeTitle = e.target.value.trim();
       updateLivePreview();
     });
-    
+
     document.getElementById('welcomeSubtitle').addEventListener('input', (e) => {
       themeSettings.welcomeSubtitle = e.target.value.trim();
       updateLivePreview();
     });
 
-    // Images
     document.getElementById('logoUrl').addEventListener('input', (e) => {
       themeSettings.logoUrl = e.target.value.trim();
       updateLivePreview();
@@ -1425,33 +1571,6 @@
     document.getElementById('bannerUrl').addEventListener('input', (e) => {
       themeSettings.bannerUrl = e.target.value.trim();
       updateLivePreview();
-    });
-
-    // Save
-    document.getElementById('saveThemeBtn').addEventListener('click', async () => {
-      const btn = document.getElementById('saveThemeBtn');
-      btn.disabled = true;
-      btn.textContent = 'Saving Settings...';
-
-      try {
-        await themeAPI.save(restaurantId, themeSettings);
-
-        // Save UPI ID directly to restaurants table
-        const upiVal = document.getElementById('upiId').value.trim();
-        const { error: upiError } = await supabase
-          .from('restaurants')
-          .update({ upi_id: upiVal })
-          .eq('id', restaurantId);
-
-        if (upiError) throw upiError;
-
-        showToast('🎉 UI Theme, custom colors, and payment settings saved successfully!', 'success');
-      } catch (err) {
-        showToast('Error: ' + err.message, 'error');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Save Theme Settings';
-      }
     });
   </script>
 </body>
