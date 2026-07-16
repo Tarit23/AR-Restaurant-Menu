@@ -1314,7 +1314,7 @@
         activePreset = THEME_PRESETS[themeSettings.theme];
       } else {
         activePreset = {
-          ...THEME_PRESETS.modern_minimal,
+          ...THEME_PRESETS.default,
           primaryColor: themeSettings.primaryColor,
           secondaryColor: themeSettings.secondaryColor || '#f1f5f9',
           backgroundColor: themeSettings.backgroundColor,
@@ -1337,6 +1337,67 @@
       else if (activePreset.buttonStyle === "sharp") btnRadius = "0px";
       else if (activePreset.borderRadius) btnRadius = activePreset.borderRadius;
 
+      const simContent = document.getElementById('simContent');
+      let isLight = false;
+      if (simContent) {
+        isLight = simContent.classList.contains('light-theme');
+        // Sync active template class on simulator
+        simContent.className = simContent.className.replace(/\btemplate-\S+/g, '').trim();
+        const activeTemp = activePreset.template || 'default';
+        simContent.classList.add('template-' + activeTemp.replace(/_/g, '-'));
+      }
+
+      // Map light/dark overrides for variables
+      const templateVars = {
+        flavoria: {
+          light: { bg: "#faf9f6", card: "#ffffff", text: "#1c1917", textSec: "#57534e", border: "#cfa86b", shadow: "0 8px 30px rgba(207,168,107,0.04)" },
+          dark: { bg: "#0f0f0f", card: "#181818", text: "#ffffff", textSec: "#a8a29e", border: "#cfa86b", shadow: "0 8px 30px rgba(207,168,107,0.04)" }
+        },
+        green_bite: {
+          light: { bg: "#f4f9f4", card: "#ffffff", text: "#1b4332", textSec: "#2d6a4f", border: "rgba(45,106,79,0.08)", shadow: "0 4px 16px rgba(45,106,79,0.04)" },
+          dark: { bg: "#0b1a13", card: "#112a1e", text: "#dcfce7", textSec: "#52b788", border: "rgba(255,255,255,0.06)", shadow: "0 4px 16px rgba(45,106,79,0.04)" }
+        },
+        smokehouse: {
+          light: { bg: "#f9f9f9", card: "#ffffff", text: "#111111", textSec: "#e63946", border: "rgba(230,57,70,0.15)", shadow: "0 6px 18px rgba(230,57,70,0.05)" },
+          dark: { bg: "#121212", card: "#1d1d1d", text: "#ffffff", textSec: "#e63946", border: "rgba(255,255,255,0.05)", shadow: "0 6px 18px rgba(230,57,70,0.05)" }
+        },
+        spice_route: {
+          light: { bg: "#fbf6f0", card: "#ffffff", text: "#3c151a", textSec: "#722f37", border: "#722f37", shadow: "0 6px 16px rgba(114,47,55,0.04)" },
+          dark: { bg: "#1a0e10", card: "#2c1a1d", text: "#faf0e6", textSec: "#cba358", border: "#cba358", shadow: "0 6px 16px rgba(114,47,55,0.04)" }
+        },
+        yum_yum: {
+          light: { bg: "#fffdf0", card: "#ffffff", text: "#2b2300", textSec: "#e65c00", border: "#ffc300", shadow: "0 4px 12px rgba(255,195,0,0.1)" },
+          dark: { bg: "#2b2300", card: "#3d3200", text: "#fffdf0", textSec: "#ffc300", border: "#ffc300", shadow: "0 4px 12px rgba(255,195,0,0.1)" }
+        },
+        sweet_affair: {
+          light: { bg: "#fff8fa", card: "#ffffff", text: "#4a0e17", textSec: "#d03b68", border: "rgba(208,59,104,0.15)", shadow: "0 6px 16px rgba(208,59,104,0.04)" },
+          dark: { bg: "#2d050c", card: "#45101a", text: "#ffeef2", textSec: "#ffa6c9", border: "rgba(255,255,255,0.08)", shadow: "0 6px 16px rgba(208,59,104,0.04)" }
+        },
+        aroma: {
+          light: { bg: "#fafaf7", card: "#ffffff", text: "#0a1f1c", textSec: "#6e5d2b", border: "#d4af37", shadow: "0 8px 32px rgba(212,175,55,0.03)" },
+          dark: { bg: "#071614", card: "#0c221f", text: "#ffffff", textSec: "#d4af37", border: "#d4af37", shadow: "0 8px 32px rgba(212,175,55,0.03)" }
+        },
+        street_tales: {
+          light: { bg: "#f9f9f9", card: "#ffffff", text: "#121212", textSec: "#b8972e", border: "1px dashed #b8972e", shadow: "none" },
+          dark: { bg: "#121212", card: "#1c1c1c", text: "#ffffff", textSec: "#fcc200", border: "1px dashed #fcc200", shadow: "none" }
+        },
+        default: {
+          light: { bg: "#f8fafc", card: "#ffffff", text: "#0f172a", textSec: "#64748b", border: "rgba(0,0,0,0.08)", shadow: "0 4px 16px rgba(0,0,0,0.06)" },
+          dark: { bg: "#0a0a0f", card: "#11111a", text: "#ffffff", textSec: "#94a3b8", border: "rgba(255,255,255,0.06)", shadow: "0 4px 16px rgba(99,102,241,0.12)" }
+        }
+      };
+
+      const currentTempName = activePreset.template || 'default';
+      const modeKey = isLight ? 'light' : 'dark';
+      const overrides = templateVars[currentTempName] ? templateVars[currentTempName][modeKey] : templateVars.default[modeKey];
+
+      const computedBg = overrides.bg;
+      const computedCard = overrides.card;
+      const computedText = overrides.text;
+      const computedTextSec = overrides.textSec;
+      const computedBorder = overrides.border;
+      const computedShadow = overrides.shadow;
+
       const previewStyleId = "preview-theme-styles";
       let pStyle = document.getElementById(previewStyleId);
       if (!pStyle) {
@@ -1348,19 +1409,19 @@
       pStyle.textContent = `
         #simContent {
           --primary: ${activePreset.primaryColor};
-          --bg: ${activePreset.backgroundColor};
-          --bg-card: ${activePreset.cardColor};
-          --bg-elevated: ${activePreset.backgroundColor === '#ffffff' || activePreset.backgroundColor === '#faf7f0' || activePreset.backgroundColor === '#f8fafc' || activePreset.backgroundColor === '#f7f1e5' ? '#f1f5f9' : '#18181f'};
-          --text: ${activePreset.textColor};
-          --text-sec: ${activePreset.mutedColor || '#64748b'};
+          --bg: ${computedBg};
+          --bg-card: ${computedCard};
+          --bg-elevated: ${isLight ? '#f1f5f9' : '#18181f'};
+          --text: ${computedText};
+          --text-sec: ${computedTextSec};
           --accent: ${activePreset.accentColor};
-          --border: ${activePreset.border || 'rgba(0,0,0,0.08)'};
+          --border: ${computedBorder};
           --border-radius: ${activePreset.borderRadius || '12px'};
           --button-radius: ${btnRadius};
           --font: '${activePreset.fontBody}', sans-serif;
           --font-display: '${activePreset.fontHeading}', sans-serif;
           --glass-effect: ${activePreset.glassEffect || 'none'};
-          --shadow: ${activePreset.shadow || 'none'};
+          --shadow: ${computedShadow};
           
           font-family: var(--font) !important;
           background: var(--bg) !important;
@@ -1379,19 +1440,22 @@
           color: #ffffff !important;
           border-radius: var(--button-radius) !important;
         }
+        #simContent .sim-cat-pill.active {
+          background: var(--primary) !important;
+          border: 1px solid var(--text) !important;
+        }
         #simContent .sim-title {
           font-family: var(--font-display) !important;
-          color: #ffffff !important;
+          color: var(--text) !important;
         }
         #simContent .sim-subtitle {
-          color: rgba(255,255,255,0.8) !important;
+          color: var(--text-sec) !important;
         }
         #simContent .sim-dish-card {
           background: var(--bg-card) !important;
           border: 1px solid var(--border) !important;
           border-radius: var(--border-radius) !important;
           box-shadow: var(--shadow) !important;
-          backdrop-filter: var(--glass-effect) !important;
         }
         #simContent .sim-dish-name {
           color: var(--text) !important;
@@ -1411,6 +1475,14 @@
           background: var(--primary) !important;
           border-radius: 50% !important;
         }
+        
+        /* Specific preset overrides inside simulator */
+        #simContent.template-yum-yum .sim-dish-card {
+          box-shadow: 4px 4px 0 var(--border) !important;
+        }
+        #simContent.template-street-tales .sim-dish-card {
+          border: var(--border) !important;
+        }
       `;
 
       const bannerEl = document.getElementById('simHeroBg');
@@ -1427,7 +1499,7 @@
         logoEl.style.background = activePreset.primaryColor;
       }
 
-      const restName = restaurant?.name || 'Restaurant';
+      const restName = window.restaurant?.name || 'Restaurant';
       document.getElementById('simTitle').textContent = themeSettings.welcomeTitle || `${restName}'s Menu`;
       document.getElementById('simSubtitle').textContent = themeSettings.welcomeSubtitle || 'Fresh, delicious, and made with love.';
     }
