@@ -747,7 +747,7 @@ export const tablesAPI = {
   async getAll(restaurantId) {
     const { data, error } = await supabase
       .from('tables')
-      .select('*, dining_sessions(*)')
+      .select('*, dining_sessions!current_session_id(*)')
       .eq('restaurant_id', restaurantId)
       .order('table_number', { ascending: true });
     if (error) throw error;
@@ -786,7 +786,7 @@ export const sessionsAPI = {
   async getActive(restaurantId) {
     const { data, error } = await supabase
       .from('dining_sessions')
-      .select('*, tables(*), orders(*, order_items(*))')
+      .select('*, tables!table_id(*), orders(*, order_items(*))')
       .eq('restaurant_id', restaurantId)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
@@ -797,7 +797,7 @@ export const sessionsAPI = {
   async getSessionById(sessionId) {
     const { data, error } = await supabase
       .from('dining_sessions')
-      .select('*, tables(*), orders(*, order_items(*))')
+      .select('*, tables!table_id(*), orders(*, order_items(*))')
       .eq('id', sessionId)
       .single();
     if (error) throw error;

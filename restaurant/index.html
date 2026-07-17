@@ -339,7 +339,7 @@
       try {
         const { data: sessions, error } = await supabase
           .from('dining_sessions')
-          .select('*, tables(*), orders(*, order_items(*))')
+          .select('*, tables!table_id(*), orders(*, order_items(*))')
           .eq('restaurant_id', restaurantId)
           .eq('status', 'active')
           .order('created_at', { ascending: false });
