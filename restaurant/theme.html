@@ -780,7 +780,7 @@
     import { themeAPI } from "/js/loyalty-api.js?v=3";
     import { showToast } from "/js/utils.js?v=3";
 
-            const THEME_PRESETS = {
+                const THEME_PRESETS = {
       default: {
         name: "🍕 BiteXR Default",
         bestFor: "Standard digital menu experience",
@@ -797,9 +797,169 @@
         buttonStyle: "rounded",
         shadow: "0 4px 16px rgba(99,102,241,0.12)",
         border: "1px solid rgba(255,255,255,0.06)",
-        animationStyle: "fast-fade",
-        glassEffect: "none",
         template: "default"
+      },
+      glassmorphism: {
+        name: "✨ Glassmorphism",
+        bestFor: "Premium Cafes & Cocktail Bars",
+        description: "Frosted glass UI overlays, floating buttons, and glowing accents.",
+        primaryColor: "#6366f1",
+        secondaryColor: "rgba(99,102,241,0.15)",
+        backgroundColor: "#0a0a0f",
+        cardColor: "rgba(255,255,255,0.03)",
+        textColor: "#ffffff",
+        accentColor: "#a855f7",
+        fontHeading: "Plus Jakarta Sans",
+        fontBody: "Plus Jakarta Sans",
+        borderRadius: "16px",
+        buttonStyle: "pill",
+        shadow: "0 8px 32px 0 rgba(0, 0, 0, 0.37)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        template: "glassmorphism"
+      },
+      warm_sunset: {
+        name: "🌅 Warm Sunset",
+        bestFor: "Family Cafes & Bakeries",
+        description: "Warm sunset orange tones, beige backgrounds, and cozy card feels.",
+        primaryColor: "#ea580c",
+        secondaryColor: "#fef3c7",
+        backgroundColor: "#1a0f0a",
+        cardColor: "#2a1a10",
+        textColor: "#fef3c7",
+        accentColor: "#d97706",
+        fontHeading: "Dosis",
+        fontBody: "Dosis",
+        borderRadius: "14px",
+        buttonStyle: "rounded",
+        shadow: "0 4px 12px rgba(234,88,12,0.15)",
+        border: "1px solid #d97706",
+        template: "warm_sunset"
+      },
+      luxury_noir: {
+        name: "💎 Luxury Noir",
+        bestFor: "Fine Dining & Steakhouse",
+        description: "Black, gold highlights, and premium serif typography layouts.",
+        primaryColor: "#cfa86b",
+        secondaryColor: "#18181b",
+        backgroundColor: "#09090b",
+        cardColor: "#181818",
+        textColor: "#fafafa",
+        accentColor: "#fafafa",
+        fontHeading: "Cinzel",
+        fontBody: "Cormorant Garamond",
+        borderRadius: "2px",
+        buttonStyle: "sharp",
+        shadow: "0 8px 30px rgba(207,168,107,0.05)",
+        border: "1px solid #cfa86b",
+        template: "luxury_noir"
+      },
+      organic_nature: {
+        name: "🌿 Organic Nature",
+        bestFor: "Healthy Food & Salad Bars",
+        description: "Fresh forest green color schemes and organic leaf graphics.",
+        primaryColor: "#22c55e",
+        secondaryColor: "#12331f",
+        backgroundColor: "#0a1c10",
+        cardColor: "#12331f",
+        textColor: "#dcfce7",
+        accentColor: "#15803d",
+        fontHeading: "Outfit",
+        fontBody: "Manrope",
+        borderRadius: "18px",
+        buttonStyle: "rounded",
+        shadow: "0 4px 16px rgba(34,197,94,0.06)",
+        border: "1px solid rgba(34,197,94,0.15)",
+        template: "organic_nature"
+      },
+      modern_minimal: {
+        name: "⚪ Modern Minimal",
+        bestFor: "Apple-style Minimalist Menus",
+        description: "Clean spacing, large bold headings, and light neutral colors.",
+        primaryColor: "#000000",
+        secondaryColor: "#fafafa",
+        backgroundColor: "#ffffff",
+        cardColor: "#ffffff",
+        textColor: "#09090b",
+        accentColor: "#18181b",
+        fontHeading: "Inter",
+        fontBody: "Inter",
+        borderRadius: "12px",
+        buttonStyle: "rounded",
+        shadow: "0 4px 20px rgba(0,0,0,0.02)",
+        border: "1px solid rgba(0,0,0,0.06)",
+        template: "modern_minimal"
+      },
+      ocean_breeze: {
+        name: "🌊 Ocean Breeze",
+        bestFor: "Seafood & Beachfront Restaurants",
+        description: "Refreshing aqua marine blue shades and clean white highlights.",
+        primaryColor: "#0284c7",
+        secondaryColor: "#03346e",
+        backgroundColor: "#021526",
+        cardColor: "#03346e",
+        textColor: "#e2f1e7",
+        accentColor: "#6eacda",
+        fontHeading: "Quicksand",
+        fontBody: "Quicksand",
+        borderRadius: "16px",
+        buttonStyle: "pill",
+        shadow: "0 6px 18px rgba(2,132,199,0.06)",
+        border: "1px solid #6eacda",
+        template: "ocean_breeze"
+      },
+      rustic_wood: {
+        name: "🪵 Rustic Wood",
+        bestFor: "Country Pubs & Local Grills",
+        description: "Timber wood textures, yellow warm text, and rugged designs.",
+        primaryColor: "#ca8a04",
+        secondaryColor: "#2d1e12",
+        backgroundColor: "#1c130c",
+        cardColor: "#2d1e12",
+        textColor: "#fef08a",
+        accentColor: "#854d0e",
+        fontHeading: "Playfair Display",
+        fontBody: "Volkhov",
+        borderRadius: "8px",
+        buttonStyle: "sharp",
+        shadow: "0 6px 12px rgba(202,138,4,0.08)",
+        border: "1px solid #854d0e",
+        template: "rustic_wood"
+      },
+      elegant_bistro: {
+        name: "🍷 Elegant Bistro",
+        bestFor: "European Bistros & Wine Parlors",
+        description: "Wine red base color schemes, fine gold lines, and serif fonts.",
+        primaryColor: "#db2777",
+        secondaryColor: "#2d1022",
+        backgroundColor: "#1b0914",
+        cardColor: "#2d1022",
+        textColor: "#fdf2f8",
+        accentColor: "#9d174d",
+        fontHeading: "Cormorant Garamond",
+        fontBody: "Cormorant Garamond",
+        borderRadius: "6px",
+        buttonStyle: "rounded",
+        shadow: "0 8px 24px rgba(219,39,119,0.05)",
+        border: "1px solid #9d174d",
+        template: "elegant_bistro"
+      },
+      coffee_house: {
+        name: "☕ Coffee House",
+        bestFor: "Cafes, Bakeries & Coffee Bars",
+        description: "Warm coffee browns, warm creams, and cozy structures.",
+        primaryColor: "#8c6239",
+        secondaryColor: "#271e1a",
+        backgroundColor: "#18120f",
+        cardColor: "#271e1a",
+        textColor: "#fcd34d",
+        accentColor: "#d97706",
+        fontHeading: "Dosis",
+        fontBody: "Dosis",
+        borderRadius: "14px",
+        buttonStyle: "rounded",
+        shadow: "0 4px 16px rgba(140,98,57,0.12)",
+        border: "1px solid #e7d7cc",
+        template: "coffee_house"
       },
       flavoria: {
         name: "🔥 Flavoria",
@@ -817,8 +977,6 @@
         buttonStyle: "sharp",
         shadow: "0 8px 30px rgba(207,168,107,0.04)",
         border: "1px solid #cfa86b",
-        animationStyle: "slow-transition",
-        glassEffect: "none",
         template: "flavoria"
       },
       green_bite: {
@@ -837,8 +995,6 @@
         buttonStyle: "rounded",
         shadow: "0 4px 16px rgba(45,106,79,0.04)",
         border: "1px solid rgba(45,106,79,0.06)",
-        animationStyle: "natural-floating",
-        glassEffect: "none",
         template: "green_bite"
       },
       smokehouse: {
@@ -857,8 +1013,6 @@
         buttonStyle: "rounded",
         shadow: "0 6px 18px rgba(230,57,70,0.05)",
         border: "1px solid rgba(255,255,255,0.05)",
-        animationStyle: "soft-lift",
-        glassEffect: "none",
         template: "smokehouse"
       },
       spice_route: {
@@ -877,8 +1031,6 @@
         buttonStyle: "rounded",
         shadow: "0 6px 16px rgba(114,47,55,0.04)",
         border: "1px solid #722f37",
-        animationStyle: "soft-lift",
-        glassEffect: "none",
         template: "spice_route"
       },
       yum_yum: {
@@ -897,8 +1049,6 @@
         buttonStyle: "pill",
         shadow: "0 4px 12px rgba(255,195,0,0.1)",
         border: "2px solid #ffc300",
-        animationStyle: "fast-fade",
-        glassEffect: "none",
         template: "yum_yum"
       },
       sweet_affair: {
@@ -916,9 +1066,7 @@
         borderRadius: "16px",
         buttonStyle: "rounded",
         shadow: "0 6px 16px rgba(208,59,104,0.04)",
-        border: "1px solid rgba(208,59,104,0.1)",
-        animationStyle: "soft-lift",
-        glassEffect: "none",
+        border: "1px solid rgba(208,59,104,0.15)",
         template: "sweet_affair"
       },
       aroma: {
@@ -937,8 +1085,6 @@
         buttonStyle: "sharp",
         shadow: "0 8px 32px rgba(212,175,55,0.03)",
         border: "1px solid #d4af37",
-        animationStyle: "slow-transition",
-        glassEffect: "none",
         template: "aroma"
       },
       street_tales: {
@@ -957,8 +1103,6 @@
         buttonStyle: "sharp",
         shadow: "none",
         border: "1px dashed #fcc200",
-        animationStyle: "fast-fade",
-        glassEffect: "none",
         template: "street_tales"
       }
     };
@@ -1347,8 +1491,48 @@
         simContent.classList.add('template-' + activeTemp.replace(/_/g, '-'));
       }
 
-      // Map light/dark overrides for variables
+      // Map light/dark overrides for variables for all 18 templates
       const templateVars = {
+        default: {
+          light: { bg: "#f8fafc", card: "#ffffff", text: "#0f172a", textSec: "#64748b", border: "rgba(0,0,0,0.08)", shadow: "0 4px 16px rgba(0,0,0,0.06)" },
+          dark: { bg: "#0a0a0f", card: "#11111a", text: "#ffffff", textSec: "#94a3b8", border: "rgba(255,255,255,0.06)", shadow: "0 4px 16px rgba(99,102,241,0.12)" }
+        },
+        glassmorphism: {
+          light: { bg: "rgba(240, 244, 248, 0.9)", card: "rgba(255, 255, 255, 0.4)", text: "#0f172a", textSec: "#475569", border: "rgba(0,0,0,0.06)", shadow: "0 8px 32px 0 rgba(0, 0, 0, 0.08)" },
+          dark: { bg: "rgba(10, 10, 15, 0.9)", card: "rgba(255, 255, 255, 0.03)", text: "#ffffff", textSec: "#94a3b8", border: "rgba(255,255,255,0.08)", shadow: "0 8px 32px 0 rgba(0,0,0,0.37)" }
+        },
+        warm_sunset: {
+          light: { bg: "#fffaf0", card: "#ffffff", text: "#451a03", textSec: "#9a3412", border: "#fcd34d", shadow: "0 4px 12px rgba(234,88,12,0.05)" },
+          dark: { bg: "#1a0f0a", card: "#2a1a10", text: "#fef3c7", textSec: "#f97316", border: "#d97706", shadow: "0 4px 12px rgba(234,88,12,0.15)" }
+        },
+        luxury_noir: {
+          light: { bg: "#fafafa", card: "#ffffff", text: "#09090b", textSec: "#71717a", border: "#e4e4e7", shadow: "0 4px 20px rgba(0,0,0,0.03)" },
+          dark: { bg: "#09090b", card: "#181818", text: "#fafafa", textSec: "#a1a1aa", border: "#cfa86b", shadow: "0 8px 30px rgba(207,168,107,0.05)" }
+        },
+        organic_nature: {
+          light: { bg: "#f0fbf0", card: "#ffffff", text: "#14532d", textSec: "#16a34a", border: "#bbf7d0", shadow: "0 4px 16px rgba(34,197,94,0.03)" },
+          dark: { bg: "#0a1c10", card: "#12331f", text: "#dcfce7", textSec: "#22c55e", border: "rgba(34,197,94,0.15)", shadow: "0 4px 16px rgba(34,197,94,0.06)" }
+        },
+        modern_minimal: {
+          light: { bg: "#ffffff", card: "#ffffff", text: "#09090b", textSec: "#71717a", border: "rgba(0,0,0,0.06)", shadow: "0 4px 20px rgba(0,0,0,0.02)" },
+          dark: { bg: "#000000", card: "#09090b", text: "#ffffff", textSec: "#a1a1aa", border: "#27272a", shadow: "0 4px 20px rgba(255,255,255,0.01)" }
+        },
+        ocean_breeze: {
+          light: { bg: "#f0f9ff", card: "#ffffff", text: "#0369a1", textSec: "#0284c7", border: "#bae6fd", shadow: "0 4px 12px rgba(2,132,199,0.03)" },
+          dark: { bg: "#021526", card: "#03346e", text: "#e2f1e7", textSec: "#6eacda", border: "#6eacda", shadow: "0 6px 18px rgba(2,132,199,0.06)" }
+        },
+        rustic_wood: {
+          light: { bg: "#fcf8f2", card: "#ffffff", text: "#713f12", textSec: "#a16207", border: "#d97706", shadow: "0 4px 8px rgba(113,63,18,0.04)" },
+          dark: { bg: "#1c130c", card: "#2d1e12", text: "#fef08a", textSec: "#eab308", border: "#854d0e", shadow: "0 6px 12px rgba(202,138,4,0.08)" }
+        },
+        elegant_bistro: {
+          light: { bg: "#fff5f7", card: "#ffffff", text: "#831843", textSec: "#db2777", border: "#fbcfe8", shadow: "0 4px 12px rgba(219,39,119,0.02)" },
+          dark: { bg: "#1b0914", card: "#2d1022", text: "#fdf2f8", textSec: "#db2777", border: "#9d174d", shadow: "0 8px 24px rgba(219,39,119,0.05)" }
+        },
+        coffee_house: {
+          light: { bg: "#faf7f5", card: "#ffffff", text: "#4a3728", textSec: "#8c6239", border: "#e7d7cc", shadow: "0 4px 12px rgba(140,98,57,0.04)" },
+          dark: { bg: "#18120f", card: "#271e1a", text: "#fcd34d", textSec: "#d97706", border: "#e7d7cc", shadow: "0 4px 16px rgba(140,98,57,0.12)" }
+        },
         flavoria: {
           light: { bg: "#faf9f6", card: "#ffffff", text: "#1c1917", textSec: "#57534e", border: "#cfa86b", shadow: "0 8px 30px rgba(207,168,107,0.04)" },
           dark: { bg: "#0f0f0f", card: "#181818", text: "#ffffff", textSec: "#a8a29e", border: "#cfa86b", shadow: "0 8px 30px rgba(207,168,107,0.04)" }
@@ -1380,10 +1564,6 @@
         street_tales: {
           light: { bg: "#f9f9f9", card: "#ffffff", text: "#121212", textSec: "#b8972e", border: "1px dashed #b8972e", shadow: "none" },
           dark: { bg: "#121212", card: "#1c1c1c", text: "#ffffff", textSec: "#fcc200", border: "1px dashed #fcc200", shadow: "none" }
-        },
-        default: {
-          light: { bg: "#f8fafc", card: "#ffffff", text: "#0f172a", textSec: "#64748b", border: "rgba(0,0,0,0.08)", shadow: "0 4px 16px rgba(0,0,0,0.06)" },
-          dark: { bg: "#0a0a0f", card: "#11111a", text: "#ffffff", textSec: "#94a3b8", border: "rgba(255,255,255,0.06)", shadow: "0 4px 16px rgba(99,102,241,0.12)" }
         }
       };
 
