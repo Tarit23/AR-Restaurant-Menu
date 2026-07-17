@@ -373,6 +373,7 @@
 
     // Columns config by status
     const statusColumns = [
+      { id: 'assistance_requests', label: '🛎️ Assistance Alerts', icon: '🔔' },
       { id: 'new', label: '🆕 New Order', icon: '🔔' },
       { id: 'accepted', label: '✅ Accepted', icon: '📝' },
       { id: 'preparing', label: '🍳 Preparing', icon: '🔥' },
@@ -424,14 +425,69 @@
 
     async function loadLiveData() {
       try {
-        activeSessions = await sessionsAPI.getActive(restaurantId);
-        activeRequests = await requestsAPI.getActive(restaurantId);
+        activeSessions = await sessionsAPI.getActive(restaurantId) || [];
+        activeRequests = await requestsAPI.getActive(restaurantId) || [];
+
+        // Build notifications list dynamically from unresolved assistance requests
+        const newNotifications = [];
+        activeRequests.forEach(req => {
+          const typeLabels = {
+            call_waiter: 'called Waiter',
+            need_water: 'requested Water',
+            need_tissue: 'requested Tissue',
+            need_spoon: 'requested Spoon',
+            need_bill: 'requested Bill',
+            need_extra_plates: 'requested Extra Plates',
+            need_cleaning: 'requested Table Cleaning'
+          };
+          const label = typeLabels[req.request_type] || 'requested assistance';
+          newNotifications.push({
+            id: req.id,
+            message: `🚨 Table ${req.table_number} ${label}`,
+            type: 'call_waiter',
+            tableNumber: req.table_number,
+            timestamp: new Date(req.created_at)
+          });
+        });
+
+        // Also add new unaccepted orders to notifications
+        activeSessions.forEach(session => {
+          const orders = session.orders || [];
+          const newOrders = orders.filter(o => o.status === 'new');
+          newOrders.forEach(o => {
+            newNotifications.push({
+              id: o.id,
+              message: `🍕 Table ${session.tables?.table_number || '?'} placed a new order!`,
+              type: 'new_order',
+              tableNumber: session.tables?.table_number,
+              timestamp: new Date(o.created_at)
+            });
+          });
+        });
+
+        // Sort by timestamp descending
+        newNotifications.sort((a, b) => b.timestamp - a.timestamp);
+        notifications = newNotifications;
         
+        // Reset display settings
+        document.getElementById('liveBoard').style.display = 'flex';
+
         // Sync alerts
         syncNotificationBadge();
         renderLiveBoard();
       } catch (err) {
         console.error('Failed to load Live operations data:', err.message);
+        const board = document.getElementById('liveBoard');
+        if (board) {
+          board.style.display = 'block';
+          board.innerHTML = `
+            <div style="background:rgba(239,68,68,0.1); border:1px solid var(--danger); padding:20px; border-radius:12px; text-align:center; color:#ff8080; margin:20px 0; width:100%; box-sizing:border-box;">
+              <h4 style="margin:0 0 8px 0; font-weight:bold;">⚠️ Real-Time Sync Error</h4>
+              <p style="font-size:0.85rem; margin-bottom:12px;">${err.message}</p>
+              <button class="btn btn-sm btn-secondary" onclick="location.reload()" style="background:var(--bg-card); border:1px solid var(--border); color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer;">🔄 Retry Connection</button>
+            </div>
+          `;
+        }
       }
     }
 
@@ -457,34 +513,52 @@
       } else if (activeRole === 'kitchen') {
         columnsToDisplay = statusColumns.filter(c => ['accepted', 'preparing', 'ready'].includes(c.id));
       } else if (activeRole === 'waiter') {
-        columnsToDisplay = statusColumns.filter(c => ['ready', 'dining'].includes(c.id));
+        columnsToDisplay = statusColumns.filter(c => ['assistance_requests', 'ready', 'dining'].includes(c.id));
       } else if (activeRole === 'cashier') {
         columnsToDisplay = statusColumns.filter(c => ['payment_pending'].includes(c.id));
       }
 
       columnsToDisplay.forEach(col => {
-        // Collect dining sessions with orders matching this column
-        const columnSessions = activeSessions.filter(session => {
-          // If column is 'dining', show active sessions with served orders
-          if (col.id === 'dining') {
-            return session.orders.some(o => o.status === 'served');
+        let cardsHtml = '';
+        let count = 0;
+
+        if (col.id === 'assistance_requests') {
+          // Render request cards
+          cardsHtml = activeRequests.map(req => renderRequestCard(req)).join('');
+          count = activeRequests.length;
+          if (count === 0) {
+            cardsHtml = `<div style="text-align:center; padding:32px 0; color:var(--text-muted); font-size:0.75rem;">No active requests.</div>`;
           }
-          if (col.id === 'payment_pending') {
-            return session.payment_status === 'unpaid' && session.orders.some(o => o.status === 'served') && session.running_total > 0;
+        } else {
+          // Collect dining sessions with orders matching this column
+          const columnSessions = activeSessions.filter(session => {
+            const orders = session.orders || [];
+            // If column is 'dining', show active sessions with served orders
+            if (col.id === 'dining') {
+              return orders.some(o => o.status === 'served');
+            }
+            if (col.id === 'payment_pending') {
+              return session.payment_status === 'unpaid' && orders.some(o => o.status === 'served') && session.running_total > 0;
+            }
+            // Otherwise, filter by order statuses
+            return orders.some(o => o.status === col.id);
+          });
+
+          cardsHtml = columnSessions.map(session => renderSessionCard(session, col.id)).join('');
+          count = columnSessions.length;
+          if (count === 0) {
+            cardsHtml = `<div style="text-align:center; padding:32px 0; color:var(--text-muted); font-size:0.75rem;">No active tables.</div>`;
           }
-          // Otherwise, filter by order statuses
-          return session.orders.some(o => o.status === col.id);
-        });
+        }
 
         const colHtml = `
           <div class="board-column" id="col-${col.id}">
             <div class="column-header">
               <span>${col.icon} ${col.label}</span>
-              <span class="column-badge">${columnSessions.length}</span>
+              <span class="column-badge">${count}</span>
             </div>
             <div class="column-cards-container">
-              ${columnSessions.map(session => renderSessionCard(session, col.id)).join('')}
-              ${columnSessions.length === 0 ? `<div style="text-align:center; padding:32px 0; color:var(--text-muted); font-size:0.75rem;">No active tables.</div>` : ''}
+              ${cardsHtml}
             </div>
           </div>
         `;
@@ -492,9 +566,43 @@
       });
     }
 
+    function renderRequestCard(req) {
+      const typeLabels = {
+        call_waiter: '🙋‍♂️ Call Waiter',
+        need_water: '💧 Need Water',
+        need_tissue: '🧻 Need Tissue',
+        need_spoon: '🥄 Need Spoon',
+        need_bill: '💵 Need Bill',
+        need_extra_plates: '🍽️ Extra Plates',
+        need_cleaning: '🧹 Table Cleaning'
+      };
+      const label = typeLabels[req.request_type] || 'Assistance Requested';
+      const elapsedMin = Math.floor((new Date() - new Date(req.created_at)) / 60000);
+      const delayClass = elapsedMin > 5 ? 'delayed' : '';
+      
+      return `
+        <div class="session-card request-card" style="border-left: 4px solid var(--warning); padding:16px; margin-bottom:12px; background:var(--bg-elevated); border-radius:12px; border:1px solid var(--border);">
+          <div class="card-meta" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; font-size:0.75rem;">
+            <span class="card-table-badge" style="background:var(--warning); color:#000; font-weight:bold; padding:2px 6px; border-radius:4px;">Table ${req.table_number}</span>
+            <span class="card-timer ${delayClass}" style="color:var(--text-muted);">${elapsedMin}m ago</span>
+          </div>
+          
+          <div style="font-size:0.88rem; font-weight:700; color:#fff; margin:10px 0;">
+            ${label}
+          </div>
+          
+          <div class="card-action-area" style="margin-top:12px;">
+            <button class="btn btn-warning btn-sm" style="width:100%; font-weight:700; font-size:0.75rem; padding:6px 12px; background:var(--warning); border:none; border-radius:6px; cursor:pointer;" onclick="resolveRequest('${req.id}')">✅ Mark Resolved</button>
+          </div>
+        </div>
+      `;
+    }
+
     function renderSessionCard(session, currentColumnStatus) {
+      const orders = session.orders || [];
+      
       // Calculate elapsed preparation delay timers
-      const oldestOrder = session.orders.reduce((oldest, o) => {
+      const oldestOrder = orders.reduce((oldest, o) => {
         return (!oldest || new Date(o.created_at) < new Date(oldest.created_at)) ? o : oldest;
       }, null);
       
@@ -502,9 +610,9 @@
       const delayClass = elapsedMin > 15 ? 'delayed' : '';
       
       // Filter orders relevant to current status column
-      const colOrders = session.orders.filter(o => o.status === currentColumnStatus || (currentColumnStatus === 'dining' && o.status === 'served'));
+      const colOrders = orders.filter(o => o.status === currentColumnStatus || (currentColumnStatus === 'dining' && o.status === 'served'));
       const itemsListHtml = colOrders.map(order => 
-        order.order_items.map(item => `
+        (order.order_items || []).map(item => `
           <div class="card-item">
             <span>${item.quantity}x ${item.name}</span>
             <span>₹${item.price}</span>
@@ -567,7 +675,7 @@
         if (!session) return;
 
         // Advance active orders status
-        const sessionOrders = session.orders.filter(o => o.status === fromStatus || (fromStatus === 'dining' && o.status === 'served'));
+        const sessionOrders = (session.orders || []).filter(o => o.status === fromStatus || (fromStatus === 'dining' && o.status === 'served'));
         for (const order of sessionOrders) {
           const { error } = await supabase
             .from('orders')
@@ -590,6 +698,16 @@
         loadLiveData();
       } catch (err) {
         showToast('Error progressing status: ' + err.message, 'error');
+      }
+    };
+
+    window.resolveRequest = async (requestId) => {
+      try {
+        await requestsAPI.resolve(requestId);
+        showToast('Request resolved!', 'success');
+        loadLiveData();
+      } catch (err) {
+        showToast('Error resolving request: ' + err.message, 'error');
       }
     };
 
@@ -630,7 +748,7 @@
         
         <div style="border-top:1px solid var(--border); padding-top:12px;">
           <h4 style="margin-bottom:8px;">Order Details</h4>
-          ${selectedSession.orders.map(o => o.order_items.map(item => `
+          ${(selectedSession.orders || []).map(o => (o.order_items || []).map(item => `
             <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
               <span>${item.quantity}x ${item.name}</span>
               <span>₹${item.price * item.quantity}</span>
