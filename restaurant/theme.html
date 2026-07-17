@@ -443,88 +443,7 @@
       border: 1px solid #00ffcc !important;
       color: #00ffcc !important;
     }
-  
-    /* ─── PREMIUM DECORATIVE BACKDROPS & STYLES ─── */
-    .bg-deco-layer {
-      pointer-events: none;
-      user-select: none;
-    }
-    
-    /* Floating animations */
-    @keyframes floatMotion {
-      0% { transform: translateY(0) rotate(0deg); }
-      100% { transform: translateY(-15px) rotate(10deg); }
-    }
-    @keyframes glowCycle {
-      0% { box-shadow: 0 0 10px rgba(207,168,107,0.1); }
-      100% { box-shadow: 0 0 25px rgba(207,168,107,0.25); }
-    }
-    @keyframes smokeDrift {
-      0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0.08; }
-      50% { transform: translate(50px, -40px) scale(1.15) rotate(180deg); opacity: 0.15; }
-      100% { transform: translate(100px, -80px) scale(1.3) rotate(360deg); opacity: 0.08; }
-    }
-    @keyframes sparkleGlow {
-      0% { transform: scale(0.9); opacity: 0.3; }
-      100% { transform: scale(1.1); opacity: 0.8; }
-    }
-    
-    /* Flavoria custom background & layouts */
-    .template-flavoria {
-      background-image: radial-gradient(circle at 10% 20%, rgba(207,168,107,0.03) 0%, transparent 40%),
-                        radial-gradient(circle at 90% 80%, rgba(207,168,107,0.03) 0%, transparent 40%) !important;
-    }
-    .template-flavoria .dish-card:hover {
-      animation: glowCycle 2s infinite alternate;
-      border-color: #cfa86b !important;
-    }
-
-    /* Green bite organic leaf floaters */
-    .template-green-bite {
-      background-image: radial-gradient(circle at 0% 0%, rgba(45,106,79,0.04) 0%, transparent 50%),
-                        radial-gradient(circle at 100% 100%, rgba(45,106,79,0.04) 0%, transparent 50%) !important;
-    }
-
-    /* Smokehouse dark textured panel overlays */
-    .template-smokehouse {
-      background-image: radial-gradient(rgba(230,57,70,0.02) 2px, transparent 0),
-                        radial-gradient(rgba(230,57,70,0.02) 2px, transparent 0) !important;
-      background-size: 30px 30px !important;
-      background-position: 0 0, 15px 15px !important;
-    }
-
-    /* Spice Route cultural mandalas */
-    .template-spice-route {
-      background-image: radial-gradient(circle at 50% 50%, rgba(114,47,55,0.02) 0%, transparent 80%) !important;
-      border: 8px double rgba(114,47,55,0.1);
-      box-sizing: border-box;
-    }
-
-    /* Yum Yum retro fast-food diner dots */
-    .template-yum-yum {
-      background-image: radial-gradient(rgba(255,195,0,0.15) 1.5px, transparent 0) !important;
-      background-size: 24px 24px !important;
-    }
-
-    /* Sweet Affair pastel clouds */
-    .template-sweet-affair {
-      background-image: radial-gradient(circle at 30% 30%, rgba(208,59,104,0.03) 0%, transparent 60%),
-                        radial-gradient(circle at 70% 70%, rgba(208,59,104,0.03) 0%, transparent 60%) !important;
-    }
-
-    /* Aroma dining emerald marble gold lines */
-    .template-aroma {
-      background-image: linear-gradient(135deg, transparent 45%, rgba(212,175,55,0.02) 45%, rgba(212,175,55,0.02) 46%, transparent 46%),
-                        linear-gradient(225deg, transparent 45%, rgba(212,175,55,0.02) 45%, rgba(212,175,55,0.02) 46%, transparent 46%) !important;
-      background-size: 60px 60px !important;
-    }
-
-    /* Street Tales chalkboard chalk sketches */
-    .template-street-tales {
-      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0) !important;
-      background-size: 16px 16px !important;
-    }
-</style>
+  </style>
 </head>
 <body class="dashboard-layout">
   <aside class="sidebar" id="sidebar">
@@ -861,7 +780,7 @@
     import { themeAPI } from "/js/loyalty-api.js?v=3";
     import { showToast } from "/js/utils.js?v=3";
 
-                const THEME_PRESETS = {
+        const THEME_PRESETS = {
       default: {
         name: "🍕 BiteXR Default",
         bestFor: "Standard digital menu experience",
@@ -878,313 +797,198 @@
         buttonStyle: "rounded",
         shadow: "0 4px 16px rgba(99,102,241,0.12)",
         border: "1px solid rgba(255,255,255,0.06)",
+        animationStyle: "fast-fade",
+        glassEffect: "none",
         template: "default"
-      },
-      glassmorphism: {
-        name: "✨ Glassmorphism",
-        bestFor: "Premium Cafes & Cocktail Bars",
-        description: "Frosted glass UI overlays, floating buttons, and glowing accents.",
-        primaryColor: "#6366f1",
-        secondaryColor: "rgba(99,102,241,0.15)",
-        backgroundColor: "#0a0a0f",
-        cardColor: "rgba(255,255,255,0.03)",
-        textColor: "#ffffff",
-        accentColor: "#a855f7",
-        fontHeading: "Plus Jakarta Sans",
-        fontBody: "Plus Jakarta Sans",
-        borderRadius: "16px",
-        buttonStyle: "pill",
-        shadow: "0 8px 32px 0 rgba(0, 0, 0, 0.37)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        template: "glassmorphism"
-      },
-      warm_sunset: {
-        name: "🌅 Warm Sunset",
-        bestFor: "Family Cafes & Bakeries",
-        description: "Warm sunset orange tones, beige backgrounds, and cozy card feels.",
-        primaryColor: "#ea580c",
-        secondaryColor: "#fef3c7",
-        backgroundColor: "#1a0f0a",
-        cardColor: "#2a1a10",
-        textColor: "#fef3c7",
-        accentColor: "#d97706",
-        fontHeading: "Dosis",
-        fontBody: "Dosis",
-        borderRadius: "14px",
-        buttonStyle: "rounded",
-        shadow: "0 4px 12px rgba(234,88,12,0.15)",
-        border: "1px solid #d97706",
-        template: "warm_sunset"
-      },
-      luxury_noir: {
-        name: "💎 Luxury Noir",
-        bestFor: "Fine Dining & Steakhouse",
-        description: "Black, gold highlights, and premium serif typography layouts.",
-        primaryColor: "#cfa86b",
-        secondaryColor: "#18181b",
-        backgroundColor: "#09090b",
-        cardColor: "#181818",
-        textColor: "#fafafa",
-        accentColor: "#fafafa",
-        fontHeading: "Cinzel",
-        fontBody: "Cormorant Garamond",
-        borderRadius: "2px",
-        buttonStyle: "sharp",
-        shadow: "0 8px 30px rgba(207,168,107,0.05)",
-        border: "1px solid #cfa86b",
-        template: "luxury_noir"
-      },
-      organic_nature: {
-        name: "🌿 Organic Nature",
-        bestFor: "Healthy Food & Salad Bars",
-        description: "Fresh forest green color schemes and organic leaf graphics.",
-        primaryColor: "#22c55e",
-        secondaryColor: "#12331f",
-        backgroundColor: "#0a1c10",
-        cardColor: "#12331f",
-        textColor: "#dcfce7",
-        accentColor: "#15803d",
-        fontHeading: "Outfit",
-        fontBody: "Manrope",
-        borderRadius: "18px",
-        buttonStyle: "rounded",
-        shadow: "0 4px 16px rgba(34,197,94,0.06)",
-        border: "1px solid rgba(34,197,94,0.15)",
-        template: "organic_nature"
       },
       modern_minimal: {
         name: "⚪ Modern Minimal",
-        bestFor: "Apple-style Minimalist Menus",
-        description: "Clean spacing, large bold headings, and light neutral colors.",
-        primaryColor: "#000000",
-        secondaryColor: "#fafafa",
+        bestFor: "Modern Cafes & Fast Food",
+        description: "Apple-inspired white layouts, large typography, soft shadow cards.",
+        primaryColor: "#0f172a",
+        secondaryColor: "#f1f5f9",
         backgroundColor: "#ffffff",
         cardColor: "#ffffff",
-        textColor: "#09090b",
-        accentColor: "#18181b",
+        textColor: "#0f172a",
+        mutedColor: "#64748b",
+        accentColor: "#3b82f6",
         fontHeading: "Inter",
         fontBody: "Inter",
         borderRadius: "12px",
         buttonStyle: "rounded",
-        shadow: "0 4px 20px rgba(0,0,0,0.02)",
-        border: "1px solid rgba(0,0,0,0.06)",
+        shadow: "0 4px 20px rgba(0,0,0,0.03)",
+        border: "1px solid rgba(15,23,42,0.06)",
+        animationStyle: "fast-fade",
+        glassEffect: "none",
         template: "modern_minimal"
       },
-      ocean_breeze: {
-        name: "🌊 Ocean Breeze",
-        bestFor: "Seafood & Beachfront Restaurants",
-        description: "Refreshing aqua marine blue shades and clean white highlights.",
-        primaryColor: "#0284c7",
-        secondaryColor: "#03346e",
-        backgroundColor: "#021526",
-        cardColor: "#03346e",
-        textColor: "#e2f1e7",
-        accentColor: "#6eacda",
-        fontHeading: "Quicksand",
-        fontBody: "Quicksand",
-        borderRadius: "16px",
+      glass_premium: {
+        name: "✨ Glass Premium",
+        bestFor: "Luxury Cafes & Cocktail Bars",
+        description: "Frosted glass UI overlays, floating buttons, and glowing accents.",
+        primaryColor: "#6366f1",
+        secondaryColor: "rgba(99,102,241,0.15)",
+        backgroundColor: "#09090f",
+        cardColor: "rgba(255,255,255,0.03)",
+        textColor: "#f1f5f9",
+        mutedColor: "#94a3b8",
+        accentColor: "#06b6d4",
+        fontHeading: "Poppins",
+        fontBody: "Poppins",
+        borderRadius: "24px",
         buttonStyle: "pill",
-        shadow: "0 6px 18px rgba(2,132,199,0.06)",
-        border: "1px solid #6eacda",
-        template: "ocean_breeze"
+        shadow: "0 8px 32px rgba(0,0,0,0.3)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        animationStyle: "glass-hover",
+        glassEffect: "blur(20px)",
+        template: "glass_premium"
       },
-      rustic_wood: {
-        name: "🪵 Rustic Wood",
-        bestFor: "Country Pubs & Local Grills",
-        description: "Timber wood textures, yellow warm text, and rugged designs.",
-        primaryColor: "#ca8a04",
-        secondaryColor: "#2d1e12",
-        backgroundColor: "#1c130c",
-        cardColor: "#2d1e12",
-        textColor: "#fef08a",
-        accentColor: "#854d0e",
-        fontHeading: "Playfair Display",
-        fontBody: "Volkhov",
-        borderRadius: "8px",
-        buttonStyle: "sharp",
-        shadow: "0 6px 12px rgba(202,138,4,0.08)",
-        border: "1px solid #854d0e",
-        template: "rustic_wood"
-      },
-      elegant_bistro: {
-        name: "🍷 Elegant Bistro",
-        bestFor: "European Bistros & Wine Parlors",
-        description: "Wine red base color schemes, fine gold lines, and serif fonts.",
-        primaryColor: "#db2777",
-        secondaryColor: "#2d1022",
-        backgroundColor: "#1b0914",
-        cardColor: "#2d1022",
-        textColor: "#fdf2f8",
-        accentColor: "#9d174d",
-        fontHeading: "Cormorant Garamond",
-        fontBody: "Cormorant Garamond",
-        borderRadius: "6px",
-        buttonStyle: "rounded",
-        shadow: "0 8px 24px rgba(219,39,119,0.05)",
-        border: "1px solid #9d174d",
-        template: "elegant_bistro"
-      },
-      coffee_house: {
-        name: "☕ Coffee House",
-        bestFor: "Cafes, Bakeries & Coffee Bars",
-        description: "Warm coffee browns, warm creams, and cozy structures.",
-        primaryColor: "#8c6239",
-        secondaryColor: "#271e1a",
-        backgroundColor: "#18120f",
-        cardColor: "#271e1a",
-        textColor: "#fcd34d",
-        accentColor: "#d97706",
-        fontHeading: "Dosis",
-        fontBody: "Dosis",
-        borderRadius: "14px",
-        buttonStyle: "rounded",
-        shadow: "0 4px 16px rgba(140,98,57,0.12)",
-        border: "1px solid #e7d7cc",
-        template: "coffee_house"
-      },
-      flavoria: {
-        name: "🔥 Flavoria",
-        bestFor: "Luxury Grills & Steakhouses",
-        description: "Elegant charcoal and rich gold colors. Perfect for fine dining and grills.",
-        primaryColor: "#cfa86b",
-        secondaryColor: "#1e1e1e",
-        backgroundColor: "#0f0f0f",
-        cardColor: "#181818",
+      luxury_noir: {
+        name: "💎 Luxury Noir",
+        bestFor: "Fine Dining & Steakhouses",
+        description: "Premium gold border details and deep black. High-end dining elegance.",
+        primaryColor: "#d4af37",
+        secondaryColor: "#1a1a1a",
+        backgroundColor: "#0a0a0a",
+        cardColor: "#121212",
         textColor: "#ffffff",
-        accentColor: "#cfa86b",
+        mutedColor: "#a08540",
+        accentColor: "#d4af37",
         fontHeading: "Cormorant Garamond",
         fontBody: "Cormorant Garamond",
-        borderRadius: "4px",
+        borderRadius: "0px",
         buttonStyle: "sharp",
-        shadow: "0 8px 30px rgba(207,168,107,0.04)",
-        border: "1px solid #cfa86b",
-        template: "flavoria"
+        shadow: "0 8px 30px rgba(212,175,55,0.04)",
+        border: "1px solid #d4af37",
+        animationStyle: "slow-transition",
+        glassEffect: "none",
+        template: "luxury_noir"
       },
-      green_bite: {
-        name: "🥗 Green Bite",
-        bestFor: "Healthy Cafes & Vegan Kitchens",
-        description: "Organic leaf greens, warm creams, and fresh layout structures.",
-        primaryColor: "#2d6a4f",
+      organic_nature: {
+        name: "🌿 Organic Nature",
+        bestFor: "Vegan Cafes & Healthy Restaurants",
+        description: "Mint leaf greens, creams, and organic shapes with natural gradients.",
+        primaryColor: "#15803d",
         secondaryColor: "#dcfce7",
-        backgroundColor: "#f4f9f4",
+        backgroundColor: "#f0fdfa",
         cardColor: "#ffffff",
-        textColor: "#1b4332",
-        accentColor: "#40916c",
+        textColor: "#14532d",
+        mutedColor: "#166534",
+        accentColor: "#22c55e",
         fontHeading: "Manrope",
         fontBody: "Manrope",
         borderRadius: "20px",
         buttonStyle: "rounded",
-        shadow: "0 4px 16px rgba(45,106,79,0.04)",
-        border: "1px solid rgba(45,106,79,0.06)",
-        template: "green_bite"
+        shadow: "0 4px 16px rgba(21,128,61,0.04)",
+        border: "1px solid rgba(21,128,61,0.06)",
+        animationStyle: "natural-floating",
+        glassEffect: "none",
+        template: "organic_nature"
       },
-      smokehouse: {
-        name: "🍖 Smokehouse BBQ",
-        bestFor: "BBQ & Bold Grills",
-        description: "Vibrant crimson red details on dark textured backgrounds.",
-        primaryColor: "#e63946",
-        secondaryColor: "#2b2b2b",
-        backgroundColor: "#121212",
-        cardColor: "#1d1d1d",
-        textColor: "#ffffff",
-        accentColor: "#e63946",
-        fontHeading: "Plus Jakarta Sans",
-        fontBody: "Plus Jakarta Sans",
-        borderRadius: "8px",
-        buttonStyle: "rounded",
-        shadow: "0 6px 18px rgba(230,57,70,0.05)",
-        border: "1px solid rgba(255,255,255,0.05)",
-        template: "smokehouse"
-      },
-      spice_route: {
-        name: "🍛 Spice Route",
-        bestFor: "Indian & Asian Cuisines",
-        description: "Warm beige background, deep burgundy accents, and decorative margins.",
-        primaryColor: "#722f37",
-        secondaryColor: "#faf0e6",
-        backgroundColor: "#fbf6f0",
+      tokyo_zen: {
+        name: "🏮 Tokyo Zen",
+        bestFor: "Japanese, Ramen & Asian Dining",
+        description: "Editorial layouts, paper texture, minimal headings with red highlights.",
+        primaryColor: "#dc2626",
+        secondaryColor: "#fee2e2",
+        backgroundColor: "#fbfbfa",
         cardColor: "#ffffff",
-        textColor: "#3c151a",
-        accentColor: "#b8972e",
+        textColor: "#1c1917",
+        mutedColor: "#78716c",
+        accentColor: "#b91c1c",
         fontHeading: "Playfair Display",
         fontBody: "Inter",
-        borderRadius: "14px",
-        buttonStyle: "rounded",
-        shadow: "0 6px 16px rgba(114,47,55,0.04)",
-        border: "1px solid #722f37",
-        template: "spice_route"
-      },
-      yum_yum: {
-        name: "🍔 Yum Yum!",
-        bestFor: "Fast Food & Casual Diners",
-        description: "Vibrant yellow background, energetic orange buttons, and thick layout borders.",
-        primaryColor: "#ffc300",
-        secondaryColor: "#fff8e1",
-        backgroundColor: "#fffdf0",
-        cardColor: "#ffffff",
-        textColor: "#2b2300",
-        accentColor: "#e65c00",
-        fontHeading: "Dosis",
-        fontBody: "Dosis",
-        borderRadius: "18px",
-        buttonStyle: "pill",
-        shadow: "0 4px 12px rgba(255,195,0,0.1)",
-        border: "2px solid #ffc300",
-        template: "yum_yum"
-      },
-      sweet_affair: {
-        name: "🍰 Sweet Affair",
-        bestFor: "Bakeries & Dessert Parlors",
-        description: "Cozy pastel pink details, raspberry red text, and sweet font options.",
-        primaryColor: "#d03b68",
-        secondaryColor: "#fff0f5",
-        backgroundColor: "#fff8fa",
-        cardColor: "#ffffff",
-        textColor: "#4a0e17",
-        accentColor: "#d03b68",
-        fontHeading: "Playfair Display",
-        fontBody: "Inter",
-        borderRadius: "16px",
-        buttonStyle: "rounded",
-        shadow: "0 6px 16px rgba(208,59,104,0.04)",
-        border: "1px solid rgba(208,59,104,0.15)",
-        template: "sweet_affair"
-      },
-      aroma: {
-        name: "🍷 Aroma Dining",
-        bestFor: "Fine Dining & Hotel Lounges",
-        description: "Dark emerald surfaces, fine gold line details, and serif text headings.",
-        primaryColor: "#d4af37",
-        secondaryColor: "#0a1f1c",
-        backgroundColor: "#071614",
-        cardColor: "#0c221f",
-        textColor: "#ffffff",
-        accentColor: "#d4af37",
-        fontHeading: "Cormorant Garamond",
-        fontBody: "Cormorant Garamond",
         borderRadius: "2px",
         buttonStyle: "sharp",
-        shadow: "0 8px 32px rgba(212,175,55,0.03)",
-        border: "1px solid #d4af37",
-        template: "aroma"
+        shadow: "0 2px 8px rgba(0,0,0,0.02)",
+        border: "1px solid #e7e5e4",
+        animationStyle: "slow-transition",
+        glassEffect: "none",
+        template: "tokyo_zen"
       },
-      street_tales: {
-        name: "🍟 Street Tales",
-        bestFor: "Street Food & Food Trucks",
-        description: "Chalkboard black surfaces and bright warning yellow chalkboard highlights.",
-        primaryColor: "#fcc200",
-        secondaryColor: "#1e1e1e",
-        backgroundColor: "#121212",
-        cardColor: "#1c1c1c",
-        textColor: "#ffffff",
-        accentColor: "#fcc200",
-        fontHeading: "Plus Jakarta Sans",
-        fontBody: "Inter",
-        borderRadius: "0px",
+      ocean_breeze: {
+        name: "🌊 Ocean Breeze",
+        bestFor: "Seafood Restaurants & Beach Bars",
+        description: "Seaside navy text, waves of blue/aqua gradients, and fresh borders.",
+        primaryColor: "#0284c7",
+        secondaryColor: "#e0f2fe",
+        backgroundColor: "#f0f9ff",
+        cardColor: "#ffffff",
+        textColor: "#0c4a6e",
+        mutedColor: "#0284c7",
+        accentColor: "#0ea5e9",
+        fontHeading: "DM Sans",
+        fontBody: "DM Sans",
+        borderRadius: "16px",
+        buttonStyle: "rounded",
+        shadow: "0 6px 18px rgba(14,165,233,0.05)",
+        border: "1px solid rgba(14,165,233,0.06)",
+        animationStyle: "soft-lift",
+        glassEffect: "none",
+        template: "default"
+      },
+      rustic_wood: {
+        name: "🪵 Rustic Wood",
+        bestFor: "BBQ & Local Grills",
+        description: "Log cabin brown wood textures and warm ambient accents.",
+        primaryColor: "#854d0e",
+        secondaryColor: "#fef3c7",
+        backgroundColor: "#fcf8f2",
+        cardColor: "#ffffff",
+        textColor: "#3b2314",
+        mutedColor: "#7c4a27",
+        accentColor: "#854d0e",
+        fontHeading: "Nunito",
+        fontBody: "Nunito",
+        borderRadius: "10px",
+        buttonStyle: "rounded",
+        shadow: "0 4px 14px rgba(133,77,14,0.04)",
+        border: "1px solid rgba(133,77,14,0.08)",
+        animationStyle: "gentle-fade",
+        glassEffect: "none",
+        template: "default"
+      },
+      elegant_bistro: {
+        name: "🍷 Elegant Bistro",
+        bestFor: "European Bistros & Wine Cellars",
+        description: "Wine cellars burgundy, serif typography, and premium card transitions.",
+        primaryColor: "#9d174d",
+        secondaryColor: "#fce7f3",
+        backgroundColor: "#fdfafe",
+        cardColor: "#ffffff",
+        textColor: "#4c0519",
+        mutedColor: "#831843",
+        accentColor: "#9d174d",
+        fontHeading: "Playfair Display",
+        fontBody: "Playfair Display",
+        borderRadius: "4px",
         buttonStyle: "sharp",
-        shadow: "none",
-        border: "1px dashed #fcc200",
-        template: "street_tales"
+        shadow: "0 6px 20px rgba(157,23,77,0.03)",
+        border: "1px solid rgba(157,23,77,0.08)",
+        animationStyle: "slow-transition",
+        glassEffect: "none",
+        template: "default"
+      },
+      coffee_house: {
+        name: "☕ Coffee House",
+        bestFor: "Cafes, Bakeries & Coffee Shops",
+        description: "Espresso chocolate brown crema and cozy cream cards.",
+        primaryColor: "#7c421f",
+        secondaryColor: "#f5ebe0",
+        backgroundColor: "#faf6f0",
+        cardColor: "#ffffff",
+        textColor: "#27130a",
+        mutedColor: "#7c421f",
+        accentColor: "#9a3412",
+        fontHeading: "DM Sans",
+        fontBody: "DM Sans",
+        borderRadius: "14px",
+        buttonStyle: "rounded",
+        shadow: "0 6px 16px rgba(154,52,18,0.05)",
+        border: "1px solid rgba(154,52,18,0.08)",
+        animationStyle: "soft-lift",
+        glassEffect: "none",
+        template: "coffee_house"
       }
     };
 
@@ -1539,7 +1343,7 @@
         activePreset = THEME_PRESETS[themeSettings.theme];
       } else {
         activePreset = {
-          ...THEME_PRESETS.default,
+          ...THEME_PRESETS.modern_minimal,
           primaryColor: themeSettings.primaryColor,
           secondaryColor: themeSettings.secondaryColor || '#f1f5f9',
           backgroundColor: themeSettings.backgroundColor,
@@ -1562,103 +1366,6 @@
       else if (activePreset.buttonStyle === "sharp") btnRadius = "0px";
       else if (activePreset.borderRadius) btnRadius = activePreset.borderRadius;
 
-      const simContent = document.getElementById('simContent');
-      let isLight = false;
-      if (simContent) {
-        isLight = simContent.classList.contains('light-theme');
-        // Sync active template class on simulator
-        simContent.className = simContent.className.replace(/\btemplate-\S+/g, '').trim();
-        const activeTemp = activePreset.template || 'default';
-        simContent.classList.add('template-' + activeTemp.replace(/_/g, '-'));
-      }
-
-      // Map light/dark overrides for variables for all 18 templates
-      const templateVars = {
-        default: {
-          light: { bg: "#f8fafc", card: "#ffffff", text: "#0f172a", textSec: "#64748b", border: "rgba(0,0,0,0.08)", shadow: "0 4px 16px rgba(0,0,0,0.06)" },
-          dark: { bg: "#0a0a0f", card: "#11111a", text: "#ffffff", textSec: "#94a3b8", border: "rgba(255,255,255,0.06)", shadow: "0 4px 16px rgba(99,102,241,0.12)" }
-        },
-        glassmorphism: {
-          light: { bg: "rgba(240, 244, 248, 0.9)", card: "rgba(255, 255, 255, 0.4)", text: "#0f172a", textSec: "#475569", border: "rgba(0,0,0,0.06)", shadow: "0 8px 32px 0 rgba(0, 0, 0, 0.08)" },
-          dark: { bg: "rgba(10, 10, 15, 0.9)", card: "rgba(255, 255, 255, 0.03)", text: "#ffffff", textSec: "#94a3b8", border: "rgba(255,255,255,0.08)", shadow: "0 8px 32px 0 rgba(0,0,0,0.37)" }
-        },
-        warm_sunset: {
-          light: { bg: "#fffaf0", card: "#ffffff", text: "#451a03", textSec: "#9a3412", border: "#fcd34d", shadow: "0 4px 12px rgba(234,88,12,0.05)" },
-          dark: { bg: "#1a0f0a", card: "#2a1a10", text: "#fef3c7", textSec: "#f97316", border: "#d97706", shadow: "0 4px 12px rgba(234,88,12,0.15)" }
-        },
-        luxury_noir: {
-          light: { bg: "#fafafa", card: "#ffffff", text: "#09090b", textSec: "#71717a", border: "#e4e4e7", shadow: "0 4px 20px rgba(0,0,0,0.03)" },
-          dark: { bg: "#09090b", card: "#181818", text: "#fafafa", textSec: "#a1a1aa", border: "#cfa86b", shadow: "0 8px 30px rgba(207,168,107,0.05)" }
-        },
-        organic_nature: {
-          light: { bg: "#f0fbf0", card: "#ffffff", text: "#14532d", textSec: "#16a34a", border: "#bbf7d0", shadow: "0 4px 16px rgba(34,197,94,0.03)" },
-          dark: { bg: "#0a1c10", card: "#12331f", text: "#dcfce7", textSec: "#22c55e", border: "rgba(34,197,94,0.15)", shadow: "0 4px 16px rgba(34,197,94,0.06)" }
-        },
-        modern_minimal: {
-          light: { bg: "#ffffff", card: "#ffffff", text: "#09090b", textSec: "#71717a", border: "rgba(0,0,0,0.06)", shadow: "0 4px 20px rgba(0,0,0,0.02)" },
-          dark: { bg: "#000000", card: "#09090b", text: "#ffffff", textSec: "#a1a1aa", border: "#27272a", shadow: "0 4px 20px rgba(255,255,255,0.01)" }
-        },
-        ocean_breeze: {
-          light: { bg: "#f0f9ff", card: "#ffffff", text: "#0369a1", textSec: "#0284c7", border: "#bae6fd", shadow: "0 4px 12px rgba(2,132,199,0.03)" },
-          dark: { bg: "#021526", card: "#03346e", text: "#e2f1e7", textSec: "#6eacda", border: "#6eacda", shadow: "0 6px 18px rgba(2,132,199,0.06)" }
-        },
-        rustic_wood: {
-          light: { bg: "#fcf8f2", card: "#ffffff", text: "#713f12", textSec: "#a16207", border: "#d97706", shadow: "0 4px 8px rgba(113,63,18,0.04)" },
-          dark: { bg: "#1c130c", card: "#2d1e12", text: "#fef08a", textSec: "#eab308", border: "#854d0e", shadow: "0 6px 12px rgba(202,138,4,0.08)" }
-        },
-        elegant_bistro: {
-          light: { bg: "#fff5f7", card: "#ffffff", text: "#831843", textSec: "#db2777", border: "#fbcfe8", shadow: "0 4px 12px rgba(219,39,119,0.02)" },
-          dark: { bg: "#1b0914", card: "#2d1022", text: "#fdf2f8", textSec: "#db2777", border: "#9d174d", shadow: "0 8px 24px rgba(219,39,119,0.05)" }
-        },
-        coffee_house: {
-          light: { bg: "#faf7f5", card: "#ffffff", text: "#4a3728", textSec: "#8c6239", border: "#e7d7cc", shadow: "0 4px 12px rgba(140,98,57,0.04)" },
-          dark: { bg: "#18120f", card: "#271e1a", text: "#fcd34d", textSec: "#d97706", border: "#e7d7cc", shadow: "0 4px 16px rgba(140,98,57,0.12)" }
-        },
-        flavoria: {
-          light: { bg: "#faf9f6", card: "#ffffff", text: "#1c1917", textSec: "#57534e", border: "#cfa86b", shadow: "0 8px 30px rgba(207,168,107,0.04)" },
-          dark: { bg: "#0f0f0f", card: "#181818", text: "#ffffff", textSec: "#a8a29e", border: "#cfa86b", shadow: "0 8px 30px rgba(207,168,107,0.04)" }
-        },
-        green_bite: {
-          light: { bg: "#f4f9f4", card: "#ffffff", text: "#1b4332", textSec: "#2d6a4f", border: "rgba(45,106,79,0.08)", shadow: "0 4px 16px rgba(45,106,79,0.04)" },
-          dark: { bg: "#0b1a13", card: "#112a1e", text: "#dcfce7", textSec: "#52b788", border: "rgba(255,255,255,0.06)", shadow: "0 4px 16px rgba(45,106,79,0.04)" }
-        },
-        smokehouse: {
-          light: { bg: "#f9f9f9", card: "#ffffff", text: "#111111", textSec: "#e63946", border: "rgba(230,57,70,0.15)", shadow: "0 6px 18px rgba(230,57,70,0.05)" },
-          dark: { bg: "#121212", card: "#1d1d1d", text: "#ffffff", textSec: "#e63946", border: "rgba(255,255,255,0.05)", shadow: "0 6px 18px rgba(230,57,70,0.05)" }
-        },
-        spice_route: {
-          light: { bg: "#fbf6f0", card: "#ffffff", text: "#3c151a", textSec: "#722f37", border: "#722f37", shadow: "0 6px 16px rgba(114,47,55,0.04)" },
-          dark: { bg: "#1a0e10", card: "#2c1a1d", text: "#faf0e6", textSec: "#cba358", border: "#cba358", shadow: "0 6px 16px rgba(114,47,55,0.04)" }
-        },
-        yum_yum: {
-          light: { bg: "#fffdf0", card: "#ffffff", text: "#2b2300", textSec: "#e65c00", border: "#ffc300", shadow: "0 4px 12px rgba(255,195,0,0.1)" },
-          dark: { bg: "#2b2300", card: "#3d3200", text: "#fffdf0", textSec: "#ffc300", border: "#ffc300", shadow: "0 4px 12px rgba(255,195,0,0.1)" }
-        },
-        sweet_affair: {
-          light: { bg: "#fff8fa", card: "#ffffff", text: "#4a0e17", textSec: "#d03b68", border: "rgba(208,59,104,0.15)", shadow: "0 6px 16px rgba(208,59,104,0.04)" },
-          dark: { bg: "#2d050c", card: "#45101a", text: "#ffeef2", textSec: "#ffa6c9", border: "rgba(255,255,255,0.08)", shadow: "0 6px 16px rgba(208,59,104,0.04)" }
-        },
-        aroma: {
-          light: { bg: "#fafaf7", card: "#ffffff", text: "#0a1f1c", textSec: "#6e5d2b", border: "#d4af37", shadow: "0 8px 32px rgba(212,175,55,0.03)" },
-          dark: { bg: "#071614", card: "#0c221f", text: "#ffffff", textSec: "#d4af37", border: "#d4af37", shadow: "0 8px 32px rgba(212,175,55,0.03)" }
-        },
-        street_tales: {
-          light: { bg: "#f9f9f9", card: "#ffffff", text: "#121212", textSec: "#b8972e", border: "1px dashed #b8972e", shadow: "none" },
-          dark: { bg: "#121212", card: "#1c1c1c", text: "#ffffff", textSec: "#fcc200", border: "1px dashed #fcc200", shadow: "none" }
-        }
-      };
-
-      const currentTempName = activePreset.template || 'default';
-      const modeKey = isLight ? 'light' : 'dark';
-      const overrides = templateVars[currentTempName] ? templateVars[currentTempName][modeKey] : templateVars.default[modeKey];
-
-      const computedBg = overrides.bg;
-      const computedCard = overrides.card;
-      const computedText = overrides.text;
-      const computedTextSec = overrides.textSec;
-      const computedBorder = overrides.border;
-      const computedShadow = overrides.shadow;
-
       const previewStyleId = "preview-theme-styles";
       let pStyle = document.getElementById(previewStyleId);
       if (!pStyle) {
@@ -1670,30 +1377,28 @@
       pStyle.textContent = `
         #simContent {
           --primary: ${activePreset.primaryColor};
-          --bg: ${computedBg};
-          --bg-card: ${computedCard};
-          --bg-elevated: ${isLight ? '#f1f5f9' : '#18181f'};
-          --text: ${computedText};
-          --text-sec: ${computedTextSec};
+          --bg: ${activePreset.backgroundColor};
+          --bg-card: ${activePreset.cardColor};
+          --bg-elevated: ${activePreset.backgroundColor === '#ffffff' || activePreset.backgroundColor === '#faf7f0' || activePreset.backgroundColor === '#f8fafc' || activePreset.backgroundColor === '#f7f1e5' ? '#f1f5f9' : '#18181f'};
+          --text: ${activePreset.textColor};
+          --text-sec: ${activePreset.mutedColor || '#64748b'};
           --accent: ${activePreset.accentColor};
-          --border: ${computedBorder};
+          --border: ${activePreset.border || 'rgba(0,0,0,0.08)'};
           --border-radius: ${activePreset.borderRadius || '12px'};
           --button-radius: ${btnRadius};
           --font: '${activePreset.fontBody}', sans-serif;
           --font-display: '${activePreset.fontHeading}', sans-serif;
           --glass-effect: ${activePreset.glassEffect || 'none'};
-          --shadow: ${computedShadow};
+          --shadow: ${activePreset.shadow || 'none'};
           
           font-family: var(--font) !important;
           background: var(--bg) !important;
           color: var(--text) !important;
-          position: relative;
         }
 
         #simContent .sim-header {
           background: var(--bg-card) !important;
           border-bottom: 1px solid var(--border) !important;
-          z-index: 1;
         }
         #simContent .sim-logo span {
           color: var(--text) !important;
@@ -1703,50 +1408,28 @@
           color: #ffffff !important;
           border-radius: var(--button-radius) !important;
         }
-        #simContent .sim-cat-pill.active {
-          background: var(--primary) !important;
-          border: 1px solid var(--text) !important;
-        }
         #simContent .sim-title {
           font-family: var(--font-display) !important;
-          color: var(--text) !important;
+          color: #ffffff !important;
         }
         #simContent .sim-subtitle {
-          color: var(--text-sec) !important;
+          color: rgba(255,255,255,0.8) !important;
         }
         #simContent .sim-dish-card {
           background: var(--bg-card) !important;
           border: 1px solid var(--border) !important;
           border-radius: var(--border-radius) !important;
           box-shadow: var(--shadow) !important;
-          z-index: 1;
-          display: flex;
-          gap: 12px;
-          padding: 12px;
-        }
-        #simContent .sim-dish-img {
-          font-size: 2.2rem;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          background: var(--bg-elevated);
-          border-radius: 8px;
-          width: 60px;
-          height: 60px;
-          flex-shrink: 0;
-          transition: all 0.3s;
+          backdrop-filter: var(--glass-effect) !important;
         }
         #simContent .sim-dish-name {
           color: var(--text) !important;
-          font-weight: 700;
         }
         #simContent .sim-dish-desc {
           color: var(--text-sec) !important;
-          font-size: 0.72rem;
         }
         #simContent .sim-dish-price {
           color: var(--primary) !important;
-          font-weight: 700;
         }
         #simContent .sim-btn-ar {
           background: var(--primary) !important;
@@ -1756,91 +1439,6 @@
         #simContent .sim-floating-btn {
           background: var(--primary) !important;
           border-radius: 50% !important;
-        }
-        
-        /* ─── SPECIFIC PRESET SIMULATOR LAYOUT OVERRIDES ─── */
-        
-        /* Flavoria - Grill/Steak layout style */
-        #simContent.template-flavoria .sim-dish-card {
-          border: 1px solid var(--border) !important;
-          border-radius: 4px !important;
-          flex-direction: column !important;
-          text-align: center !important;
-          padding: 16px !important;
-        }
-        #simContent.template-flavoria .sim-dish-img {
-          margin: 0 auto !important;
-          width: 80px !important;
-          height: 80px !important;
-          border-radius: 4px !important;
-          border: 1px solid var(--border) !important;
-        }
-        #simContent.template-flavoria .sim-dish-name {
-          font-family: var(--font-display) !important;
-          font-size: 1.15rem !important;
-        }
-
-        /* Green Bite - Organic leaf layout style */
-        #simContent.template-green-bite .sim-dish-card {
-          border-radius: 20px !important;
-          box-shadow: 0 4px 16px rgba(45,106,79,0.04) !important;
-          border: 1px solid var(--border) !important;
-          background: var(--bg-card) !important;
-        }
-        #simContent.template-green-bite .sim-dish-img {
-          border-radius: 16px !important;
-          background: #dcfce7 !important;
-        }
-
-        /* Spice Route - Centered circular layout style */
-        #simContent.template-spice-route .sim-dish-card {
-          flex-direction: column !important;
-          align-items: center !important;
-          text-align: center !important;
-          border: 4px double var(--border) !important;
-          border-radius: 14px !important;
-          padding: 16px !important;
-        }
-        #simContent.template-spice-route .sim-dish-img {
-          width: 100px !important;
-          height: 100px !important;
-          border-radius: 50% !important;
-          border: 3px double var(--border) !important;
-          font-size: 3rem !important;
-          margin-bottom: 8px !important;
-        }
-        #simContent.template-spice-route .sim-dish-name {
-          font-family: var(--font-display) !important;
-        }
-
-        /* Yum Yum - Chunky block diner layout style */
-        #simContent.template-yum-yum .sim-dish-card {
-          border: 2px solid var(--border) !important;
-          box-shadow: 4px 4px 0 var(--border) !important;
-          border-radius: 18px !important;
-        }
-        #simContent.template-yum-yum .sim-dish-img {
-          border: 2px solid var(--border) !important;
-          border-radius: 10px !important;
-        }
-        #simContent.template-yum-yum .sim-btn-ar {
-          border: 2px solid var(--border) !important;
-          box-shadow: 2px 2px 0 var(--border) !important;
-        }
-
-        /* Street Tales - Chalkboard distressed style */
-        #simContent.template-street-tales .sim-dish-card {
-          border: 1px dashed var(--border) !important;
-          border-radius: 0px !important;
-          box-shadow: none !important;
-        }
-        #simContent.template-street-tales .sim-dish-img {
-          border: 1px dashed var(--border) !important;
-          border-radius: 0px !important;
-          background: #1e1e1e !important;
-        }
-        #simContent.template-street-tales .sim-btn-ar {
-          border-radius: 0px !important;
         }
       `;
 
@@ -1858,11 +1456,9 @@
         logoEl.style.background = activePreset.primaryColor;
       }
 
-      const restName = window.restaurant?.name || 'Restaurant';
+      const restName = restaurant?.name || 'Restaurant';
       document.getElementById('simTitle').textContent = themeSettings.welcomeTitle || `${restName}'s Menu`;
       document.getElementById('simSubtitle').textContent = themeSettings.welcomeSubtitle || 'Fresh, delicious, and made with love.';
-      renderBackgroundEffects(simContent, activeTemp);
-      renderBackgroundEffects(simContent, activeTemp);
     }
 
     // Save Action
