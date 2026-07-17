@@ -518,6 +518,53 @@
     });
   }
 
+  // Client-side raw text parser for fallback or direct parsing
+  function parseRawTextClientSide(text) {
+    const lines = text.split('\n');
+    const items = [];
+    
+    lines.forEach(line => {
+      line = line.trim();
+      if (!line) return;
+      
+      // Matches: "Item Name - Rs 250" or "Item Name 150" or "Item Name: 90" or "₹50 Naan"
+      const priceMatch = line.match(/(?:(?:Rs\.?|₹|\$)\s*)?(\d+(?:\.\d{2})?)\s*$/i) || line.match(/^(?:(?:Rs\.?|₹|\$)\s*)?(\d+(?:\.\d{2})?)\s*[-:]?\s*(.+)$/i);
+      
+      if (priceMatch) {
+        const priceVal = parseFloat(priceMatch[1] || priceMatch[2]);
+        let nameVal = '';
+        
+        if (line.match(/(?:(?:Rs\.?|₹|\$)\s*)?(\d+(?:\.\d{2})?)\s*$/i)) {
+          nameVal = line.replace(/(?:[-:.]*\s*)?(?:(?:Rs\.?|₹|\$)\s*)?\d+(?:\.\d{2})?\s*$/i, '').trim();
+        } else {
+          nameVal = line.replace(/^\s*(?:(?:Rs\.?|₹|\$)\s*)?\d+(?:\.\d{2})?\s*[-:]?\s*/i, '').trim();
+        }
+        
+        if (nameVal && !isNaN(priceVal)) {
+          // Guess a category based on keywords
+          let category = 'Mains';
+          const lowerName = nameVal.toLowerCase();
+          if (lowerName.includes('soup') || lowerName.includes('salad')) category = 'Starters';
+          else if (lowerName.includes('tikka') || lowerName.includes('kabab') || lowerName.includes('fry') || lowerName.includes('chilli') || lowerName.includes('starter') || lowerName.includes('appetizer')) category = 'Starters';
+          else if (lowerName.includes('roti') || lowerName.includes('naan') || lowerName.includes('paratha') || lowerName.includes('bread')) category = 'Breads';
+          else if (lowerName.includes('biryani') || lowerName.includes('rice') || lowerName.includes('pulao')) category = 'Rice';
+          else if (lowerName.includes('juice') || lowerName.includes('shake') || lowerName.includes('drink') || lowerName.includes('water') || lowerName.includes('soda') || lowerName.includes('lassi') || lowerName.includes('tea') || lowerName.includes('coffee') || lowerName.includes('beverage')) category = 'Beverages';
+          else if (lowerName.includes('ice cream') || lowerName.includes('kulfi') || lowerName.includes('jamun') || lowerName.includes('dessert') || lowerName.includes('sweet')) category = 'Desserts';
+          
+          items.push({
+            name: nameVal,
+            category: category,
+            price: priceVal,
+            ingredients: 'Fresh ingredients',
+            calories: 250
+          });
+        }
+      }
+    });
+    
+    return items;
+  }
+
   window.parseMenuData = async () => {
     const parseBtn = document.getElementById('parseMenuBtn');
     const loader = document.getElementById('importLoader');
@@ -594,7 +641,25 @@
       }
 
     } catch (err) {
-      showToast('AI Parsing failed: ' + err.message, 'error');
+      console.warn('AI Edge Function failed, falling back to local text parser...', err.message);
+      let fallbackText = '';
+      if (importActiveTab === 'text') {
+        fallbackText = document.getElementById('pasteText').value.trim();
+      }
+      
+      if (fallbackText) {
+        parsedMenuDataList = parseRawTextClientSide(fallbackText);
+      }
+      
+      if (parsedMenuDataList && parsedMenuDataList.length > 0) {
+        renderParsedItems();
+        extractedSection.classList.remove('hidden');
+        document.getElementById('approveImportBtn').classList.remove('hidden');
+        updateApproveButtonCount();
+        showToast(`🎉 Parsed ${parsedMenuDataList.length} items locally!`, 'success');
+      } else {
+        showToast('AI Parsing failed. Try copying & pasting the menu text in the "Paste Menu Text" tab to parse locally!', 'error');
+      }
     } finally {
       parseBtn.disabled = false;
       loader.classList.add('hidden');
