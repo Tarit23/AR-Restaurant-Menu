@@ -321,13 +321,15 @@
     </header>
 
     <div class="page-content">
-      <div class="page-header animate-in" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;">
+      <div class="page-header animate-in" style="margin-bottom: 20px;">
         <div class="page-header-text">
           <h1>Live Operations Center</h1>
-          <p>Real-time dining session tracker, order lifecycle manager, and POS settle panel.</p>
+          <p style="color: var(--text-muted); margin-top: 4px;">Real-time dining session tracker, order lifecycle manager, and POS settle panel.</p>
         </div>
-        
-        <!-- Role Switching Tabs -->
+      </div>
+      
+      <!-- Role Switching Tabs (Always full-width below title, preventing squeeze) -->
+      <div class="role-switcher-row animate-in" style="margin-bottom: 24px;">
         <div class="role-switcher">
           <button class="role-btn active" onclick="switchRole('owner')">👑 Owner Mode</button>
           <button class="role-btn" onclick="switchRole('kitchen')">🍳 Kitchen</button>
