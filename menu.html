@@ -1522,6 +1522,12 @@
     </div>
   </div>
 
+  <!-- DOWNLOAD BILL FLOATING BUTTON (shown when session is active) -->
+  <button id="billFloatingBtn" onclick="downloadBillPDF(window.activeSessionId)" title="Download Your Bill"
+    style="display:none; position:fixed; bottom:90px; right:20px; z-index:1100; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#10b981,#059669); color:#fff; border:none; box-shadow:0 4px 15px rgba(16,185,129,0.45); font-size:1.3rem; cursor:pointer; align-items:center; justify-content:center; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+    📥
+  </button>
+
   <!-- CART FLOATING BUTTON -->
   <button class="cart-floating-btn" id="cartFloatingBtn" onclick="toggleCartDrawer(true)" style="display: none;">
     <span class="cart-count-badge" id="cartCountBadge">0</span>
@@ -1643,7 +1649,14 @@
         <span id="cartTotal" style="color: var(--primary-light);">₹0</span>
       </div>
       
-      <button class="btn btn-primary" id="checkoutSubmitBtn" style="width:100%; margin-top: 16px; padding: 12px; border-radius:12px; font-size:1rem; font-weight:700;" onclick="submitTableOrder()">
+      <!-- Download Bill (visible only when session is active) -->
+      <div id="cartDownloadBillRow" style="display:none; margin-top:12px;">
+        <button onclick="downloadBillPDF(window.activeSessionId)" style="width:100%; padding:11px; border-radius:12px; font-size:0.9rem; font-weight:700; background:transparent; border:1.5px solid #10b981; color:#10b981; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
+          📥 Download My Bill
+        </button>
+      </div>
+
+      <button class="btn btn-primary" id="checkoutSubmitBtn" style="width:100%; margin-top: 12px; padding: 12px; border-radius:12px; font-size:1rem; font-weight:700;" onclick="submitTableOrder()">
         🚀 Confirm & Send Order
       </button>
     </div>
@@ -2730,9 +2743,20 @@
        TABLE ORDERING, CART & SMART UPSELLING LOGIC
     ═══════════════════════════════════════════════════════════ */
     let cart = [];
-    let activeSessionId = null;
+    window.activeSessionId = null;
+    let activeSessionId = null; // local alias
     let appliedVoucher = null;
     window._favoriteIds = [];
+
+    // Show / hide Download Bill UI whenever a session becomes active
+    function showBillDownloadUI(sessionId) {
+      window.activeSessionId = sessionId;
+      activeSessionId = sessionId; // keep local in sync
+      const floatBtn = document.getElementById('billFloatingBtn');
+      const cartRow  = document.getElementById('cartDownloadBillRow');
+      if (floatBtn) floatBtn.style.display = sessionId ? 'flex' : 'none';
+      if (cartRow)  cartRow.style.display  = sessionId ? 'block' : 'none';
+    }
 
     // Pre-fill Table Number and Customer Loyalty details on start
     setTimeout(async () => {
@@ -2771,6 +2795,21 @@
           }
         } catch (err) {
           console.warn("Could not fetch customer favorites:", err.message);
+        }
+      }
+
+      // ── Restore active session if table is pre-filled ──
+      const tableForSession = queryTable || localStorage.getItem('ar_table_num');
+      if (tableForSession && restaurantId) {
+        try {
+          const { sessionsAPI: sApi } = await import('/js/loyalty-api.js?v=5');
+          const existingSession = await sApi.getActiveByTable(restaurantId, tableForSession);
+          if (existingSession) {
+            showBillDownloadUI(existingSession.id);
+            document.getElementById('orderTrackingBtn').style.display = 'flex';
+          }
+        } catch(e) {
+          console.warn('Could not restore active session:', e.message);
         }
       }
     }, 500);
@@ -3299,6 +3338,7 @@
           session = await sessionsAPI.startSession(restaurantId, tableNumber, name, email, customerId);
         }
         activeSessionId = session.id;
+        showBillDownloadUI(session.id);
 
         // 2. Add Order to Session
         await sessionsAPI.addOrder(session.id, restaurantId, cart, '');
@@ -3363,6 +3403,7 @@
           session = await sessionsAPI.startSession(restaurantId, tableNumber, 'Dine-In Customer', null, null);
         }
         activeSessionId = session.id;
+        showBillDownloadUI(session.id);
 
         await requestsAPI.create(restaurantId, tableNumber, session.id, requestType);
         alert('🛎️ Request sent! Staff is notified.');
@@ -3399,9 +3440,12 @@
         
         // Render timeline progress of each order
         container.innerHTML = `
-          <div style="font-weight:700; border-bottom:1px solid var(--border); padding-bottom:8px; display:flex; justify-content:space-between;">
-            <span>Running Total Bill:</span>
-            <span style="color:#10b981;">₹${runningTotal}</span>
+          <div style="font-weight:700; border-bottom:1px solid var(--border); padding-bottom:8px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div>
+              <span>Running Total Bill:</span>
+              <span style="color:#10b981;">₹${runningTotal}</span>
+            </div>
+            <button class="btn btn-secondary btn-sm" onclick="downloadBillPDF('${session.id}')" style="padding:4px 8px; font-size:0.75rem; border-radius:6px; display:inline-flex; align-items:center; gap:4px; cursor:pointer;">📥 Download Bill</button>
           </div>
         ` + session.orders.map(order => {
           let statusText = 'New';
@@ -3436,6 +3480,141 @@
         console.error('Error syncing order tracking drawer:', err.message);
       }
     }
+
+    window.downloadBillPDF = async (sessionId) => {
+      try {
+        const { data: session, error } = await supabase
+          .from('dining_sessions')
+          .select('*, tables!dining_sessions_table_id_fkey(*), orders(*, order_items(*))')
+          .eq('id', sessionId)
+          .single();
+
+        if (error || !session) throw new Error("Could not load session details.");
+
+        const restName = window._restaurantInfo?.name || "AR Restaurant";
+        const tableName = session.tables ? `Table ${session.tables.table_number}` : 'Walk-in';
+        const dateStr = new Date(session.created_at || session.start_time).toLocaleString('en-IN');
+        const itemsMap = {};
+        
+        session.orders.forEach(order => {
+          order.order_items.forEach(item => {
+            if (itemsMap[item.name]) {
+              itemsMap[item.name].quantity += item.quantity;
+            } else {
+              itemsMap[item.name] = {
+                price: item.price,
+                quantity: item.quantity
+              };
+            }
+          });
+        });
+
+        let itemsHtml = '';
+        let subtotal = 0;
+        for (const [name, info] of Object.entries(itemsMap)) {
+          const itemTotal = info.price * info.quantity;
+          subtotal += itemTotal;
+          itemsHtml += `
+            <tr>
+              <td style="padding: 8px 0; color: #374151;">${name}</td>
+              <td style="padding: 8px 0; text-align: center; color: #4b5563;">${info.quantity}</td>
+              <td style="padding: 8px 0; text-align: right; color: #4b5563;">₹${info.price.toLocaleString('en-IN')}</td>
+              <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #111827;">₹${itemTotal.toLocaleString('en-IN')}</td>
+            </tr>
+          `;
+        }
+
+        const finalTotal = subtotal - (session.discount_amount || 0);
+
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+          <html>
+          <head>
+            <title>Bill Receipt - ${restName}</title>
+            <style>
+              body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #111827; background-color: #ffffff; margin: 0; }
+              .invoice-box { max-width: 500px; margin: auto; border: 1px solid #e5e7eb; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+              .header { text-align: center; border-bottom: 2px dashed #e5e7eb; padding-bottom: 20px; margin-bottom: 20px; }
+              .header h2 { margin: 0 0 5px 0; color: #111827; font-size: 1.5rem; }
+              .header p { margin: 0; color: #6b7280; font-size: 0.85rem; }
+              .details { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.85rem; color: #4b5563; }
+              .details div { line-height: 1.5; }
+              table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+              th { border-bottom: 1px solid #e5e7eb; padding: 10px 0; text-align: left; font-size: 0.85rem; color: #9ca3af; text-transform: uppercase; }
+              .totals { border-top: 2px dashed #e5e7eb; padding-top: 15px; font-size: 0.9rem; color: #4b5563; }
+              .totals-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+              .grand-total { font-size: 1.2rem; font-weight: 700; color: #111827; margin-top: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+              .footer { text-align: center; margin-top: 30px; font-size: 0.8rem; color: #9ca3af; border-top: 1px solid #f3f4f6; padding-top: 20px; }
+              @media print {
+                body { padding: 0; background: none; }
+                .invoice-box { border: none; box-shadow: none; padding: 0; }
+              }
+            </style>
+          </head>
+          <body>
+            <div class="invoice-box">
+              <div class="header">
+                <h2>${restName}</h2>
+                <p>Digital Order Invoice</p>
+              </div>
+              <div class="details">
+                <div>
+                  <strong>Session ID:</strong> #${session.id.substring(0,8).toUpperCase()}<br/>
+                  <strong>Date:</strong> ${dateStr}
+                </div>
+                <div style="text-align: right;">
+                  <strong>Table:</strong> ${tableName}<br/>
+                  <strong>Customer:</strong> ${session.customer_name || 'Walk-in'}
+                </div>
+              </div>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Item</th>
+                    <th style="text-align: center;">Qty</th>
+                    <th style="text-align: right;">Price</th>
+                    <th style="text-align: right;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${itemsHtml}
+                </tbody>
+              </table>
+              <div class="totals">
+                <div class="totals-row">
+                  <span>Subtotal</span>
+                  <span>₹${subtotal.toLocaleString('en-IN')}</span>
+                </div>
+                ${session.discount_amount ? `
+                  <div class="totals-row" style="color: #ef4444;">
+                    <span>Discount</span>
+                    <span>- ₹${session.discount_amount.toLocaleString('en-IN')}</span>
+                  </div>
+                ` : ''}
+                <div class="totals-row grand-total">
+                  <span>Grand Total</span>
+                  <span>₹${finalTotal.toLocaleString('en-IN')}</span>
+                </div>
+              </div>
+              <div class="footer">
+                Thank you for dining with us!<br/>
+                Powered by AR Restaurant Menu
+              </div>
+            </div>
+            <script>
+              window.onload = function() {
+                window.print();
+              };
+            <\/script>
+          </body>
+          </html>
+        `);
+        printWindow.document.close();
+      } catch(err) {
+        console.error("Failed to generate bill PDF:", err);
+        alert("Failed to download bill receipt. Please try again.");
+      }
+    };
 
 
     /* ─── Dish Detail Modal & Upsells ─── */

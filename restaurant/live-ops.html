@@ -360,6 +360,7 @@
     </div>
     
     <div style="border-top:1px solid var(--border); padding-top:16px; display:flex; flex-direction:column; gap:8px;">
+      <button class="btn btn-secondary" onclick="downloadSelectedSessionBill()" style="width:100%; display:inline-flex; justify-content:center; align-items:center; gap:8px;">🖨️ Print / Download Bill</button>
       <button class="btn btn-primary" onclick="settlePayment()" style="width:100%;">Complete Settle & Close Session</button>
     </div>
   </div>
@@ -663,10 +664,14 @@
             ${itemsListHtml || '<div style="color:var(--text-muted);">Dining (No pending orders)</div>'}
           </div>
 
-          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.82rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:0.82rem; margin-bottom:8px;">
             <span>Running Bill:</span>
             <span style="color:#10b981;">₹${session.running_total}</span>
           </div>
+
+          <button onclick="event.stopPropagation(); downloadSessionBill('${session.id}')" style="width:100%; padding:7px; border-radius:8px; font-size:0.78rem; font-weight:700; background:transparent; border:1.5px solid #10b981; color:#10b981; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:6px; margin-bottom:8px;">
+            📥 Download Bill
+          </button>
 
           <div class="card-action-area">
             ${actionBtnHtml}
@@ -798,6 +803,212 @@
 
       document.getElementById('billingDrawerContent').innerHTML = content;
       document.getElementById('billingDrawer').classList.add('open');
+    };
+
+    window.downloadSessionBill = (sessionId) => {
+      const session = activeSessions.find(s => s.id === sessionId);
+      if (!session) { alert('Session not found.'); return; }
+
+      const restName = document.getElementById('restaurantName')?.textContent || "AR Restaurant";
+      const tableName = session.tables ? `Table ${session.tables.table_number}` : 'Walk-in';
+      const dateStr = new Date(session.created_at || session.start_time).toLocaleString('en-IN');
+      const itemsMap = {};
+
+      (session.orders || []).forEach(order => {
+        (order.order_items || []).forEach(item => {
+          if (itemsMap[item.name]) {
+            itemsMap[item.name].quantity += item.quantity;
+          } else {
+            itemsMap[item.name] = { price: item.price, quantity: item.quantity };
+          }
+        });
+      });
+
+      let itemsHtml = '';
+      let subtotal = 0;
+      for (const [name, info] of Object.entries(itemsMap)) {
+        const itemTotal = info.price * info.quantity;
+        subtotal += itemTotal;
+        itemsHtml += `<tr>
+          <td style="padding:8px 0;color:#374151;">${name}</td>
+          <td style="padding:8px 0;text-align:center;color:#4b5563;">${info.quantity}</td>
+          <td style="padding:8px 0;text-align:right;color:#4b5563;">₹${info.price.toLocaleString('en-IN')}</td>
+          <td style="padding:8px 0;text-align:right;font-weight:600;color:#111827;">₹${itemTotal.toLocaleString('en-IN')}</td>
+        </tr>`;
+      }
+
+      const gst = Math.round(subtotal * 0.05);
+      const discount = session.discount_amount || 0;
+      const finalTotal = subtotal + gst - discount;
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html><head><title>Bill - ${restName}</title>
+        <style>
+          body{font-family:Helvetica,Arial,sans-serif;padding:40px;color:#111827;margin:0;}
+          .box{max-width:500px;margin:auto;border:1px solid #e5e7eb;padding:30px;border-radius:12px;}
+          .hdr{text-align:center;border-bottom:2px dashed #e5e7eb;padding-bottom:20px;margin-bottom:20px;}
+          .hdr h2{margin:0 0 5px;font-size:1.5rem;} .hdr p{margin:0;color:#6b7280;font-size:.85rem;}
+          .meta{display:flex;justify-content:space-between;margin-bottom:20px;font-size:.85rem;color:#4b5563;}
+          table{width:100%;border-collapse:collapse;margin-bottom:20px;}
+          th{border-bottom:1px solid #e5e7eb;padding:10px 0;text-align:left;font-size:.8rem;color:#9ca3af;text-transform:uppercase;}
+          .totals{border-top:2px dashed #e5e7eb;padding-top:15px;font-size:.9rem;}
+          .row{display:flex;justify-content:space-between;margin-bottom:8px;}
+          .grand{font-size:1.2rem;font-weight:700;color:#111827;border-top:1px solid #e5e7eb;padding-top:10px;margin-top:10px;}
+          .ftr{text-align:center;margin-top:30px;font-size:.8rem;color:#9ca3af;border-top:1px solid #f3f4f6;padding-top:20px;}
+          @media print{body{padding:0;}.box{border:none;box-shadow:none;padding:0;}}
+        </style></head><body>
+        <div class="box">
+          <div class="hdr"><h2>${restName}</h2><p>Restaurant Bill Receipt</p></div>
+          <div class="meta">
+            <div><strong>Session:</strong> #${session.id.substring(0,8).toUpperCase()}<br><strong>Date:</strong> ${dateStr}</div>
+            <div style="text-align:right;"><strong>Table:</strong> ${tableName}<br><strong>Customer:</strong> ${session.customer_name || 'Walk-in'}</div>
+          </div>
+          <table><thead><tr>
+            <th>Item</th><th style="text-align:center;">Qty</th><th style="text-align:right;">Price</th><th style="text-align:right;">Total</th>
+          </tr></thead><tbody>${itemsHtml}</tbody></table>
+          <div class="totals">
+            <div class="row"><span>Subtotal</span><span>₹${subtotal.toLocaleString('en-IN')}</span></div>
+            <div class="row"><span>GST (5%)</span><span>₹${gst.toLocaleString('en-IN')}</span></div>
+            ${discount ? `<div class="row" style="color:#ef4444;"><span>Discount</span><span>-₹${discount.toLocaleString('en-IN')}</span></div>` : ''}
+            <div class="row grand"><span>Grand Total</span><span>₹${finalTotal.toLocaleString('en-IN')}</span></div>
+          </div>
+          <div class="ftr">Thank you for dining with us!<br>Powered by AR Restaurant Menu</div>
+        </div>
+        <script>window.onload=function(){window.print();};<\/script>
+        </body></html>
+      `);
+      printWindow.document.close();
+    };
+
+    window.downloadSelectedSessionBill = () => {
+      if (!selectedSession) return;
+      
+      const restName = document.getElementById('restaurantName')?.textContent || "AR Restaurant";
+      const tableName = selectedSession.tables ? `Table ${selectedSession.tables.table_number}` : 'Walk-in';
+      const dateStr = new Date(selectedSession.created_at || selectedSession.start_time).toLocaleString('en-IN');
+      const itemsMap = {};
+      
+      (selectedSession.orders || []).forEach(order => {
+        (order.order_items || []).forEach(item => {
+          if (itemsMap[item.name]) {
+            itemsMap[item.name].quantity += item.quantity;
+          } else {
+            itemsMap[item.name] = {
+              price: item.price,
+              quantity: item.quantity
+            };
+          }
+        });
+      });
+
+      let itemsHtml = '';
+      let subtotal = 0;
+      for (const [name, info] of Object.entries(itemsMap)) {
+        const itemTotal = info.price * info.quantity;
+        subtotal += itemTotal;
+        itemsHtml += `
+          <tr>
+            <td style="padding: 8px 0; color: #374151;">${name}</td>
+            <td style="padding: 8px 0; text-align: center; color: #4b5563;">${info.quantity}</td>
+            <td style="padding: 8px 0; text-align: right; color: #4b5563;">₹${info.price.toLocaleString('en-IN')}</td>
+            <td style="padding: 8px 0; text-align: right; font-weight: 600; color: #111827;">₹${itemTotal.toLocaleString('en-IN')}</td>
+          </tr>
+        `;
+      }
+
+      const gst = Math.round(subtotal * 0.05); // 5% GST standard
+      const discount = selectedSession.discount_amount || 0;
+      const finalTotal = subtotal + gst - discount;
+
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Bill Receipt - ${restName}</title>
+          <style>
+            body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 40px; color: #111827; background-color: #ffffff; margin: 0; }
+            .invoice-box { max-width: 500px; margin: auto; border: 1px solid #e5e7eb; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+            .header { text-align: center; border-bottom: 2px dashed #e5e7eb; padding-bottom: 20px; margin-bottom: 20px; }
+            .header h2 { margin: 0 0 5px 0; color: #111827; font-size: 1.5rem; }
+            .header p { margin: 0; color: #6b7280; font-size: 0.85rem; }
+            .details { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 0.85rem; color: #4b5563; }
+            .details div { line-height: 1.5; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+            th { border-bottom: 1px solid #e5e7eb; padding: 10px 0; text-align: left; font-size: 0.85rem; color: #9ca3af; text-transform: uppercase; }
+            .totals { border-top: 2px dashed #e5e7eb; padding-top: 15px; font-size: 0.9rem; color: #4b5563; }
+            .totals-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+            .grand-total { font-size: 1.2rem; font-weight: 700; color: #111827; margin-top: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px; }
+            .footer { text-align: center; margin-top: 30px; font-size: 0.8rem; color: #9ca3af; border-top: 1px solid #f3f4f6; padding-top: 20px; }
+            @media print {
+              body { padding: 0; background: none; }
+              .invoice-box { border: none; box-shadow: none; padding: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="invoice-box">
+            <div class="header">
+              <h2>${restName}</h2>
+              <p>Dining & POS Settlement Bill</p>
+            </div>
+            <div class="details">
+              <div>
+                <strong>Session ID:</strong> #${selectedSession.id.substring(0,8).toUpperCase()}<br/>
+                <strong>Date:</strong> ${dateStr}
+              </div>
+              <div style="text-align: right;">
+                <strong>Table:</strong> ${tableName}<br/>
+                <strong>Customer:</strong> ${selectedSession.customer_name || 'Walk-in'}
+              </div>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Item</th>
+                  <th style="text-align: center;">Qty</th>
+                  <th style="text-align: right;">Price</th>
+                  <th style="text-align: right;">Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${itemsHtml}
+              </tbody>
+            </table>
+            <div class="totals">
+              <div class="totals-row">
+                <span>Subtotal</span>
+                <span>₹${subtotal.toLocaleString('en-IN')}</span>
+              </div>
+              <div class="totals-row">
+                <span>GST (5%)</span>
+                <span>₹${gst.toLocaleString('en-IN')}</span>
+              </div>
+              ${discount ? `
+                <div class="totals-row" style="color: #ef4444;">
+                  <span>Discount</span>
+                  <span>- ₹${discount.toLocaleString('en-IN')}</span>
+                </div>
+              ` : ''}
+              <div class="totals-row grand-total">
+                <span>Grand Total</span>
+                <span>₹${finalTotal.toLocaleString('en-IN')}</span>
+              </div>
+            </div>
+            <div class="footer">
+              Thank you for dining with us!<br/>
+              Powered by AR Restaurant Menu POS
+            </div>
+          </div>
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          <\/script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
     };
 
     window.closeBillingDrawer = () => {
