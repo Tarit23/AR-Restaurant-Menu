@@ -443,7 +443,88 @@
       border: 1px solid #00ffcc !important;
       color: #00ffcc !important;
     }
-  </style>
+  
+    /* ─── PREMIUM DECORATIVE BACKDROPS & STYLES ─── */
+    .bg-deco-layer {
+      pointer-events: none;
+      user-select: none;
+    }
+    
+    /* Floating animations */
+    @keyframes floatMotion {
+      0% { transform: translateY(0) rotate(0deg); }
+      100% { transform: translateY(-15px) rotate(10deg); }
+    }
+    @keyframes glowCycle {
+      0% { box-shadow: 0 0 10px rgba(207,168,107,0.1); }
+      100% { box-shadow: 0 0 25px rgba(207,168,107,0.25); }
+    }
+    @keyframes smokeDrift {
+      0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 0.08; }
+      50% { transform: translate(50px, -40px) scale(1.15) rotate(180deg); opacity: 0.15; }
+      100% { transform: translate(100px, -80px) scale(1.3) rotate(360deg); opacity: 0.08; }
+    }
+    @keyframes sparkleGlow {
+      0% { transform: scale(0.9); opacity: 0.3; }
+      100% { transform: scale(1.1); opacity: 0.8; }
+    }
+    
+    /* Flavoria custom background & layouts */
+    .template-flavoria {
+      background-image: radial-gradient(circle at 10% 20%, rgba(207,168,107,0.03) 0%, transparent 40%),
+                        radial-gradient(circle at 90% 80%, rgba(207,168,107,0.03) 0%, transparent 40%) !important;
+    }
+    .template-flavoria .dish-card:hover {
+      animation: glowCycle 2s infinite alternate;
+      border-color: #cfa86b !important;
+    }
+
+    /* Green bite organic leaf floaters */
+    .template-green-bite {
+      background-image: radial-gradient(circle at 0% 0%, rgba(45,106,79,0.04) 0%, transparent 50%),
+                        radial-gradient(circle at 100% 100%, rgba(45,106,79,0.04) 0%, transparent 50%) !important;
+    }
+
+    /* Smokehouse dark textured panel overlays */
+    .template-smokehouse {
+      background-image: radial-gradient(rgba(230,57,70,0.02) 2px, transparent 0),
+                        radial-gradient(rgba(230,57,70,0.02) 2px, transparent 0) !important;
+      background-size: 30px 30px !important;
+      background-position: 0 0, 15px 15px !important;
+    }
+
+    /* Spice Route cultural mandalas */
+    .template-spice-route {
+      background-image: radial-gradient(circle at 50% 50%, rgba(114,47,55,0.02) 0%, transparent 80%) !important;
+      border: 8px double rgba(114,47,55,0.1);
+      box-sizing: border-box;
+    }
+
+    /* Yum Yum retro fast-food diner dots */
+    .template-yum-yum {
+      background-image: radial-gradient(rgba(255,195,0,0.15) 1.5px, transparent 0) !important;
+      background-size: 24px 24px !important;
+    }
+
+    /* Sweet Affair pastel clouds */
+    .template-sweet-affair {
+      background-image: radial-gradient(circle at 30% 30%, rgba(208,59,104,0.03) 0%, transparent 60%),
+                        radial-gradient(circle at 70% 70%, rgba(208,59,104,0.03) 0%, transparent 60%) !important;
+    }
+
+    /* Aroma dining emerald marble gold lines */
+    .template-aroma {
+      background-image: linear-gradient(135deg, transparent 45%, rgba(212,175,55,0.02) 45%, rgba(212,175,55,0.02) 46%, transparent 46%),
+                        linear-gradient(225deg, transparent 45%, rgba(212,175,55,0.02) 45%, rgba(212,175,55,0.02) 46%, transparent 46%) !important;
+      background-size: 60px 60px !important;
+    }
+
+    /* Street Tales chalkboard chalk sketches */
+    .template-street-tales {
+      background-image: radial-gradient(rgba(255,255,255,0.05) 1px, transparent 0) !important;
+      background-size: 16px 16px !important;
+    }
+</style>
 </head>
 <body class="dashboard-layout">
   <aside class="sidebar" id="sidebar">
@@ -1606,11 +1687,13 @@
           font-family: var(--font) !important;
           background: var(--bg) !important;
           color: var(--text) !important;
+          position: relative;
         }
 
         #simContent .sim-header {
           background: var(--bg-card) !important;
           border-bottom: 1px solid var(--border) !important;
+          z-index: 1;
         }
         #simContent .sim-logo span {
           color: var(--text) !important;
@@ -1636,15 +1719,34 @@
           border: 1px solid var(--border) !important;
           border-radius: var(--border-radius) !important;
           box-shadow: var(--shadow) !important;
+          z-index: 1;
+          display: flex;
+          gap: 12px;
+          padding: 12px;
+        }
+        #simContent .sim-dish-img {
+          font-size: 2.2rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--bg-elevated);
+          border-radius: 8px;
+          width: 60px;
+          height: 60px;
+          flex-shrink: 0;
+          transition: all 0.3s;
         }
         #simContent .sim-dish-name {
           color: var(--text) !important;
+          font-weight: 700;
         }
         #simContent .sim-dish-desc {
           color: var(--text-sec) !important;
+          font-size: 0.72rem;
         }
         #simContent .sim-dish-price {
           color: var(--primary) !important;
+          font-weight: 700;
         }
         #simContent .sim-btn-ar {
           background: var(--primary) !important;
@@ -1656,12 +1758,89 @@
           border-radius: 50% !important;
         }
         
-        /* Specific preset overrides inside simulator */
-        #simContent.template-yum-yum .sim-dish-card {
-          box-shadow: 4px 4px 0 var(--border) !important;
+        /* ─── SPECIFIC PRESET SIMULATOR LAYOUT OVERRIDES ─── */
+        
+        /* Flavoria - Grill/Steak layout style */
+        #simContent.template-flavoria .sim-dish-card {
+          border: 1px solid var(--border) !important;
+          border-radius: 4px !important;
+          flex-direction: column !important;
+          text-align: center !important;
+          padding: 16px !important;
         }
+        #simContent.template-flavoria .sim-dish-img {
+          margin: 0 auto !important;
+          width: 80px !important;
+          height: 80px !important;
+          border-radius: 4px !important;
+          border: 1px solid var(--border) !important;
+        }
+        #simContent.template-flavoria .sim-dish-name {
+          font-family: var(--font-display) !important;
+          font-size: 1.15rem !important;
+        }
+
+        /* Green Bite - Organic leaf layout style */
+        #simContent.template-green-bite .sim-dish-card {
+          border-radius: 20px !important;
+          box-shadow: 0 4px 16px rgba(45,106,79,0.04) !important;
+          border: 1px solid var(--border) !important;
+          background: var(--bg-card) !important;
+        }
+        #simContent.template-green-bite .sim-dish-img {
+          border-radius: 16px !important;
+          background: #dcfce7 !important;
+        }
+
+        /* Spice Route - Centered circular layout style */
+        #simContent.template-spice-route .sim-dish-card {
+          flex-direction: column !important;
+          align-items: center !important;
+          text-align: center !important;
+          border: 4px double var(--border) !important;
+          border-radius: 14px !important;
+          padding: 16px !important;
+        }
+        #simContent.template-spice-route .sim-dish-img {
+          width: 100px !important;
+          height: 100px !important;
+          border-radius: 50% !important;
+          border: 3px double var(--border) !important;
+          font-size: 3rem !important;
+          margin-bottom: 8px !important;
+        }
+        #simContent.template-spice-route .sim-dish-name {
+          font-family: var(--font-display) !important;
+        }
+
+        /* Yum Yum - Chunky block diner layout style */
+        #simContent.template-yum-yum .sim-dish-card {
+          border: 2px solid var(--border) !important;
+          box-shadow: 4px 4px 0 var(--border) !important;
+          border-radius: 18px !important;
+        }
+        #simContent.template-yum-yum .sim-dish-img {
+          border: 2px solid var(--border) !important;
+          border-radius: 10px !important;
+        }
+        #simContent.template-yum-yum .sim-btn-ar {
+          border: 2px solid var(--border) !important;
+          box-shadow: 2px 2px 0 var(--border) !important;
+        }
+
+        /* Street Tales - Chalkboard distressed style */
         #simContent.template-street-tales .sim-dish-card {
-          border: var(--border) !important;
+          border: 1px dashed var(--border) !important;
+          border-radius: 0px !important;
+          box-shadow: none !important;
+        }
+        #simContent.template-street-tales .sim-dish-img {
+          border: 1px dashed var(--border) !important;
+          border-radius: 0px !important;
+          background: #1e1e1e !important;
+        }
+        #simContent.template-street-tales .sim-btn-ar {
+          border-radius: 0px !important;
         }
       `;
 
@@ -1682,6 +1861,7 @@
       const restName = window.restaurant?.name || 'Restaurant';
       document.getElementById('simTitle').textContent = themeSettings.welcomeTitle || `${restName}'s Menu`;
       document.getElementById('simSubtitle').textContent = themeSettings.welcomeSubtitle || 'Fresh, delicious, and made with love.';
+      renderBackgroundEffects(simContent, activeTemp);
       renderBackgroundEffects(simContent, activeTemp);
     }
 
