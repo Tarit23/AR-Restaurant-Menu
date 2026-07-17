@@ -3,6 +3,7 @@
     "supabase": "^2.98.2"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.110.7",
     "puppeteer": "^25.0.4"
   }
 }

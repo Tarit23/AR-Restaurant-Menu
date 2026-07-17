@@ -187,11 +187,11 @@
   </div>
 
   <script type="module">
-    import "/js/logout-handler.js?v=4";
-    import { supabase } from "/js/supabase-config.js?v=4";
-    import { menuAPI } from '/js/api.js?v=4';
-    import { showToast, formatDate, animateCount } from '/js/utils.js?v=4';
-    import { APP_CONFIG } from '/js/supabase-config.js?v=4';
+    import "/js/logout-handler.js?v=5";
+    import { supabase } from "/js/supabase-config.js?v=5";
+    import { menuAPI } from '/js/api.js?v=5';
+    import { showToast, formatDate, animateCount } from '/js/utils.js?v=5';
+    import { APP_CONFIG } from '/js/supabase-config.js?v=5';
 
     async function initDashboard() {
       const loader = document.getElementById('loadingOverlay');
@@ -339,7 +339,7 @@
       try {
         const { data: sessions, error } = await supabase
           .from('dining_sessions')
-          .select('*, tables!table_id(*), orders(*, order_items(*))')
+          .select('*, tables!dining_sessions_table_id_fkey(*), orders(*, order_items(*))')
           .eq('restaurant_id', restaurantId)
           .eq('status', 'active')
           .order('created_at', { ascending: false });
