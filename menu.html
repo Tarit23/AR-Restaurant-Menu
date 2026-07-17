@@ -2521,8 +2521,8 @@
           : getFallbackModel(item);
         
         const cardArUrl = buildArUrl({ ...item, ...modelData }, isAndroid, isIOS);
-        const arBtnHtml = arEnabled 
-          ? `<a class="btn-ar" href="${cardArUrl}" onclick="event.stopPropagation();" ${isIOS && modelData.usdz_url ? 'rel="ar"' : ''} style="width:100%; display:inline-flex; justify-content:center; text-decoration:none; box-sizing: border-box; margin-top:8px;">📱 View in AR</a>`
+        const arBtnCardHtml = arEnabled 
+          ? `<a class="btn-ar" href="${cardArUrl}" onclick="event.stopPropagation();" ${isIOS && modelData.usdz_url ? 'rel="ar"' : ''} style="width:100%; display:inline-flex; justify-content:center; align-items:center; text-decoration:none; box-sizing: border-box; margin:0; padding: 8px 0; font-size: 0.8rem; font-weight: 700;">📱 View in AR</a>`
           : '';
 
         // Template 1: Modern Minimal
@@ -2539,9 +2539,11 @@
                 <div class="tm-price" style="font-weight:800; font-size:1.1rem; color:var(--primary); margin: 4px 0;">₹${item.price.toLocaleString('en-IN')}</div>
                 ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
               </div>
-              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
-                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; font-weight:700; border-radius:8px;">🛒 Add to Cart</button>
-                ${arBtnHtml}
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; width:100%; box-sizing:border-box;">
+                <div class="dish-footer-action-btn" style="flex:1;">
+                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:8px; font-weight:700; font-size:0.8rem;">🛒 Add</button>
+                </div>
+                ${arBtnCardHtml ? `<div style="flex:1;">${arBtnCardHtml}</div>` : ''}
               </div>
             </div>`;
         }
@@ -2561,9 +2563,11 @@
                 <div class="tg-price" style="font-weight:700; color:var(--primary-light); margin: 4px 0;">₹${item.price.toLocaleString('en-IN')}</div>
                 ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
               </div>
-              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
-                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:50px; font-weight:700;">🛒 Add</button>
-                ${arBtnHtml}
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; width:100%; box-sizing:border-box;">
+                <div class="dish-footer-action-btn" style="flex:1;">
+                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:50px; font-weight:700; font-size:0.8rem;">🛒 Add</button>
+                </div>
+                ${arBtnCardHtml ? `<div style="flex:1;">${arBtnCardHtml}</div>` : ''}
               </div>
             </div>`;
         }
@@ -2582,9 +2586,11 @@
                 <div class="tc-price" style="color:#7c421f; font-weight:700; margin: 4px 0;">☕ ₹${item.price.toLocaleString('en-IN')}</div>
                 ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
               </div>
-              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
-                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:10px; font-weight:700;">Add +</button>
-                ${arBtnHtml}
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; width:100%; box-sizing:border-box;">
+                <div class="dish-footer-action-btn" style="flex:1;">
+                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:10px; font-weight:700; font-size:0.8rem; background-color:#7c421f; border-color:#7c421f;">Add +</button>
+                </div>
+                ${arBtnCardHtml ? `<div style="flex:1;">${arBtnCardHtml}</div>` : ''}
               </div>
             </div>`;
         }
@@ -2603,9 +2609,11 @@
                 <div class="tl-price" style="color:#d4af37; font-family:'Cormorant Garamond', serif; font-size:1.15rem; margin:4px 0;">₹${item.price.toLocaleString('en-IN')}</div>
                 ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
               </div>
-              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
-                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:0; font-weight:700;">Add to Table</button>
-                ${arBtnHtml}
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; width:100%; box-sizing:border-box;">
+                <div class="dish-footer-action-btn" style="flex:1;">
+                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:0; font-weight:700; font-size:0.8rem; background-color:#c5a880; border-color:#c5a880;">Add</button>
+                </div>
+                ${arBtnCardHtml ? `<div style="flex:1;">${arBtnCardHtml}</div>` : ''}
               </div>
             </div>`;
         }
@@ -2625,9 +2633,11 @@
                 <div class="to-price" style="font-weight:700; color:#15803d; margin: 4px 0;">₹${item.price.toLocaleString('en-IN')}</div>
                 ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
               </div>
-              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
-                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:16px; font-weight:700;">🛒 Add</button>
-                ${arBtnHtml}
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; width:100%; box-sizing:border-box;">
+                <div class="dish-footer-action-btn" style="flex:1;">
+                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:16px; font-weight:700; font-size:0.8rem;">🛒 Add</button>
+                </div>
+                ${arBtnCardHtml ? `<div style="flex:1;">${arBtnCardHtml}</div>` : ''}
               </div>
             </div>`;
         }
@@ -2646,9 +2656,11 @@
                 <div class="tz-price" style="color:#dc2626; font-weight:700; margin: 4px 0;">円 ${item.price.toLocaleString('en-IN')}</div>
                 ${item.description && settings.showIngredients !== false ? `<div style="font-size:0.75rem; color:var(--text-sec);">${escHtml(item.description)}</div>` : ''}
               </div>
-              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; flex-direction:column; gap:4px;">
-                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:2px; font-weight:700;">注文 Add</button>
-                ${arBtnHtml}
+              <div class="dish-footer" style="padding: 10px 0; border-top:1px solid var(--border); display:flex; gap:8px; align-items:center; width:100%; box-sizing:border-box;">
+                <div class="dish-footer-action-btn" style="flex:1;">
+                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:2px; font-weight:700; font-size:0.8rem;">注文 Add</button>
+                </div>
+                ${arBtnCardHtml ? `<div style="flex:1;">${arBtnCardHtml}</div>` : ''}
               </div>
             </div>`;
         }
@@ -2657,7 +2669,6 @@
         return `
           <div class="dish-card" data-dish-id="${item.id}" style="animation-delay:${i * 0.04}s; position:relative; cursor:pointer;" onclick="openDishDetail('${item.id}')">
             
-            <!-- Favorite Heart Icon -->
             <button class="btn-favorite-heart" onclick="toggleFavorite(event, '${item.id}')" id="favHeart-${item.id}">
               ${heartChar}
             </button>
@@ -2676,15 +2687,15 @@
               ` : ''}
             </div>
             <div class="dish-footer" style="display:flex; flex-direction:column; gap:8px; width:100%; border-top: 1px solid var(--border); padding: 14px 18px; margin-top: auto; box-sizing: border-box;">
-              <div style="display:flex; justify-content:space-between; align-items:center; width:100%;">
+              <div style="display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom: 4px;">
                 <div class="ui-dish-price">₹${item.price.toLocaleString('en-IN')}</div>
-                <div class="dish-footer-action-btn">
-                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="padding: 6px 14px; font-weight: 700; border-radius: 20px;">
-                    🛒 Add
-                  </button>
-                </div>
               </div>
-              ${arBtnHtml}
+              <div style="display:flex; gap:8px; align-items:center; width:100%;">
+                <div class="dish-footer-action-btn" style="flex:1;">
+                  <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${item.id}', 1)" style="width:100%; padding:8px 0; border-radius:20px; font-weight:700; font-size:0.8rem;">🛒 Add</button>
+                </div>
+                ${arBtnCardHtml ? `<div style="flex:1;">${arBtnCardHtml}</div>` : ''}
+              </div>
             </div>
           </div>`;
       }).join('');
@@ -2850,16 +2861,29 @@
         
         if (qty > 0) {
           btnContainer.innerHTML = `
-            <div class="card-qty-controller" onclick="event.stopPropagation();" style="display:flex; align-items:center; gap:8px; background:var(--bg-elevated); border:1px solid var(--border); padding:2px; border-radius:20px;">
-              <button class="qty-btn" onclick="changeCartQty('${id}', -1)" style="background:var(--primary); color:#fff; border:none; width:26px; height:26px; border-radius:50%; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">-</button>
+            <div class="card-qty-controller" onclick="event.stopPropagation();" style="display:flex; align-items:center; justify-content:space-between; width:100%; gap:4px; background:var(--bg-elevated); border:1px solid var(--border); padding:2px; border-radius:20px; box-sizing:border-box;">
+              <button class="qty-btn" onclick="changeCartQty('${id}', -1)" style="background:var(--primary); color:#fff; border:none; width:26px; height:26px; border-radius:50%; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">-</button>
               <span style="font-weight:700; font-size:0.9rem; min-width:18px; text-align:center; color:var(--text);">${qty}</span>
-              <button class="qty-btn" onclick="changeCartQty('${id}', 1)" style="background:var(--primary); color:#fff; border:none; width:26px; height:26px; border-radius:50%; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center;">+</button>
+              <button class="qty-btn" onclick="changeCartQty('${id}', 1)" style="background:var(--primary); color:#fff; border:none; width:26px; height:26px; border-radius:50%; font-weight:bold; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:1.1rem;">+</button>
             </div>
           `;
         } else {
+          const settings = window._restaurantInfo?.theme_settings || {};
+          const activeTemplate = settings.template || settings.theme || 'default';
+          let addText = '🛒 Add';
+          let radius = '20px';
+          let styleText = '';
+          
+          if (activeTemplate === 'modern_minimal') { addText = '🛒 Add'; radius = '8px'; }
+          else if (activeTemplate === 'glass_premium') { addText = '🛒 Add'; radius = '50px'; }
+          else if (activeTemplate === 'coffee_house') { addText = 'Add +'; radius = '10px'; styleText = 'background-color:#7c421f; border-color:#7c421f;'; }
+          else if (activeTemplate === 'luxury_noir') { addText = 'Add'; radius = '0px'; styleText = 'background-color:#c5a880; border-color:#c5a880;'; }
+          else if (activeTemplate === 'organic_nature') { addText = '🛒 Add'; radius = '16px'; }
+          else if (activeTemplate === 'tokyo_zen') { addText = '注文 Add'; radius = '2px'; }
+
           btnContainer.innerHTML = `
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${id}', 1)" style="padding: 6px 14px; font-weight: 700; border-radius: 20px;">
-              🛒 Add
+            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); addToCart('${id}', 1)" style="width:100%; padding:8px 0; border-radius:${radius}; font-weight:700; font-size:0.8rem; ${styleText}">
+              ${addText}
             </button>
           `;
         }
