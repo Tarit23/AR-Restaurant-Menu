@@ -1522,11 +1522,6 @@
     </div>
   </div>
 
-  <!-- DOWNLOAD BILL FLOATING BUTTON (shown when session is active) -->
-  <button id="billFloatingBtn" onclick="downloadBillPDF(window.activeSessionId)" title="Download Your Bill"
-    style="display:none; position:fixed; bottom:90px; right:20px; z-index:1100; width:56px; height:56px; border-radius:50%; background:linear-gradient(135deg,#10b981,#059669); color:#fff; border:none; box-shadow:0 4px 15px rgba(16,185,129,0.45); font-size:1.3rem; cursor:pointer; align-items:center; justify-content:center; transition:transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
-    📥
-  </button>
 
   <!-- CART FLOATING BUTTON -->
   <button class="cart-floating-btn" id="cartFloatingBtn" onclick="toggleCartDrawer(true)" style="display: none;">
@@ -1649,14 +1644,7 @@
         <span id="cartTotal" style="color: var(--primary-light);">₹0</span>
       </div>
       
-      <!-- Download Bill (visible only when session is active) -->
-      <div id="cartDownloadBillRow" style="display:none; margin-top:12px;">
-        <button onclick="downloadBillPDF(window.activeSessionId)" style="width:100%; padding:11px; border-radius:12px; font-size:0.9rem; font-weight:700; background:transparent; border:1.5px solid #10b981; color:#10b981; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;">
-          📥 Download My Bill
-        </button>
-      </div>
-
-      <button class="btn btn-primary" id="checkoutSubmitBtn" style="width:100%; margin-top: 12px; padding: 12px; border-radius:12px; font-size:1rem; font-weight:700;" onclick="submitTableOrder()">
+      <button class="btn btn-primary" id="checkoutSubmitBtn" style="width:100%; margin-top: 16px; padding: 12px; border-radius:12px; font-size:1rem; font-weight:700;" onclick="submitTableOrder()">
         🚀 Confirm & Send Order
       </button>
     </div>
@@ -2751,11 +2739,7 @@
     // Show / hide Download Bill UI whenever a session becomes active
     function showBillDownloadUI(sessionId) {
       window.activeSessionId = sessionId;
-      activeSessionId = sessionId; // keep local in sync
-      const floatBtn = document.getElementById('billFloatingBtn');
-      const cartRow  = document.getElementById('cartDownloadBillRow');
-      if (floatBtn) floatBtn.style.display = sessionId ? 'flex' : 'none';
-      if (cartRow)  cartRow.style.display  = sessionId ? 'block' : 'none';
+      activeSessionId = sessionId;
     }
 
     // Pre-fill Table Number and Customer Loyalty details on start
