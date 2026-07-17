@@ -76,6 +76,10 @@ ALTER TABLE public.customer_requests ENABLE ROW LEVEL SECURITY;
 -- Tables RLS
 DROP POLICY IF EXISTS "Public select tables" ON public.tables;
 CREATE POLICY "Public select tables" ON public.tables FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Anyone can insert tables" ON public.tables;
+CREATE POLICY "Anyone can insert tables" ON public.tables FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Anyone can update tables" ON public.tables;
+CREATE POLICY "Anyone can update tables" ON public.tables FOR UPDATE USING (true);
 DROP POLICY IF EXISTS "Auth full access tables" ON public.tables;
 CREATE POLICY "Auth full access tables" ON public.tables FOR ALL USING (auth.uid() IS NOT NULL);
 

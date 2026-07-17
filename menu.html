@@ -1488,34 +1488,34 @@
 
   <!-- ASSISTANCE DRAWER -->
   <div id="assistanceDrawerBackdrop" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; display:none;" onclick="toggleAssistanceDrawer()"></div>
-  <div id="assistanceDrawer" style="position:fixed; bottom:-450px; left:0; width:100%; max-width:480px; right:0; margin:0 auto; background:var(--bg-card); border-top:1px solid var(--border); border-radius:20px 20px 0 0; z-index:1001; box-shadow:0 -4px 20px rgba(0,0,0,0.3); padding:20px; transition:bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box; color:var(--text-primary);">
+  <div id="assistanceDrawer" style="position:fixed; bottom:-450px; left:0; width:100%; max-width:480px; right:0; margin:0 auto; background:#12121a; border-top:1px solid rgba(255,255,255,0.12); border-radius:20px 20px 0 0; z-index:1001; box-shadow:0 -4px 20px rgba(0,0,0,0.4); padding:20px; transition:bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box; color:#f1f5f9;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <h3 style="margin:0; font-family:var(--font-display); font-weight:800;">🛎️ Request Assistance</h3>
-      <button onclick="toggleAssistanceDrawer()" style="background:none; border:none; color:var(--text-sec); font-size:1.5rem; cursor:pointer;">×</button>
+      <h3 style="margin:0; font-family:var(--font-display); font-weight:800; color:#ffffff;">🛎️ Request Assistance</h3>
+      <button onclick="toggleAssistanceDrawer()" style="background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer;">×</button>
     </div>
     
     <!-- Table Number Input selection -->
-    <div style="margin-bottom:16px; display:flex; gap:10px; align-items:center; background:var(--bg-elevated); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border);">
-      <label style="font-weight:700; font-size:0.85rem; color:var(--text-sec); white-space:nowrap; margin:0;">Your Table Number:</label>
-      <input type="number" id="assistanceTableInput" placeholder="e.g. 5" style="flex:1; padding:8px 12px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-primary); font-weight:bold; text-align:center; margin:0; outline:none; height:36px; box-sizing:border-box;" />
+    <div style="margin-bottom:16px; display:flex; gap:10px; align-items:center; background:#1c1c24; padding:8px 12px; border-radius:12px; border:1px solid rgba(255,255,255,0.08);">
+      <label style="font-weight:700; font-size:0.85rem; color:#94a3b8; white-space:nowrap; margin:0;">Your Table Number:</label>
+      <input type="number" id="assistanceTableInput" placeholder="e.g. 5" style="flex:1; padding:8px 12px; background:#12121a; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#ffffff; font-weight:bold; text-align:center; margin:0; outline:none; height:36px; box-sizing:border-box;" />
     </div>
     <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; margin-bottom:20px;">
-      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('call_waiter')" style="font-weight:700;">🙋‍♂️ Call Waiter</button>
-      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_water')" style="font-weight:700;">💧 Need Water</button>
-      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_tissue')" style="font-weight:700;">🧻 Need Tissue</button>
-      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_spoon')" style="font-weight:700;">🥄 Need Spoon</button>
-      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_bill')" style="font-weight:700;">💵 Need Bill</button>
-      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_extra_plates')" style="font-weight:700;">🍽️ Extra Plates</button>
-      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_cleaning')" style="font-weight:700; grid-column: 1/-1;">🧹 Need Table Cleaning</button>
+      <button onclick="sendAssistanceRequest('call_waiter')" style="background:#1c1c24; border:1px solid rgba(255,255,255,0.08); color:#ffffff; font-weight:700; padding:12px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; font-family:inherit; font-size:0.82rem;">🙋‍♂️ Call Waiter</button>
+      <button onclick="sendAssistanceRequest('need_water')" style="background:#1c1c24; border:1px solid rgba(255,255,255,0.08); color:#ffffff; font-weight:700; padding:12px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; font-family:inherit; font-size:0.82rem;">💧 Need Water</button>
+      <button onclick="sendAssistanceRequest('need_tissue')" style="background:#1c1c24; border:1px solid rgba(255,255,255,0.08); color:#ffffff; font-weight:700; padding:12px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; font-family:inherit; font-size:0.82rem;">🧻 Need Tissue</button>
+      <button onclick="sendAssistanceRequest('need_spoon')" style="background:#1c1c24; border:1px solid rgba(255,255,255,0.08); color:#ffffff; font-weight:700; padding:12px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; font-family:inherit; font-size:0.82rem;">🥄 Need Spoon</button>
+      <button onclick="sendAssistanceRequest('need_bill')" style="background:#1c1c24; border:1px solid rgba(255,255,255,0.08); color:#ffffff; font-weight:700; padding:12px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; font-family:inherit; font-size:0.82rem;">💵 Need Bill</button>
+      <button onclick="sendAssistanceRequest('need_extra_plates')" style="background:#1c1c24; border:1px solid rgba(255,255,255,0.08); color:#ffffff; font-weight:700; padding:12px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; font-family:inherit; font-size:0.82rem;">🍽️ Extra Plates</button>
+      <button onclick="sendAssistanceRequest('need_cleaning')" style="background:#1c1c24; border:1px solid rgba(255,255,255,0.08); color:#ffffff; font-weight:700; padding:12px; border-radius:12px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.2s; font-family:inherit; font-size:0.82rem; grid-column: 1/-1;">🧹 Need Table Cleaning</button>
     </div>
   </div>
 
   <!-- ORDER TRACKING DRAWER -->
   <div id="trackingDrawerBackdrop" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; display:none;" onclick="toggleTrackingDrawer()"></div>
-  <div id="trackingDrawer" style="position:fixed; bottom:-500px; left:0; width:100%; max-width:480px; right:0; margin:0 auto; background:var(--bg-card); border-top:1px solid var(--border); border-radius:20px 20px 0 0; z-index:1001; box-shadow:0 -4px 20px rgba(0,0,0,0.3); padding:20px; transition:bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box; color:var(--text-primary);">
+  <div id="trackingDrawer" style="position:fixed; bottom:-500px; left:0; width:100%; max-width:480px; right:0; margin:0 auto; background:#12121a; border-top:1px solid rgba(255,255,255,0.12); border-radius:20px 20px 0 0; z-index:1001; box-shadow:0 -4px 20px rgba(0,0,0,0.4); padding:20px; transition:bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box; color:#f1f5f9;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
-      <h3 style="margin:0; font-family:var(--font-display); font-weight:800;">📋 Order Tracking</h3>
-      <button onclick="toggleTrackingDrawer()" style="background:none; border:none; color:var(--text-sec); font-size:1.5rem; cursor:pointer;">×</button>
+      <h3 style="margin:0; font-family:var(--font-display); font-weight:800; color:#ffffff;">📋 Order Tracking</h3>
+      <button onclick="toggleTrackingDrawer()" style="background:none; border:none; color:#94a3b8; font-size:1.5rem; cursor:pointer;">×</button>
     </div>
     <div style="display:flex; flex-direction:column; gap:16px; max-height:350px; overflow-y:auto;" id="trackingContent">
       <!-- Live timeline details -->

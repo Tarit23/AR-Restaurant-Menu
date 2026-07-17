@@ -742,6 +742,23 @@
         timestamp: new Date()
       });
       syncNotificationBadge();
+
+      // Play premium synthesized alert chime
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(type === 'new_order' ? 659.25 : 587.33, audioCtx.currentTime); // E5 or D5 note
+        gainNode.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        oscillator.start();
+        gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + 1.0);
+        oscillator.stop(audioCtx.currentTime + 1.0);
+      } catch (e) {
+        console.warn('AudioContext failed to play alert chime:', e);
+      }
     }
 
     function syncNotificationBadge() {
