@@ -1682,6 +1682,7 @@
       const restName = window.restaurant?.name || 'Restaurant';
       document.getElementById('simTitle').textContent = themeSettings.welcomeTitle || `${restName}'s Menu`;
       document.getElementById('simSubtitle').textContent = themeSettings.welcomeSubtitle || 'Fresh, delicious, and made with love.';
+      renderBackgroundEffects(simContent, activeTemp);
     }
 
     // Save Action

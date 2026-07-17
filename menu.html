@@ -2486,6 +2486,88 @@
       document.head.appendChild(link);
     }
 
+    function renderBackgroundEffects(parent, activeTemp) {
+      if (!parent) return;
+      let deco = parent.querySelector('.bg-deco-layer');
+      if (deco) deco.remove();
+
+      deco = document.createElement('div');
+      deco.className = 'bg-deco-layer';
+      deco.style.position = 'absolute';
+      deco.style.top = '0';
+      deco.style.left = '0';
+      deco.style.width = '100%';
+      deco.style.height = '100%';
+      deco.style.overflow = 'hidden';
+      deco.style.pointerEvents = 'none';
+      deco.style.zIndex = '0';
+
+      let decoHtml = '';
+
+      if (activeTemp === 'green_bite' || activeTemp === 'organic_nature') {
+        const leaves = [
+          { text: "🍃", top: "10%", left: "5%", size: "1.6rem", rot: "15deg" },
+          { text: "🌿", top: "45%", left: "92%", size: "2rem", rot: "-25deg" },
+          { text: "🍅", top: "75%", left: "6%", size: "1.5rem", rot: "10deg" },
+          { text: "🍃", top: "25%", left: "88%", size: "1.4rem", rot: "45deg" },
+          { text: "🌿", top: "85%", left: "75%", size: "1.8rem", rot: "-10deg" }
+        ];
+        leaves.forEach(leaf => {
+          decoHtml += `<div class="floating-deco-item" style="position:absolute; top:${leaf.top}; left:${leaf.left}; font-size:${leaf.size}; transform:rotate(${leaf.rot}); opacity:0.75; animation: floatMotion 6s ease-in-out infinite alternate;">${leaf.text}</div>`;
+        });
+      } else if (activeTemp === 'sweet_affair') {
+        const sweets = [
+          { text: "🍰", top: "15%", left: "84%", size: "2rem", rot: "10deg" },
+          { text: "🍓", top: "50%", left: "4%", size: "1.6rem", rot: "-15deg" },
+          { text: "🍩", top: "80%", left: "90%", size: "1.8rem", rot: "20deg" },
+          { text: "🧁", top: "35%", left: "6%", size: "1.7rem", rot: "-5deg" }
+        ];
+        sweets.forEach(item => {
+          decoHtml += `<div class="floating-deco-item" style="position:absolute; top:${item.top}; left:${item.left}; font-size:${item.size}; transform:rotate(${item.rot}); opacity:0.8; animation: floatMotion 8s ease-in-out infinite alternate;">${item.text}</div>`;
+        });
+      } else if (activeTemp === 'yum_yum') {
+        const junk = [
+          { text: "🍔", top: "12%", left: "86%", size: "2rem", rot: "-12deg" },
+          { text: "🍟", top: "40%", left: "4%", size: "1.6rem", rot: "18deg" },
+          { text: "🥤", top: "70%", left: "92%", size: "1.9rem", rot: "-8deg" },
+          { text: "🍕", top: "85%", left: "10%", size: "1.8rem", rot: "15deg" }
+        ];
+        junk.forEach(item => {
+          decoHtml += `<div class="floating-deco-item" style="position:absolute; top:${item.top}; left:${item.left}; font-size:${item.size}; transform:rotate(${item.rot}); opacity:0.85; animation: floatMotion 5s ease-in-out infinite alternate;">${item.text}</div>`;
+        });
+      } else if (activeTemp === 'spice_route') {
+        decoHtml += `
+          <div style="position:absolute; top:0; left:0; width:100%; height:12px; background: repeating-linear-gradient(90deg, transparent, transparent 8px, var(--border) 8px, var(--border) 10px); opacity:0.25;"></div>
+          <div style="position:absolute; bottom:0; left:0; width:100%; height:12px; background: repeating-linear-gradient(90deg, transparent, transparent 8px, var(--border) 8px, var(--border) 10px); opacity:0.25;"></div>
+          <div style="position:absolute; top:35%; left:3%; font-size:2.5rem; opacity:0.04; font-family:serif;">🪔</div>
+          <div style="position:absolute; top:75%; left:89%; font-size:3rem; opacity:0.04; font-family:serif;">🪔</div>
+        `;
+      } else if (activeTemp === 'street_tales') {
+        const chalks = [
+          { text: "🌭", top: "15%", left: "6%", size: "1.8rem", rot: "-10deg" },
+          { text: "🍿", top: "50%", left: "88%", size: "2rem", rot: "15deg" },
+          { text: "🥨", top: "82%", left: "4%", size: "1.6rem", rot: "-20deg" }
+        ];
+        chalks.forEach(item => {
+          decoHtml += `<div class="chalk-doodle-item" style="position:absolute; top:${item.top}; left:${item.left}; font-size:${item.size}; transform:rotate(${item.rot}); opacity:0.12; filter: grayscale(1) brightness(1.8); animation: floatMotion 7s ease-in-out infinite alternate;">${item.text}</div>`;
+        });
+      } else if (activeTemp === 'aroma') {
+        decoHtml += `
+          <div style="position:absolute; top:25%; left:88%; font-size:1.3rem; color:var(--accent); opacity:0.2; animation: floatMotion 4s ease-in-out infinite alternate;">✨</div>
+          <div style="position:absolute; top:80%; left:8%; font-size:1.5rem; color:var(--accent); opacity:0.2; animation: floatMotion 5s ease-in-out infinite alternate;">✨</div>
+        `;
+      } else if (activeTemp === 'flavoria') {
+        decoHtml += `
+          <div style="position:absolute; top:20%; left:-10%; width:40%; height:30%; background:radial-gradient(circle, rgba(207,168,107,0.06) 0%, transparent 70%);"></div>
+          <div style="position:absolute; bottom:15%; right:-10%; width:50%; height:40%; background:radial-gradient(circle, rgba(207,168,107,0.05) 0%, transparent 70%);"></div>
+          <div style="position:absolute; top:65%; left:88%; font-size:1rem; color:var(--primary); opacity:0.12;">★</div>
+        `;
+      }
+
+      deco.innerHTML = decoHtml;
+      parent.appendChild(deco);
+    }
+
     function applyThemeSettings(settings, restName) {
       // Toggle body template classes
       const activeTemp = settings.template || settings.theme || 'default';
@@ -2601,6 +2683,27 @@
           border-radius: var(--button-radius) !important;
         }
 
+        @keyframes floatMotion {
+          0% { transform: translateY(0) rotate(-5deg); }
+          100% { transform: translateY(-8px) rotate(5deg); }
+        }
+
+        body.template-yum-yum {
+          background-image: radial-gradient(rgba(255, 195, 0, 0.1) 15%, transparent 16%) !important;
+          background-size: 24px 24px !important;
+        }
+        body.template-sweet-affair {
+          background-image: repeating-linear-gradient(45deg, rgba(208, 59, 104, 0.01) 0px, rgba(208, 59, 104, 0.01) 10px, transparent 10px, transparent 20px) !important;
+        }
+        body.template-street-tales {
+          background-image: radial-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 0) !important;
+          background-size: 8px 8px !important;
+        }
+        body.template-aroma {
+          background-image: linear-gradient(135deg, transparent 45%, rgba(212,175,55,0.02) 45%, rgba(212,175,55,0.02) 46%, transparent 46%), linear-gradient(225deg, transparent 45%, rgba(212,175,55,0.02) 45%, rgba(212,175,55,0.02) 46%, transparent 46%) !important;
+          background-size: 60px 60px !important;
+        }
+
         .dish-card, .cart-drawer, .modal {
           backdrop-filter: var(--glass-effect) !important;
           box-shadow: var(--shadow) !important;
@@ -2665,6 +2768,7 @@
           }
         ` : ''}
       `;
+      renderBackgroundEffects(document.body, activeTemp);
     }
 
 
