@@ -1493,6 +1493,12 @@
       <h3 style="margin:0; font-family:var(--font-display); font-weight:800;">🛎️ Request Assistance</h3>
       <button onclick="toggleAssistanceDrawer()" style="background:none; border:none; color:var(--text-sec); font-size:1.5rem; cursor:pointer;">×</button>
     </div>
+    
+    <!-- Table Number Input selection -->
+    <div style="margin-bottom:16px; display:flex; gap:10px; align-items:center; background:var(--bg-elevated); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border);">
+      <label style="font-weight:700; font-size:0.85rem; color:var(--text-sec); white-space:nowrap; margin:0;">Your Table Number:</label>
+      <input type="number" id="assistanceTableInput" placeholder="e.g. 5" style="flex:1; padding:8px 12px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-sm); color:var(--text-primary); font-weight:bold; text-align:center; margin:0; outline:none; height:36px; box-sizing:border-box;" />
+    </div>
     <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; margin-bottom:20px;">
       <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('call_waiter')" style="font-weight:700;">🙋‍♂️ Call Waiter</button>
       <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_water')" style="font-weight:700;">💧 Need Water</button>
@@ -3302,20 +3308,30 @@
         drawer.style.bottom = '-450px';
         backdrop.style.display = 'none';
       } else {
+        const tableInput = document.getElementById('assistanceTableInput');
+        if (tableInput) {
+          const checkoutTableVal = document.getElementById('checkoutTable')?.value || '';
+          const queryTable = new URLSearchParams(window.location.search).get('table') || '';
+          tableInput.value = checkoutTableVal || queryTable || localStorage.getItem('ar_table_num') || '';
+        }
         drawer.style.bottom = '0px';
         backdrop.style.display = 'block';
       }
     };
 
     window.sendAssistanceRequest = async (requestType) => {
-      const tableInput = document.getElementById('checkoutTable');
-      const tableNumber = parseInt(tableInput.value);
-      if (!tableNumber) {
-        alert('Please specify your Table Number first in the checkout drawer.');
-        toggleAssistanceDrawer();
-        toggleCartDrawer(true);
+      const tableInput = document.getElementById('assistanceTableInput');
+      const tableNumber = parseInt(tableInput?.value);
+      if (isNaN(tableNumber) || tableNumber <= 0) {
+        alert('Please enter your Table Number before requesting assistance.');
+        if (tableInput) tableInput.focus();
         return;
       }
+
+      // Sync back to checkout table input and local storage
+      const checkoutTable = document.getElementById('checkoutTable');
+      if (checkoutTable) checkoutTable.value = tableNumber;
+      localStorage.setItem('ar_table_num', tableNumber);
 
       try {
         let session = await sessionsAPI.getActiveByTable(restaurantId, tableNumber);
