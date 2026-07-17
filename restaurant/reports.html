@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Analytics Reports — AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    .reports-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .report-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .report-card-title {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .report-card-value {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .performance-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      font-size: 0.85rem;
+    }
+
+    .performance-table th, .performance-table td {
+      border: 1px solid var(--border);
+      padding: 12px;
+      text-align: left;
+    }
+
+    .performance-table th {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="dashboard-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"></div>
+      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="/restaurant">Dashboard</a>
+      <a class="nav-item" href="/restaurant/live-ops.html">Live Operations</a>
+      <a class="nav-item" href="/restaurant/tables.html">Tables</a>
+      <a class="nav-item" href="/restaurant/menu.html">Menu Management</a>
+      <a class="nav-item active" href="/restaurant/reports.html">Reports</a>
+      <a class="nav-item" href="/restaurant/theme.html">Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">R</div>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="restaurantName">Loading...</div>
+          <div class="user-role">Restaurant Owner</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn" type="button">Sign Out</button>
+      </div>
+    </div>
+  </aside>
+  
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
+      <div class="topbar-breadcrumb">
+        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">Reports</span>
+      </div>
+    </header>
+
+    <div class="page-content animate-in">
+      <div class="page-header">
+        <div class="page-header-text">
+          <h1>Analytics Reports</h1>
+          <p>Historical sales performance, kitchen delays, and table occupancy metrics.</p>
+        </div>
+      </div>
+
+      <div class="reports-stats-grid">
+        <div class="report-card">
+          <div class="report-card-title">💵 Today's Total Sales</div>
+          <div class="report-card-value" id="todaySales">₹0</div>
+        </div>
+        <div class="report-card">
+          <div class="report-card-title">📝 Total Orders Fulfilled</div>
+          <div class="report-card-value" id="totalOrders">0</div>
+        </div>
+        <div class="report-card">
+          <div class="report-card-title">⏱️ Avg Prep Time</div>
+          <div class="report-card-value" id="avgPrepTime">12 mins</div>
+        </div>
+        <div class="report-card">
+          <div class="report-card-title">🍛 Average Bill Value</div>
+          <div class="report-card-value" id="avgBill">₹0</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 32px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:24px;">
+        <h3 style="margin-bottom:12px;">Top Selling Menu Items</h3>
+        <table class="performance-table">
+          <thead>
+            <tr>
+              <th>Dish Name</th>
+              <th>Orders Count</th>
+              <th>Revenue Earned</th>
+            </tr>
+          </thead>
+          <tbody id="topItemsBody">
+            <tr>
+              <td colspan="3" style="text-align:center; color:var(--text-muted);">Loading analytics data...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import "/js/logout-handler.js?v=3";
+    import { supabase } from "/js/supabase-config.js?v=3";
+
+    let restaurantId = null;
+
+    (async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+      if (!profile) return window.location.href = '../login.html';
+
+      const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+      restaurantId = restaurant.id;
+
+      document.getElementById('restaurantName').textContent = restaurant.name;
+      document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
+      document.getElementById('topbarRestName').textContent  = restaurant.name;
+      document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+
+      loadReportAnalytics();
+    })();
+
+    async function loadReportAnalytics() {
+      try {
+        // Query completed dining sessions
+        const { data: sessions, error } = await supabase
+          .from('dining_sessions')
+          .select('*')
+          .eq('restaurant_id', restaurantId)
+          .eq('status', 'completed');
+        if (error) throw error;
+
+        // Calculate sales totals
+        let totalSales = 0;
+        sessions.forEach(s => {
+          totalSales += parseFloat(s.running_total || 0) - parseFloat(s.discount_amount || 0);
+        });
+
+        document.getElementById('todaySales').textContent = `₹${Math.round(totalSales).toLocaleString('en-IN')}`;
+        document.getElementById('totalOrders').textContent = sessions.length;
+        
+        const avg = sessions.length ? Math.round(totalSales / sessions.length) : 0;
+        document.getElementById('avgBill').textContent = `₹${avg}`;
+
+        // Top items list
+        const { data: items, error: iErr } = await supabase
+          .from('order_items')
+          .select('name, quantity, price, orders!inner(restaurant_id)')
+          .eq('orders.restaurant_id', restaurantId);
+        if (iErr) throw iErr;
+
+        // Aggregate items
+        const itemAgg = {};
+        items.forEach(i => {
+          if (!itemAgg[i.name]) {
+            itemAgg[i.name] = { count: 0, sales: 0 };
+          }
+          itemAgg[i.name].count += i.quantity;
+          itemAgg[i.name].sales += i.price * i.quantity;
+        });
+
+        const sorted = Object.entries(itemAgg)
+          .map(([name, val]) => ({ name, ...val }))
+          .sort((a,b) => b.count - a.count)
+          .slice(0, 5);
+
+        const tbody = document.getElementById('topItemsBody');
+        if (!sorted.length) {
+          tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No sales data available yet.</td></tr>`;
+        } else {
+          tbody.innerHTML = sorted.map(i => `
+            <tr>
+              <td><strong>${i.name}</strong></td>
+              <td>${i.count} orders</td>
+              <td style="color:#22c55e; font-weight:700;">₹${Math.round(i.sales).toLocaleString('en-IN')}</td>
+            </tr>
+          `).join('');
+        }
+      } catch (err) {
+        console.error('Failed reports build:', err.message);
+      }
+    }
+  </script>
+</body>
+</html>

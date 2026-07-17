@@ -741,3 +741,299 @@ export const themeAPI = {
     return data.theme_settings;
   }
 };
+
+/* ─── Tables API ─── */
+export const tablesAPI = {
+  async getAll(restaurantId) {
+    const { data, error } = await supabase
+      .from('tables')
+      .select('*, dining_sessions(*)')
+      .eq('restaurant_id', restaurantId)
+      .order('table_number', { ascending: true });
+    if (error) throw error;
+    return data;
+  },
+
+  async updateStatus(tableId, status) {
+    const { data, error } = await supabase
+      .from('tables')
+      .update({ status })
+      .eq('id', tableId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async setSession(tableId, sessionId) {
+    const { data, error } = await supabase
+      .from('tables')
+      .update({ current_session_id: sessionId })
+      .eq('id', tableId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async markClean(tableId) {
+    return this.updateStatus(tableId, 'available');
+  }
+};
+
+/* ─── Dining Sessions API ─── */
+export const sessionsAPI = {
+  async getActive(restaurantId) {
+    const { data, error } = await supabase
+      .from('dining_sessions')
+      .select('*, tables(*), orders(*, order_items(*))')
+      .eq('restaurant_id', restaurantId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async getSessionById(sessionId) {
+    const { data, error } = await supabase
+      .from('dining_sessions')
+      .select('*, tables(*), orders(*, order_items(*))')
+      .eq('id', sessionId)
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getActiveByTable(restaurantId, tableNumber) {
+    // Get table first
+    const { data: table, error: tErr } = await supabase
+      .from('tables')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .eq('table_number', parseInt(tableNumber))
+      .single();
+    if (tErr && tErr.code !== 'PGRST116') throw tErr;
+    
+    // If table doesn't exist, create it!
+    if (!table) {
+      const { data: newTable, error: createTableErr } = await supabase
+        .from('tables')
+        .insert([{ restaurant_id: restaurantId, table_number: parseInt(tableNumber), status: 'available' }])
+        .select()
+        .single();
+      if (createTableErr) throw createTableErr;
+      return null;
+    }
+
+    if (!table.current_session_id) return null;
+
+    // Get active session
+    const { data: session, error: sErr } = await supabase
+      .from('dining_sessions')
+      .select('*')
+      .eq('id', table.current_session_id)
+      .eq('status', 'active')
+      .single();
+    if (sErr && sErr.code !== 'PGRST116') throw sErr;
+    return session;
+  },
+
+  async startSession(restaurantId, tableNumber, customerName, customerEmail, customerId) {
+    // 1. Get or create table
+    let { data: table, error: tErr } = await supabase
+      .from('tables')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .eq('table_number', parseInt(tableNumber))
+      .single();
+    if (tErr && tErr.code === 'PGRST116') {
+      const { data: nt, error: ntErr } = await supabase
+        .from('tables')
+        .insert([{ restaurant_id: restaurantId, table_number: parseInt(tableNumber), status: 'available' }])
+        .select()
+        .single();
+      if (ntErr) throw ntErr;
+      table = nt;
+    } else if (tErr) {
+      throw tErr;
+    }
+
+    // 2. Create dining session
+    const { data: session, error: sErr } = await supabase
+      .from('dining_sessions')
+      .insert([{
+        restaurant_id: restaurantId,
+        table_id: table.id,
+        customer_name: customerName || 'Dine-In Customer',
+        customer_email: customerEmail || null,
+        customer_id: customerId || null,
+        status: 'active',
+        payment_status: 'unpaid'
+      }])
+      .select()
+      .single();
+    if (sErr) throw sErr;
+
+    // 3. Link session to table and change status to 'seated'
+    await supabase
+      .from('tables')
+      .update({ current_session_id: session.id, status: 'seated' })
+      .eq('id', table.id);
+
+    return session;
+  },
+
+  async addOrder(sessionId, restaurantId, items, specialInstructions) {
+    // 1. Get session details to find the linked table
+    const session = await this.getSessionById(sessionId);
+    if (!session) throw new Error('Session not found');
+
+    // 2. Create Order linked to session
+    const { data: order, error: oErr } = await supabase
+      .from('orders')
+      .insert([{
+        session_id: sessionId,
+        restaurant_id: restaurantId,
+        table_number: session.tables.table_number,
+        customer_name: session.customer_name,
+        customer_email: session.customer_email,
+        customer_id: session.customer_id,
+        status: 'new',
+        special_instructions: specialInstructions || ''
+      }])
+      .select()
+      .single();
+    if (oErr) throw oErr;
+
+    // 3. Add order items
+    const orderItems = items.map(item => ({
+      order_id: order.id,
+      menu_item_id: item.id,
+      name: item.name,
+      quantity: item.quantity,
+      price: item.price,
+      notes: item.notes || ''
+    }));
+
+    const { error: itemsErr } = await supabase
+      .from('order_items')
+      .insert(orderItems);
+    if (itemsErr) throw itemsErr;
+
+    // 4. Update session running total
+    const orderTotal = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const newTotal = parseFloat(session.running_total || 0) + orderTotal;
+    await supabase
+      .from('dining_sessions')
+      .update({ running_total: newTotal })
+      .eq('id', sessionId);
+
+    // 5. Set table status to 'preparing'
+    await supabase
+      .from('tables')
+      .update({ status: 'preparing' })
+      .eq('id', session.table_id);
+
+    return order;
+  },
+
+  async closeSession(sessionId, paymentMethod, discountAmount = 0, voucherCode = '') {
+    const session = await this.getSessionById(sessionId);
+    if (!session) throw new Error('Session not found');
+
+    // 1. Update Dining Session to completed and paid
+    const finalTotal = parseFloat(session.running_total) - parseFloat(discountAmount);
+    const { data: updatedSession, error: sErr } = await supabase
+      .from('dining_sessions')
+      .update({
+        status: 'completed',
+        payment_status: 'paid',
+        payment_method: paymentMethod,
+        discount_amount: discountAmount,
+        voucher_code: voucherCode || null,
+        end_time: new Date().toISOString()
+      })
+      .eq('id', sessionId)
+      .select()
+      .single();
+    if (sErr) throw sErr;
+
+    // 2. Mark all orders under this session as completed
+    await supabase
+      .from('orders')
+      .update({ status: 'completed' })
+      .eq('session_id', sessionId);
+
+    // 3. Update table status to 'cleaning' and decouple current_session_id
+    await supabase
+      .from('tables')
+      .update({ current_session_id: null, status: 'cleaning' })
+      .eq('id', session.table_id);
+
+    // 4. Credit loyalty points trigger replacement
+    if (session.customer_id && finalTotal > 0) {
+      const earned_pts = Math.floor(finalTotal * 0.1);
+      if (earned_pts > 0) {
+        const { data: customer } = await supabase
+          .from('loyalty_customers')
+          .select('points')
+          .eq('id', session.customer_id)
+          .single();
+        const currentPoints = customer ? (customer.points || 0) : 0;
+
+        await supabase
+          .from('loyalty_customers')
+          .update({
+            points: currentPoints + earned_pts,
+            total_points_earned: currentPoints + earned_pts,
+            total_spent_amount: finalTotal,
+            visit_count: 1
+          })
+          .eq('id', session.customer_id);
+      }
+    }
+
+    return updatedSession;
+  }
+};
+
+/* ─── Customer Assistance Requests API ─── */
+export const requestsAPI = {
+  async create(restaurantId, tableNumber, sessionId, requestType) {
+    const { data, error } = await supabase
+      .from('customer_requests')
+      .insert([{
+        restaurant_id: restaurantId,
+        table_number: parseInt(tableNumber),
+        session_id: sessionId,
+        request_type: requestType,
+        status: 'pending'
+      }])
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  },
+
+  async getActive(restaurantId) {
+    const { data, error } = await supabase
+      .from('customer_requests')
+      .select('*')
+      .eq('restaurant_id', restaurantId)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data;
+  },
+
+  async resolve(requestId) {
+    const { data, error } = await supabase
+      .from('customer_requests')
+      .update({ status: 'completed' })
+      .eq('id', requestId)
+      .select()
+      .single();
+    if (error) throw error;
+    return data;
+  }
+};

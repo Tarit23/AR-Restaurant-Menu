@@ -1480,6 +1480,42 @@
   <!-- CONFETTI CANVAS -->
   <canvas id="confettiCanvas"></canvas>
 
+  <!-- CUSTOMER ASSISTANCE FLOATING BUTTON -->
+  <button id="customerAssistanceBtn" style="position:fixed; bottom:80px; left:20px; z-index:999; background:var(--primary); color:#fff; border-radius:50%; width:56px; height:56px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,0.3); border:2px solid #fff; transition: all 0.2s;" onclick="toggleAssistanceDrawer()">🛎️</button>
+
+  <!-- ORDER TRACKING FLOATING BUTTON -->
+  <button id="orderTrackingBtn" style="position:fixed; bottom:80px; right:20px; z-index:999; background:#10b981; color:#fff; border-radius:50%; width:56px; height:56px; display:flex; align-items:center; justify-content:center; font-size:1.5rem; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,0.3); border:2px solid #fff; transition: all 0.2s; display:none;" onclick="toggleTrackingDrawer()">📋</button>
+
+  <!-- ASSISTANCE DRAWER -->
+  <div id="assistanceDrawerBackdrop" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; display:none;" onclick="toggleAssistanceDrawer()"></div>
+  <div id="assistanceDrawer" style="position:fixed; bottom:-450px; left:0; width:100%; max-width:480px; right:0; margin:0 auto; background:var(--bg-card); border-top:1px solid var(--border); border-radius:20px 20px 0 0; z-index:1001; box-shadow:0 -4px 20px rgba(0,0,0,0.3); padding:20px; transition:bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box; color:var(--text-primary);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="margin:0; font-family:var(--font-display); font-weight:800;">🛎️ Request Assistance</h3>
+      <button onclick="toggleAssistanceDrawer()" style="background:none; border:none; color:var(--text-sec); font-size:1.5rem; cursor:pointer;">×</button>
+    </div>
+    <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:12px; margin-bottom:20px;">
+      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('call_waiter')" style="font-weight:700;">🙋‍♂️ Call Waiter</button>
+      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_water')" style="font-weight:700;">💧 Need Water</button>
+      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_tissue')" style="font-weight:700;">🧻 Need Tissue</button>
+      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_spoon')" style="font-weight:700;">🥄 Need Spoon</button>
+      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_bill')" style="font-weight:700;">💵 Need Bill</button>
+      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_extra_plates')" style="font-weight:700;">🍽️ Extra Plates</button>
+      <button class="btn btn-secondary btn-sm" onclick="sendAssistanceRequest('need_cleaning')" style="font-weight:700; grid-column: 1/-1;">🧹 Need Table Cleaning</button>
+    </div>
+  </div>
+
+  <!-- ORDER TRACKING DRAWER -->
+  <div id="trackingDrawerBackdrop" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:1000; display:none;" onclick="toggleTrackingDrawer()"></div>
+  <div id="trackingDrawer" style="position:fixed; bottom:-500px; left:0; width:100%; max-width:480px; right:0; margin:0 auto; background:var(--bg-card); border-top:1px solid var(--border); border-radius:20px 20px 0 0; z-index:1001; box-shadow:0 -4px 20px rgba(0,0,0,0.3); padding:20px; transition:bottom 0.3s cubic-bezier(0.16, 1, 0.3, 1); box-sizing:border-box; color:var(--text-primary);">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+      <h3 style="margin:0; font-family:var(--font-display); font-weight:800;">📋 Order Tracking</h3>
+      <button onclick="toggleTrackingDrawer()" style="background:none; border:none; color:var(--text-sec); font-size:1.5rem; cursor:pointer;">×</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:16px; max-height:350px; overflow-y:auto;" id="trackingContent">
+      <!-- Live timeline details -->
+    </div>
+  </div>
+
   <!-- CART FLOATING BUTTON -->
   <button class="cart-floating-btn" id="cartFloatingBtn" onclick="toggleCartDrawer(true)" style="display: none;">
     <span class="cart-count-badge" id="cartCountBadge">0</span>
@@ -1873,6 +1909,7 @@
   <script type="module">
     import { supabase } from './js/supabase-config.js?v=3';
     import { APP_CONFIG } from './js/supabase-config.js?v=3';
+    import { sessionsAPI, requestsAPI } from './js/loyalty-api.js?v=3';
 
     const params       = new URLSearchParams(window.location.search);
     const restaurantId = params.get('restaurant');
@@ -2676,6 +2713,7 @@
        TABLE ORDERING, CART & SMART UPSELLING LOGIC
     ═══════════════════════════════════════════════════════════ */
     let cart = [];
+    let activeSessionId = null;
     let appliedVoucher = null;
     window._favoriteIds = [];
 
@@ -3225,59 +3263,15 @@
           if (customer) customerId = customer.id;
         }
 
-        const subtotal = cart.reduce((sum, i) => sum + (i.price * i.quantity), 0);
-        let discount = 0;
-
-        if (appliedVoucher) {
-          if (appliedVoucher.type === 'discount_flat') {
-            discount = parseFloat(appliedVoucher.value);
-          } else if (appliedVoucher.type === 'discount_percent') {
-            discount = Math.floor(subtotal * (parseFloat(appliedVoucher.value) / 100));
-          }
+        // 1. Get or Start Dining Session
+        let session = await sessionsAPI.getActiveByTable(restaurantId, tableNumber);
+        if (!session) {
+          session = await sessionsAPI.startSession(restaurantId, tableNumber, name, email, customerId);
         }
+        activeSessionId = session.id;
 
-        // Insert order
-        const { data: order, error } = await supabase
-          .from('orders')
-          .insert([{
-            restaurant_id: restaurantId,
-            customer_id: customerId,
-            customer_name: name || 'Dine-In Table Customer',
-            customer_email: email || null,
-            table_number: tableNumber,
-            total_amount: subtotal,
-            discount_amount: discount,
-            status: 'pending',
-            voucher_code: appliedVoucher ? appliedVoucher.code : null,
-            payment_method: (() => {
-              const pageRadio = document.querySelector('input[name="payment_method"]:checked');
-              return pageRadio ? pageRadio.value : 'cash';
-            })(),
-            payment_status: (() => {
-              const pageRadio = document.querySelector('input[name="payment_method"]:checked');
-              const method = pageRadio ? pageRadio.value : 'cash';
-              return method === 'upi' ? 'paid' : 'pending';
-            })()
-          }])
-          .select()
-          .single();
-
-        if (error) throw error;
-
-        // Insert order items
-        const orderItemsPayload = cart.map(item => ({
-          order_id: order.id,
-          menu_item_id: item.id,
-          name: item.name,
-          quantity: item.quantity,
-          price: item.price
-        }));
-
-        const { error: itemsError } = await supabase
-          .from('order_items')
-          .insert(orderItemsPayload);
-
-        if (itemsError) throw itemsError;
+        // 2. Add Order to Session
+        await sessionsAPI.addOrder(session.id, restaurantId, cart, '');
 
         cart = [];
         appliedVoucher = null;
@@ -3286,7 +3280,11 @@
         updateCartBadge();
         toggleCartDrawer(false);
 
-        alert('🎉 Order placed successfully! Sent to kitchen KDS.');
+        alert('🎉 Order placed successfully! Sent to kitchen via Dining Session.');
+        
+        // Show tracking buttons
+        document.getElementById('orderTrackingBtn').style.display = 'flex';
+        syncOrderTracking();
 
       } catch (err) {
         alert('Order placement failed: ' + err.message);
@@ -3295,6 +3293,109 @@
         submitBtn.textContent = '🚀 Place Table Order';
       }
     };
+
+    /* ─── Customer Assistance & Order Tracking Drawers ─── */
+    window.toggleAssistanceDrawer = () => {
+      const drawer = document.getElementById('assistanceDrawer');
+      const backdrop = document.getElementById('assistanceDrawerBackdrop');
+      if (drawer.style.bottom === '0px') {
+        drawer.style.bottom = '-450px';
+        backdrop.style.display = 'none';
+      } else {
+        drawer.style.bottom = '0px';
+        backdrop.style.display = 'block';
+      }
+    };
+
+    window.sendAssistanceRequest = async (requestType) => {
+      const tableInput = document.getElementById('checkoutTable');
+      const tableNumber = parseInt(tableInput.value);
+      if (!tableNumber) {
+        alert('Please specify your Table Number first in the checkout drawer.');
+        toggleAssistanceDrawer();
+        toggleCartDrawer(true);
+        return;
+      }
+
+      try {
+        let session = await sessionsAPI.getActiveByTable(restaurantId, tableNumber);
+        if (!session) {
+          session = await sessionsAPI.startSession(restaurantId, tableNumber, 'Dine-In Customer', null, null);
+        }
+        activeSessionId = session.id;
+
+        await requestsAPI.create(restaurantId, tableNumber, session.id, requestType);
+        alert('🛎️ Request sent! Staff is notified.');
+        toggleAssistanceDrawer();
+      } catch (err) {
+        alert('Request failed: ' + err.message);
+      }
+    };
+
+    window.toggleTrackingDrawer = () => {
+      const drawer = document.getElementById('trackingDrawer');
+      const backdrop = document.getElementById('trackingDrawerBackdrop');
+      if (drawer.style.bottom === '0px') {
+        drawer.style.bottom = '-500px';
+        backdrop.style.display = 'none';
+      } else {
+        drawer.style.bottom = '0px';
+        backdrop.style.display = 'block';
+        syncOrderTracking();
+      }
+    };
+
+    async function syncOrderTracking() {
+      if (!activeSessionId) return;
+      try {
+        const session = await sessionsAPI.getSessionById(activeSessionId);
+        const container = document.getElementById('trackingContent');
+        if (!session || !session.orders || !session.orders.length) {
+          container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-sec);">No active food orders to track.</div>`;
+          return;
+        }
+
+        const runningTotal = session.running_total;
+        
+        // Render timeline progress of each order
+        container.innerHTML = `
+          <div style="font-weight:700; border-bottom:1px solid var(--border); padding-bottom:8px; display:flex; justify-content:space-between;">
+            <span>Running Total Bill:</span>
+            <span style="color:#10b981;">₹${runningTotal}</span>
+          </div>
+        ` + session.orders.map(order => {
+          let statusText = 'New';
+          let progressPercent = '10%';
+          let color = '#3b82f6';
+          
+          if (order.status === 'accepted') { statusText = 'Order Accepted'; progressPercent = '30%'; color = '#3b82f6'; }
+          else if (order.status === 'preparing') { statusText = 'Preparing food in kitchen'; progressPercent = '60%'; color = '#eab308'; }
+          else if (order.status === 'ready') { statusText = 'Ready for pickup'; progressPercent = '90%'; color = '#a855f7'; }
+          else if (order.status === 'served') { statusText = 'Served & Dining'; progressPercent = '100%'; color = '#10b981'; }
+          else if (order.status === 'completed') { statusText = 'Bill Settled'; progressPercent = '100%'; color = '#10b981'; }
+
+          return `
+            <div style="background:var(--bg-elevated); border:1px solid var(--border); border-radius:8px; padding:12px;">
+              <div style="display:flex; justify-content:space-between; font-weight:800; font-size:0.8rem; margin-bottom:6px;">
+                <span>Order #${order.id.substring(0,6).toUpperCase()}</span>
+                <span style="color:${color};">${statusText}</span>
+              </div>
+              <div style="width:100%; height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; margin-bottom:10px;">
+                <div style="width:${progressPercent}; height:100%; background:${color}; transition:width 0.3s;"></div>
+              </div>
+              <div style="font-size:0.75rem; color:var(--text-sec);">
+                ${order.order_items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
+              </div>
+              <div style="font-size:0.68rem; color:var(--text-sec); margin-top:4px;">
+                Est. remaining prep: <strong>10-15 mins</strong>
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        console.error('Error syncing order tracking drawer:', err.message);
+      }
+    }
 
 
     /* ─── Dish Detail Modal & Upsells ─── */

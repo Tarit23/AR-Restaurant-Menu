@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Table Manager — AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    /* Table Management Page Grid */
+    .tables-layout-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+
+    .table-layout-card {
+      background: var(--bg-card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .table-layout-card:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    /* Colors by status */
+    .status-available { border-color: #22c55e !important; box-shadow: 0 0 8px rgba(34,197,94,0.08); }
+    .status-seated { border-color: #eab308 !important; box-shadow: 0 0 8px rgba(234,179,8,0.08); }
+    .status-preparing { border-color: #3b82f6 !important; box-shadow: 0 0 8px rgba(59,130,246,0.08); }
+    .status-ready { border-color: #a855f7 !important; box-shadow: 0 0 8px rgba(168,85,247,0.08); }
+    .status-dining { border-color: #ef4444 !important; box-shadow: 0 0 8px rgba(239,68,68,0.08); }
+    .status-payment_pending { border-color: #f97316 !important; box-shadow: 0 0 8px rgba(249,115,22,0.08); }
+    .status-cleaning { border-color: #94a3b8 !important; box-shadow: 0 0 8px rgba(148,163,184,0.08); }
+
+    .table-header-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-number-label {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .status-dot-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+
+    .status-dot-badge.available { background: rgba(34,197,94,0.1); color: #22c55e; }
+    .status-dot-badge.seated { background: rgba(234,179,8,0.1); color: #eab308; }
+    .status-dot-badge.preparing { background: rgba(59,130,246,0.1); color: #3b82f6; }
+    .status-dot-badge.ready { background: rgba(168,85,247,0.1); color: #a855f7; }
+    .status-dot-badge.dining { background: rgba(239,68,68,0.1); color: #ef4444; }
+    .status-dot-badge.payment_pending { background: rgba(249,115,22,0.1); color: #f97316; }
+    .status-dot-badge.cleaning { background: rgba(148,163,184,0.1); color: #94a3b8; }
+
+    .table-body-info {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      flex: 1;
+    }
+
+    .info-item-row {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* Side Detail Drawer */
+    .table-detail-drawer {
+      position: fixed;
+      top: 0;
+      right: -440px;
+      width: 400px;
+      height: 100vh;
+      background: var(--bg-card);
+      border-left: 1px solid var(--border);
+      box-shadow: var(--shadow-2xl);
+      z-index: 1100;
+      transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-sizing: border-box;
+    }
+
+    .table-detail-drawer.open {
+      right: 0;
+    }
+
+    /* Status Legends indicator */
+    .status-legends-wrap {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: var(--bg-card);
+      padding: 12px;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      font-size: 0.72rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body class="dashboard-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"></div>
+      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="/restaurant">Dashboard</a>
+      <a class="nav-item" href="/restaurant/live-ops.html">Live Operations</a>
+      <a class="nav-item active" href="/restaurant/tables.html">Tables</a>
+      <a class="nav-item" href="/restaurant/menu.html">Menu Management</a>
+      <a class="nav-item" href="/restaurant/reports.html">Reports</a>
+      <a class="nav-item" href="/restaurant/theme.html">Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">R</div>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="restaurantName">Loading...</div>
+          <div class="user-role">Restaurant Owner</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn" type="button">Sign Out</button>
+      </div>
+    </div>
+  </aside>
+  
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
+      <div class="topbar-breadcrumb">
+        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">Tables</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div class="page-header-text">
+          <h1>Visual Restaurant Layout</h1>
+          <p>Real-time occupancy status, capacities, and running tables billing overview.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openAddTableModal()">➕ Add Table</button>
+      </div>
+
+      <!-- Color Status Legends -->
+      <div class="status-legends-wrap animate-in animate-in-delay-1">
+        <div class="legend-item"><span style="color:#22c55e;">🟢</span> Available</div>
+        <div class="legend-item"><span style="color:#eab308;">🟡</span> Seated</div>
+        <div class="legend-item"><span style="color:#3b82f6;">🔵</span> Preparing</div>
+        <div class="legend-item"><span style="color:#a855f7;">🟣</span> Ready</div>
+        <div class="legend-item"><span style="color:#ef4444;">🔴</span> Dining</div>
+        <div class="legend-item"><span style="color:#f97316;">🟠</span> Payment Pending</div>
+        <div class="legend-item"><span style="color:#94a3b8;">⚪</span> Cleaning</div>
+      </div>
+
+      <!-- Live Tables Grid -->
+      <div class="tables-layout-grid animate-in animate-in-delay-2" id="tablesGrid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Table Drawer -->
+  <div class="table-detail-drawer" id="tableDrawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+      <h3 style="margin:0;" id="tableDrawerTitle">Table Detail</h3>
+      <button class="modal-close" onclick="closeTableDrawer()" style="font-size:1.5rem; background:none; border:none; color:var(--text-muted); cursor:pointer;">×</button>
+    </div>
+    
+    <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:16px; font-size:0.85rem;" id="tableDrawerContent">
+      <!-- Session items and orders logs -->
+    </div>
+    
+    <div style="border-top:1px solid var(--border); padding-top:16px; display:flex; flex-direction:column; gap:8px;" id="tableDrawerActions">
+      <!-- Actions buttons -->
+    </div>
+  </div>
+
+  <!-- Add Table Modal Dialog -->
+  <div class="modal-backdrop" id="addTableModal">
+    <div class="modal" style="max-width: 400px; width: 90%;">
+      <div class="modal-header">
+        <h3 class="modal-title">Add Table</h3>
+        <button class="modal-close" onclick="document.getElementById('addTableModal').classList.remove('open')">×</button>
+      </div>
+      <div class="modal-body" style="display:flex; flex-direction:column; gap:16px;">
+        <div>
+          <label class="form-label">Table Number</label>
+          <input type="number" id="newTableNumber" class="form-control" placeholder="e.g. 5" style="width:100%;" />
+        </div>
+        <div>
+          <label class="form-label">Seating Capacity</label>
+          <input type="number" id="newTableCapacity" class="form-control" placeholder="e.g. 4" style="width:100%;" value="4" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="document.getElementById('addTableModal').classList.remove('open')">Cancel</button>
+        <button class="btn btn-primary" onclick="createTable()">Create Table</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import "/js/logout-handler.js?v=3";
+    import { supabase } from "/js/supabase-config.js?v=3";
+    import { tablesAPI, sessionsAPI } from "/js/loyalty-api.js?v=3";
+    import { showToast } from "/js/utils.js?v=3";
+
+    let restaurantId = null;
+    let tablesList = [];
+    let selectedTable = null;
+
+    const statusLabels = {
+      available: 'Available',
+      seated: 'Seated',
+      preparing: 'Preparing',
+      ready: 'Ready',
+      dining: 'Dining',
+      payment_pending: 'Payment Pending',
+      cleaning: 'Cleaning'
+    };
+
+    (async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+      if (!profile) return window.location.href = '../login.html';
+
+      const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+      restaurantId = restaurant.id;
+
+      document.getElementById('restaurantName').textContent = restaurant.name;
+      document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
+      document.getElementById('topbarRestName').textContent  = restaurant.name;
+      document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+
+      // Load tables initial layout
+      loadTables();
+      
+      // Setup realtime updates
+      supabase
+        .channel('tables-sync')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'tables' }, () => {
+          loadTables();
+        })
+        .subscribe();
+
+      // Highlight target table if redirected
+      const params = new URLSearchParams(window.location.search);
+      const highlightNo = params.get('highlight');
+      if (highlightNo) {
+        setTimeout(() => {
+          const highlightEl = Array.from(document.querySelectorAll('.table-layout-card'))
+            .find(c => c.textContent.includes(`Table ${highlightNo}`));
+          if (highlightEl) {
+            highlightEl.style.transform = 'scale(1.05)';
+            highlightEl.style.boxShadow = '0 0 16px rgba(99,102,241,0.4)';
+            highlightEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 1000);
+      }
+    })();
+
+    async function loadTables() {
+      try {
+        tablesList = await tablesAPI.getAll(restaurantId);
+        renderTablesLayout();
+      } catch (err) {
+        console.error('Failed to load tables:', err.message);
+      }
+    }
+
+    function renderTablesLayout() {
+      const grid = document.getElementById('tablesGrid');
+      if (!tablesList.length) {
+        grid.innerHTML = `
+          <div style="grid-column: 1/-1; text-align: center; padding: 48px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-xl);">
+            <div style="font-size: 32px; margin-bottom: 12px;">🪑</div>
+            <h3 style="margin-bottom: 6px;">No tables created</h3>
+            <p style="color: var(--text-muted); font-size: 0.85rem;">Click "Add Table" to build your visual restaurant map.</p>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = tablesList.map(table => {
+        const session = table.dining_sessions;
+        const currentBill = session ? `₹${session.running_total}` : '₹0';
+        const sessionTime = session ? formatDuration(new Date(session.start_time)) : 'N/A';
+        const label = statusLabels[table.status] || 'Available';
+
+        return `
+          <div class="table-layout-card status-${table.status}" onclick="openTableDrawer('${table.id}')">
+            <div class="table-header-meta">
+              <span class="table-number-label">Table ${table.table_number}</span>
+              <span class="status-dot-badge ${table.status}">● ${label}</span>
+            </div>
+            
+            <div class="table-body-info">
+              <div class="info-item-row">
+                <span>Capacity:</span>
+                <strong>${table.capacity} Guests</strong>
+              </div>
+              <div class="info-item-row">
+                <span>Running Bill:</span>
+                <strong style="color: ${session ? '#10b981' : 'var(--text-muted)'};">${currentBill}</strong>
+              </div>
+              <div class="info-item-row">
+                <span>Dining Time:</span>
+                <strong>${sessionTime}</strong>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.openTableDrawer = async (tableId) => {
+      selectedTable = tablesList.find(t => t.id === tableId);
+      if (!selectedTable) return;
+
+      document.getElementById('tableDrawerTitle').textContent = `Table ${selectedTable.table_number} Session Details`;
+      
+      const session = selectedTable.dining_sessions;
+      const contentContainer = document.getElementById('tableDrawerContent');
+      const actionContainer = document.getElementById('tableDrawerActions');
+
+      if (!session) {
+        contentContainer.innerHTML = `
+          <div style="text-align:center; padding:32px 0;">
+            <span style="font-size:2.5rem;">🟢</span>
+            <h3 style="margin-top:12px;">Table is Available</h3>
+            <p style="color:var(--text-muted); font-size:0.8rem; max-width:260px; margin:6px auto 0 auto;">No active dining session on this table. Scanning table QR code will start a new session automatically.</p>
+          </div>
+        `;
+
+        actionContainer.innerHTML = `
+          <button class="btn btn-secondary" onclick="closeTableDrawer()" style="width:100%;">Close</button>
+        `;
+      } else {
+        // Load session orders
+        const fullSession = await sessionsAPI.getSessionById(session.id);
+        
+        let ordersLogHtml = '';
+        if (fullSession.orders && fullSession.orders.length) {
+          ordersLogHtml = fullSession.orders.map(order => `
+            <div style="background:var(--bg-elevated); padding:10px; border-radius:8px; border:1px solid var(--border); margin-bottom:8px;">
+              <div style="display:flex; justify-content:space-between; font-weight:700; margin-bottom:6px; font-size:0.75rem;">
+                <span>Order #${order.id.substring(0,6).toUpperCase()}</span>
+                <span style="text-transform:capitalize; color:var(--primary);">${order.status}</span>
+              </div>
+              ${order.order_items.map(item => `
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem;">
+                  <span>${item.quantity}x ${item.name}</span>
+                  <span>₹${item.price * item.quantity}</span>
+                </div>
+              `).join('')}
+            </div>
+          `).join('');
+        } else {
+          ordersLogHtml = `<p style="color:var(--text-muted); font-style:italic;">No orders placed yet.</p>`;
+        }
+
+        contentContainer.innerHTML = `
+          <div>Customer: <strong>${session.customer_name || 'Walk-in'}</strong></div>
+          <div>Start Time: <strong>${new Date(session.start_time).toLocaleTimeString()}</strong></div>
+          <div style="display:flex; justify-content:space-between; font-weight:800; font-size:1.05rem; margin-top:8px;">
+            <span>Current Total Bill:</span>
+            <span style="color:#10b981;">₹${session.running_total}</span>
+          </div>
+
+          <div style="border-top:1px solid var(--border); padding-top:12px; margin-top:12px;">
+            <h4 style="margin-bottom:8px;">Dining Order History</h4>
+            ${ordersLogHtml}
+          </div>
+        `;
+
+        // If status is cleaning, show Mark Clean. If status is payment pending, show Complete Settle
+        if (selectedTable.status === 'cleaning') {
+          actionContainer.innerHTML = `
+            <button class="btn btn-success" onclick="markTableClean('${selectedTable.id}')" style="width:100%;">🧹 Mark Clean & Make Available</button>
+          `;
+        } else if (selectedTable.status === 'payment_pending') {
+          actionContainer.innerHTML = `
+            <button class="btn btn-primary" onclick="redirectToLiveOps()" style="width:100%;">💳 Settle Svc Bill</button>
+          `;
+        } else {
+          actionContainer.innerHTML = `
+            <button class="btn btn-secondary" onclick="closeTableDrawer()" style="width:100%;">Close</button>
+          `;
+        }
+      }
+
+      document.getElementById('tableDrawer').classList.add('open');
+    };
+
+    window.closeTableDrawer = () => {
+      document.getElementById('tableDrawer').classList.remove('open');
+      selectedTable = null;
+    };
+
+    window.markTableClean = async (tableId) => {
+      try {
+        await tablesAPI.markClean(tableId);
+        showToast('Table marked clean and is now Available!', 'success');
+        closeTableDrawer();
+        loadTables();
+      } catch (err) {
+        showToast('Clean action failed: ' + err.message, 'error');
+      }
+    };
+
+    window.redirectToLiveOps = () => {
+      window.location.href = '/restaurant/live-ops.html';
+    };
+
+    // Add table controls
+    window.openAddTableModal = () => {
+      document.getElementById('addTableModal').classList.add('open');
+    };
+
+    window.createTable = async () => {
+      const numInput = document.getElementById('newTableNumber');
+      const capInput = document.getElementById('newTableCapacity');
+      const num = parseInt(numInput.value);
+      const cap = parseInt(capInput.value);
+
+      if (!num || isNaN(num)) return showToast('Please enter a valid table number.', 'error');
+      if (!cap || isNaN(cap)) return showToast('Please enter a seating capacity.', 'error');
+
+      try {
+        const { error } = await supabase
+          .from('tables')
+          .insert([{ restaurant_id: restaurantId, table_number: num, capacity: cap, status: 'available' }]);
+        if (error) throw error;
+        
+        showToast(`Table ${num} added successfully!`, 'success');
+        document.getElementById('addTableModal').classList.remove('open');
+        numInput.value = '';
+        
+        loadTables();
+      } catch (err) {
+        showToast('Failed to add table: ' + err.message, 'error');
+      }
+    };
+
+    function formatDuration(startTime) {
+      const diffMs = new Date() - startTime;
+      const hours = Math.floor(diffMs / 3600000);
+      const minutes = Math.floor((diffMs % 3600000) / 60000);
+      if (hours > 0) return `${hours}h ${minutes}m`;
+      return `${minutes}m`;
+    }
+  </script>
+</body>
+</html>

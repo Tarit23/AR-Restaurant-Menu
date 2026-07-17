@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Live Operations — AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css" />
+  <link rel="stylesheet" href="../css/dashboard.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    /* Live Operations Layout */
+    .role-switcher {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      background: var(--bg-card);
+      padding: 6px;
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--border);
+      width: max-content;
+    }
+    
+    .role-btn {
+      padding: 8px 16px;
+      border: none;
+      background: none;
+      color: var(--text-muted);
+      font-weight: 700;
+      font-size: 0.85rem;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .role-btn.active {
+      background: var(--primary);
+      color: #ffffff;
+      box-shadow: 0 4px 12px var(--border-glow);
+    }
+
+    .live-board {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 20px;
+      min-height: calc(100vh - 280px);
+      align-items: flex-start;
+    }
+
+    .board-column {
+      flex: 0 0 320px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 280px);
+      overflow: hidden;
+    }
+
+    .column-header {
+      padding: 16px;
+      font-weight: 800;
+      font-size: 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.01);
+    }
+
+    .column-badge {
+      background: rgba(255, 255, 255, 0.08);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .column-cards-container {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .session-card {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .session-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow-md);
+    }
+
+    .card-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .card-table-badge {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .card-timer {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+
+    .card-timer.delayed {
+      animation: pulseAlert 1.5s infinite alternate;
+    }
+
+    @keyframes pulseAlert {
+      from { background: rgba(239,68,68,0.1); }
+      to { background: rgba(239,68,68,0.3); }
+    }
+
+    .card-items-list {
+      font-size: 0.8rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      border-top: 1px dashed var(--border);
+      border-bottom: 1px dashed var(--border);
+      padding: 8px 0;
+    }
+
+    .card-item {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .card-action-area {
+      display: flex;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    /* Notification Bell UI */
+    .notif-bell-container {
+      position: relative;
+      cursor: pointer;
+    }
+
+    .notif-badge {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #ef4444;
+      color: white;
+      font-size: 0.65rem;
+      font-weight: bold;
+      padding: 2px 6px;
+      border-radius: 50%;
+      border: 2px solid var(--bg-card);
+    }
+
+    .notif-dropdown {
+      position: absolute;
+      top: 40px;
+      right: 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      width: 320px;
+      box-shadow: var(--shadow-xl);
+      display: none;
+      z-index: 1000;
+      overflow: hidden;
+    }
+
+    .notif-dropdown.open {
+      display: block;
+    }
+
+    .notif-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 800;
+      font-size: 0.85rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .notif-body {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .notif-item {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      transition: background 0.2s;
+    }
+
+    .notif-item:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .notif-item-meta {
+      display: flex;
+      justify-content: space-between;
+      color: var(--text-muted);
+      font-size: 0.68rem;
+    }
+
+    /* Cashier Settle Modal */
+    .billing-drawer {
+      position: fixed;
+      top: 0;
+      right: -440px;
+      width: 400px;
+      height: 100vh;
+      background: var(--bg-card);
+      border-left: 1px solid var(--border);
+      box-shadow: var(--shadow-2xl);
+      z-index: 1100;
+      transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      box-sizing: border-box;
+    }
+
+    .billing-drawer.open {
+      right: 0;
+    }
+
+    .split-input-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+  </style>
+</head>
+<body class="dashboard-layout">
+  
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"></div>
+      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="/restaurant">Dashboard</a>
+      <a class="nav-item active" href="/restaurant/live-ops.html">Live Operations</a>
+      <a class="nav-item" href="/restaurant/tables.html">Tables</a>
+      <a class="nav-item" href="/restaurant/menu.html">Menu Management</a>
+      <a class="nav-item" href="/restaurant/reports.html">Reports</a>
+      <a class="nav-item" href="/restaurant/theme.html">Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">R</div>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="restaurantName">Loading...</div>
+          <div class="user-role" id="userRoleBadge">Restaurant Owner</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn" type="button">Sign Out</button>
+      </div>
+    </div>
+  </aside>
+  
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
+      <div class="topbar-breadcrumb">
+        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">Live Operations</span>
+      </div>
+      
+      <!-- Shared Header Notification Bell -->
+      <div class="notif-bell-container" id="notifBell" onclick="toggleNotifications()">
+        <span style="font-size: 1.4rem;">🔔</span>
+        <div class="notif-badge" id="notifBadge" style="display:none;">0</div>
+        
+        <div class="notif-dropdown" id="notifDropdown" onclick="event.stopPropagation()">
+          <div class="notif-header">
+            <span>Unread Alerts</span>
+            <button class="btn btn-secondary btn-sm" onclick="clearAllNotifications()" style="padding:2px 8px; font-size:0.7rem;">Clear All</button>
+          </div>
+          <div class="notif-body" id="notifItems">
+            <!-- Notification list items -->
+            <div style="text-align:center; padding:24px; color:var(--text-muted); font-size:0.8rem;">No active alerts.</div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in" style="display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;">
+        <div class="page-header-text">
+          <h1>Live Operations Center</h1>
+          <p>Real-time dining session tracker, order lifecycle manager, and POS settle panel.</p>
+        </div>
+        
+        <!-- Role Switching Tabs -->
+        <div class="role-switcher">
+          <button class="role-btn active" onclick="switchRole('owner')">👑 Owner Mode</button>
+          <button class="role-btn" onclick="switchRole('kitchen')">🍳 Kitchen</button>
+          <button class="role-btn" onclick="switchRole('waiter')">🛎️ Waiter</button>
+          <button class="role-btn" onclick="switchRole('cashier')">💵 Cashier</button>
+        </div>
+      </div>
+
+      <!-- Real-Time Dining Kanban Grid Board -->
+      <div class="live-board animate-in animate-in-delay-1" id="liveBoard">
+        <!-- Dyn columns based on role view -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Cashier Payment Settle Drawer -->
+  <div class="billing-drawer" id="billingDrawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:12px;">
+      <h3 style="margin:0;" id="billingDrawerTitle">Settle Table Billing</h3>
+      <button class="modal-close" onclick="closeBillingDrawer()" style="font-size:1.5rem; background:none; border:none; color:var(--text-muted); cursor:pointer;">×</button>
+    </div>
+    
+    <div style="flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:16px; font-size:0.85rem;" id="billingDrawerContent">
+      <!-- Settle Details -->
+    </div>
+    
+    <div style="border-top:1px solid var(--border); padding-top:16px; display:flex; flex-direction:column; gap:8px;">
+      <button class="btn btn-primary" onclick="settlePayment()" style="width:100%;">Complete Settle & Close Session</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import "/js/logout-handler.js?v=3";
+    import { supabase } from "/js/supabase-config.js?v=3";
+    import { tablesAPI, sessionsAPI, requestsAPI } from "/js/loyalty-api.js?v=3";
+    import { showToast } from "/js/utils.js?v=3";
+
+    let restaurantId = null;
+    let activeRole = 'owner';
+    let activeSessions = [];
+    let activeRequests = [];
+    let selectedSession = null;
+    let notifications = [];
+
+    // Columns config by status
+    const statusColumns = [
+      { id: 'new', label: '🆕 New Order', icon: '🔔' },
+      { id: 'accepted', label: '✅ Accepted', icon: '📝' },
+      { id: 'preparing', label: '🍳 Preparing', icon: '🔥' },
+      { id: 'ready', label: '🟣 Ready', icon: '🛎️' },
+      { id: 'dining', label: '🍽️ Dining', icon: '🍛' },
+      { id: 'payment_pending', label: '🟠 Bill Requested', icon: '💵' }
+    ];
+
+    (async function init() {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return window.location.href = '../login.html';
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+      if (!profile) return window.location.href = '../login.html';
+
+      const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+      restaurantId = restaurant.id;
+
+      document.getElementById('restaurantName').textContent = restaurant.name;
+      document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
+      document.getElementById('topbarRestName').textContent  = restaurant.name;
+      document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+
+      document.getElementById('menuToggle').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.toggle('open');
+        document.getElementById('sidebarOverlay').classList.toggle('open');
+      });
+
+      // Load initial state
+      loadLiveData();
+
+      // PostgreSQL listeners for real-time notification
+      supabase
+        .channel('live-ops')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, (payload) => {
+          if (payload.new && payload.new.restaurant_id === restaurantId) {
+            handleOrderRealtime(payload);
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'customer_requests' }, (payload) => {
+          if (payload.new && payload.new.restaurant_id === restaurantId) {
+            handleRequestRealtime(payload);
+          }
+        })
+        .subscribe();
+
+      // Polling fallback
+      setInterval(loadLiveData, 10000);
+    })();
+
+    async function loadLiveData() {
+      try {
+        activeSessions = await sessionsAPI.getActive(restaurantId);
+        activeRequests = await requestsAPI.getActive(restaurantId);
+        
+        // Sync alerts
+        syncNotificationBadge();
+        renderLiveBoard();
+      } catch (err) {
+        console.error('Failed to load Live operations data:', err.message);
+      }
+    }
+
+    // Role switcher
+    window.switchRole = (role) => {
+      activeRole = role;
+      document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
+      const activeBtn = Array.from(document.querySelectorAll('.role-btn')).find(b => b.textContent.toLowerCase().includes(role));
+      if (activeBtn) activeBtn.classList.add('active');
+      
+      document.getElementById('userRoleBadge').textContent = role.toUpperCase();
+      renderLiveBoard();
+    };
+
+    function renderLiveBoard() {
+      const board = document.getElementById('liveBoard');
+      board.innerHTML = '';
+
+      // Determine columns to display
+      let columnsToDisplay = [];
+      if (activeRole === 'owner') {
+        columnsToDisplay = statusColumns;
+      } else if (activeRole === 'kitchen') {
+        columnsToDisplay = statusColumns.filter(c => ['accepted', 'preparing', 'ready'].includes(c.id));
+      } else if (activeRole === 'waiter') {
+        columnsToDisplay = statusColumns.filter(c => ['ready', 'dining'].includes(c.id));
+      } else if (activeRole === 'cashier') {
+        columnsToDisplay = statusColumns.filter(c => ['payment_pending'].includes(c.id));
+      }
+
+      columnsToDisplay.forEach(col => {
+        // Collect dining sessions with orders matching this column
+        const columnSessions = activeSessions.filter(session => {
+          // If column is 'dining', show active sessions with served orders
+          if (col.id === 'dining') {
+            return session.orders.some(o => o.status === 'served');
+          }
+          if (col.id === 'payment_pending') {
+            return session.payment_status === 'unpaid' && session.orders.some(o => o.status === 'served') && session.running_total > 0;
+          }
+          // Otherwise, filter by order statuses
+          return session.orders.some(o => o.status === col.id);
+        });
+
+        const colHtml = `
+          <div class="board-column" id="col-${col.id}">
+            <div class="column-header">
+              <span>${col.icon} ${col.label}</span>
+              <span class="column-badge">${columnSessions.length}</span>
+            </div>
+            <div class="column-cards-container">
+              ${columnSessions.map(session => renderSessionCard(session, col.id)).join('')}
+              ${columnSessions.length === 0 ? `<div style="text-align:center; padding:32px 0; color:var(--text-muted); font-size:0.75rem;">No active tables.</div>` : ''}
+            </div>
+          </div>
+        `;
+        board.insertAdjacentHTML('beforeend', colHtml);
+      });
+    }
+
+    function renderSessionCard(session, currentColumnStatus) {
+      // Calculate elapsed preparation delay timers
+      const oldestOrder = session.orders.reduce((oldest, o) => {
+        return (!oldest || new Date(o.created_at) < new Date(oldest.created_at)) ? o : oldest;
+      }, null);
+      
+      const elapsedMin = oldestOrder ? Math.floor((new Date() - new Date(oldestOrder.created_at)) / 60000) : 0;
+      const delayClass = elapsedMin > 15 ? 'delayed' : '';
+      
+      // Filter orders relevant to current status column
+      const colOrders = session.orders.filter(o => o.status === currentColumnStatus || (currentColumnStatus === 'dining' && o.status === 'served'));
+      const itemsListHtml = colOrders.map(order => 
+        order.order_items.map(item => `
+          <div class="card-item">
+            <span>${item.quantity}x ${item.name}</span>
+            <span>₹${item.price}</span>
+          </div>
+        `).join('')
+      ).join('');
+
+      const hasUnresolvedRequests = activeRequests.some(r => r.session_id === session.id);
+      const requestBadge = hasUnresolvedRequests 
+        ? `<div style="background:#ef4444; color:#fff; font-size:0.65rem; font-weight:bold; padding:2px 6px; border-radius:4px; margin-bottom:8px;">⚠️ Waiter Call Requested</div>`
+        : '';
+
+      // Determine action button
+      let actionBtnHtml = '';
+      if (currentColumnStatus === 'new') {
+        actionBtnHtml = `<button class="btn btn-secondary btn-sm" style="width:100%;" onclick="event.stopPropagation(); advanceStatus('${session.id}', 'new', 'accepted')">👨‍🍳 Accept Order</button>`;
+      } else if (currentColumnStatus === 'accepted') {
+        actionBtnHtml = `<button class="btn btn-secondary btn-sm" style="width:100%;" onclick="event.stopPropagation(); advanceStatus('${session.id}', 'accepted', 'preparing')">🔥 Start Preparing</button>`;
+      } else if (currentColumnStatus === 'preparing') {
+        actionBtnHtml = `<button class="btn btn-primary btn-sm" style="width:100%;" onclick="event.stopPropagation(); advanceStatus('${session.id}', 'preparing', 'ready')">🛎️ Mark Ready</button>`;
+      } else if (currentColumnStatus === 'ready') {
+        actionBtnHtml = `<button class="btn btn-success btn-sm" style="width:100%;" onclick="event.stopPropagation(); advanceStatus('${session.id}', 'ready', 'served')">🍛 Mark Served</button>`;
+      } else if (currentColumnStatus === 'dining') {
+        actionBtnHtml = `<button class="btn btn-secondary btn-sm" style="width:100%;" onclick="event.stopPropagation(); initiateRequestPayment('${session.id}')">💵 Request Bill</button>`;
+      } else if (currentColumnStatus === 'payment_pending') {
+        actionBtnHtml = `<button class="btn btn-primary btn-sm" style="width:100%;" onclick="event.stopPropagation(); openBillingDrawer('${session.id}')">💳 Complete Settle</button>`;
+      }
+
+      return `
+        <div class="session-card" onclick="openBillingDrawer('${session.id}')">
+          ${requestBadge}
+          <div class="card-meta">
+            <span class="card-table-badge">Table ${session.tables.table_number}</span>
+            <span class="card-timer ${delayClass}">${elapsedMin}m elapsed</span>
+          </div>
+          
+          <div style="font-size:0.75rem; color:var(--text-muted);">
+            Customer: <strong>${session.customer_name || 'Walk-in'}</strong>
+          </div>
+          
+          <div class="card-items-list">
+            ${itemsListHtml || '<div style="color:var(--text-muted);">Dining (No pending orders)</div>'}
+          </div>
+
+          <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.82rem;">
+            <span>Running Bill:</span>
+            <span style="color:#10b981;">₹${session.running_total}</span>
+          </div>
+
+          <div class="card-action-area">
+            ${actionBtnHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    window.advanceStatus = async (sessionId, fromStatus, toStatus) => {
+      try {
+        const session = activeSessions.find(s => s.id === sessionId);
+        if (!session) return;
+
+        // Advance active orders status
+        const sessionOrders = session.orders.filter(o => o.status === fromStatus || (fromStatus === 'dining' && o.status === 'served'));
+        for (const order of sessionOrders) {
+          const { error } = await supabase
+            .from('orders')
+            .update({ status: toStatus, updated_at: new Date().toISOString() })
+            .eq('id', order.id);
+          if (error) throw error;
+        }
+
+        // Adjust table status mapping
+        let tableStatus = 'preparing';
+        if (toStatus === 'ready') tableStatus = 'ready';
+        if (toStatus === 'served') tableStatus = 'dining';
+        
+        await supabase
+          .from('tables')
+          .update({ status: tableStatus })
+          .eq('id', session.table_id);
+
+        showToast(`Table status progressed to ${toStatus}!`, 'success');
+        loadLiveData();
+      } catch (err) {
+        showToast('Error progressing status: ' + err.message, 'error');
+      }
+    };
+
+    window.initiateRequestPayment = async (sessionId) => {
+      try {
+        const session = activeSessions.find(s => s.id === sessionId);
+        if (!session) return;
+        
+        await supabase
+          .from('tables')
+          .update({ status: 'payment_pending' })
+          .eq('id', session.table_id);
+
+        showToast(`Bill request sent to POS console!`, 'info');
+        loadLiveData();
+      } catch (err) {
+        showToast('Action failed: ' + err.message, 'error');
+      }
+    };
+
+    // Cashier Billing Drawer
+    window.openBillingDrawer = (sessionId) => {
+      selectedSession = activeSessions.find(s => s.id === sessionId);
+      if (!selectedSession) return;
+
+      document.getElementById('billingDrawerTitle').textContent = `Table ${selectedSession.tables.table_number} Bill Checkout`;
+      
+      const subtotal = selectedSession.running_total;
+      const gst = Math.round(subtotal * 0.05); // 5% GST standard
+      const discount = selectedSession.discount_amount || 0;
+      const finalBill = subtotal + gst - discount;
+
+      const content = `
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div>Customer: <strong>${selectedSession.customer_name || 'Walk-in'}</strong></div>
+          <div>Session Started: <strong>${new Date(selectedSession.start_time).toLocaleTimeString()}</strong></div>
+        </div>
+        
+        <div style="border-top:1px solid var(--border); padding-top:12px;">
+          <h4 style="margin-bottom:8px;">Order Details</h4>
+          ${selectedSession.orders.map(o => o.order_items.map(item => `
+            <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+              <span>${item.quantity}x ${item.name}</span>
+              <span>₹${item.price * item.quantity}</span>
+            </div>
+          `).join('')).join('')}
+        </div>
+
+        <div style="border-top:1px solid var(--border); padding-top:12px; display:flex; flex-direction:column; gap:6px;">
+          <div style="display:flex; justify-content:space-between;">
+            <span>Subtotal:</span>
+            <span>₹${subtotal}</span>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span>GST (5%):</span>
+            <span>₹${gst}</span>
+          </div>
+          ${discount > 0 ? `
+          <div style="display:flex; justify-content:space-between; color:var(--success);">
+            <span>Discount Applied:</span>
+            <span>-₹${discount}</span>
+          </div>` : ''}
+          <div style="display:flex; justify-content:space-between; font-weight:800; font-size:1.1rem; color:#10b981; border-top:1px solid var(--border); padding-top:6px;">
+            <span>GRAND TOTAL:</span>
+            <span>₹${finalBill}</span>
+          </div>
+        </div>
+
+        <div style="border-top:1px solid var(--border); padding-top:12px;">
+          <h4 style="margin-bottom:8px;">Settlement Options</h4>
+          <label style="display:block; margin-bottom:6px;">
+            <input type="radio" name="pay_method" value="cash" checked /> 💵 Cash Payment
+          </label>
+          <label style="display:block; margin-bottom:6px;">
+            <input type="radio" name="pay_method" value="upi" /> 📱 UPI / Instant QR
+          </label>
+          <label style="display:block; margin-bottom:6px;">
+            <input type="radio" name="pay_method" value="card" /> 💳 Card Settle
+          </label>
+        </div>
+      `;
+
+      document.getElementById('billingDrawerContent').innerHTML = content;
+      document.getElementById('billingDrawer').classList.add('open');
+    };
+
+    window.closeBillingDrawer = () => {
+      document.getElementById('billingDrawer').classList.remove('open');
+      selectedSession = null;
+    };
+
+    window.settlePayment = async () => {
+      if (!selectedSession) return;
+      
+      const payRadio = document.querySelector('input[name="pay_method"]:checked');
+      const payMethod = payRadio ? payRadio.value : 'cash';
+
+      try {
+        // Close session
+        await sessionsAPI.closeSession(selectedSession.id, payMethod);
+        showToast('Payment completed! Table transitioned to Cleaning state.', 'success');
+        
+        closeBillingDrawer();
+        loadLiveData();
+      } catch (err) {
+        showToast('Checkout failed: ' + err.message, 'error');
+      }
+    };
+
+    // Notifications bell
+    window.toggleNotifications = () => {
+      document.getElementById('notifDropdown').classList.toggle('open');
+    };
+
+    function handleOrderRealtime(payload) {
+      if (payload.eventType === 'INSERT') {
+        const notifMsg = `🔔 New Order placed at Table ${payload.new.table_number}`;
+        pushNotification(notifMsg, 'new_order', payload.new.table_number);
+        showToast(notifMsg, 'info');
+        loadLiveData();
+      }
+    }
+
+    function handleRequestRealtime(payload) {
+      if (payload.eventType === 'INSERT') {
+        const typeLabels = {
+          call_waiter: 'called Waiter',
+          need_water: 'requested Water',
+          need_tissue: 'requested Tissue',
+          need_spoon: 'requested Spoon',
+          need_bill: 'requested Bill',
+          need_extra_plates: 'requested Extra Plates',
+          need_cleaning: 'requested Table Cleaning'
+        };
+        const label = typeLabels[payload.new.request_type] || 'requested assistance';
+        const notifMsg = `🚨 Table ${payload.new.table_number} ${label}`;
+        
+        pushNotification(notifMsg, 'call_waiter', payload.new.table_number);
+        showToast(notifMsg, 'warning');
+        loadLiveData();
+      }
+    }
+
+    function pushNotification(msg, type, tableNumber) {
+      notifications.unshift({
+        id: Math.random().toString(),
+        message: msg,
+        type: type,
+        tableNumber: tableNumber,
+        timestamp: new Date()
+      });
+      syncNotificationBadge();
+    }
+
+    function syncNotificationBadge() {
+      const badge = document.getElementById('notifBadge');
+      const container = document.getElementById('notifItems');
+
+      if (notifications.length === 0) {
+        badge.style.display = 'none';
+        container.innerHTML = `<div style="text-align:center; padding:24px; color:var(--text-muted); font-size:0.8rem;">No active alerts.</div>`;
+      } else {
+        badge.style.display = 'block';
+        badge.textContent = notifications.length;
+
+        container.innerHTML = notifications.map(n => `
+          <div class="notif-item" onclick="handleNotificationClick('${n.tableNumber}')">
+            <span>${n.message}</span>
+            <div class="notif-item-meta">
+              <span>Alert Type: ${n.type}</span>
+              <span>${n.timestamp.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+
+    window.clearAllNotifications = () => {
+      notifications = [];
+      syncNotificationBadge();
+    };
+
+    window.handleNotificationClick = (tableNumber) => {
+      // Re-route or highlight selected table in Table Management
+      window.location.href = `/restaurant/tables.html?highlight=${tableNumber}`;
+    };
+
+    // Close notifications panel on outside click
+    document.addEventListener('click', () => {
+      document.getElementById('notifDropdown').classList.remove('open');
+    });
+    document.getElementById('notifBell').addEventListener('click', (e) => {
+      e.stopPropagation();
+    });
+  </script>
+</body>
+</html>

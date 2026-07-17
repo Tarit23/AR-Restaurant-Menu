@@ -56,17 +56,12 @@
       </div>
     </div>
     <nav class="sidebar-nav">
-      <div class="sidebar-section-label">Operations</div>
-      <a class="nav-item" href="/restaurant/kitchen">Kitchen KDS</a>
-      <a class="nav-item" href="/restaurant/waiter">Waiter Alerts</a>
-      <a class="nav-item" href="/restaurant/billing">Billing Console</a>
-      <div class="sidebar-section-label">Configuration</div>
       <a class="nav-item active" href="/restaurant">Dashboard</a>
-      <a class="nav-item" href="/restaurant/menu">My Menu</a>
-      <a class="nav-item" href="/restaurant/theme">Custom UI & Theme</a>
-      <a class="nav-item" href="/restaurant/loyalty-crm">Loyalty CRM</a>
-      <a class="nav-item" href="/restaurant/subscription">Subscription</a>
-      <a class="nav-item" href="/restaurant/qr">QR Code</a>
+      <a class="nav-item" href="/restaurant/live-ops.html">Live Operations</a>
+      <a class="nav-item" href="/restaurant/tables.html">Tables</a>
+      <a class="nav-item" href="/restaurant/menu.html">Menu Management</a>
+      <a class="nav-item" href="/restaurant/reports.html">Reports</a>
+      <a class="nav-item" href="/restaurant/theme.html">Settings</a>
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-user">
@@ -342,55 +337,48 @@
 
     async function loadActiveOrders(restaurantId) {
       try {
-        const { data: orders, error } = await supabase
-          .from('orders')
-          .select('*, order_items(*)')
+        const { data: sessions, error } = await supabase
+          .from('dining_sessions')
+          .select('*, tables(*), orders(*, order_items(*))')
           .eq('restaurant_id', restaurantId)
-          .neq('status', 'completed')
+          .eq('status', 'active')
           .order('created_at', { ascending: false });
 
         if (error) throw error;
         const tbody = document.getElementById('activeOrdersTableBody');
-        if (!orders || !orders.length) {
+        if (!sessions || !sessions.length) {
           tbody.innerHTML = `
             <tr>
-              <td colspan="6" style="text-align:center; padding: 24px; color: var(--text-muted);">No active table orders. All clear!</td>
+              <td colspan="6" style="text-align:center; padding: 24px; color: var(--text-muted);">No active dining sessions. All clear!</td>
             </tr>
           `;
           return;
         }
 
-        tbody.innerHTML = orders.map(order => {
-          const itemsStr = order.order_items.map(i => `${i.quantity}x ${i.name}`).join(', ');
-          const createdTime = new Date(order.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-          const finalAmt = order.total_amount - order.discount_amount;
+        tbody.innerHTML = sessions.map(session => {
+          const itemsStr = session.orders.map(o => o.order_items.map(i => `${i.quantity}x ${i.name}`).join(', ')).filter(Boolean).join(', ');
+          const startTime = new Date(session.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+          const finalAmt = session.running_total - session.discount_amount;
           
-          let actionBtn = '';
-          if (order.status === 'pending' || order.status === 'preparing') {
-            actionBtn = `<a href="kitchen" class="btn btn-secondary btn-sm" style="text-decoration:none; padding:4px 8px; font-size:0.75rem;">🍳 Cook Panel</a>`;
-          } else if (order.status === 'ready') {
-            actionBtn = `<a href="waiter" class="btn btn-success btn-sm" style="text-decoration:none; padding:4px 8px; font-size:0.75rem;">🛎️ Serve Alert</a>`;
-          } else if (order.status === 'served') {
-            actionBtn = `<a href="billing" class="btn btn-primary btn-sm" style="text-decoration:none; padding:4px 8px; font-size:0.75rem;">💸 Collect Pay</a>`;
-          }
+          let actionBtn = `<a href="live-ops.html" class="btn btn-secondary btn-sm" style="text-decoration:none; padding:4px 8px; font-size:0.75rem;">⚡ Live Ops</a>`;
 
           let badgeClass = 'status-pending';
-          if (order.status === 'preparing') badgeClass = 'status-preparing';
-          else if (order.status === 'ready') badgeClass = 'status-ready';
-          else if (order.status === 'served') badgeClass = 'status-served';
+          if (session.tables.status === 'preparing') badgeClass = 'status-preparing';
+          else if (session.tables.status === 'ready') badgeClass = 'status-ready';
+          else if (session.tables.status === 'dining') badgeClass = 'status-served';
 
           return `
             <tr style="border-bottom:1px solid var(--border);">
-              <td style="padding:10px;"><strong>Table ${order.table_number}</strong></td>
-              <td style="padding:10px;">${order.customer_name || 'Walk-in'} <span style="font-size:0.72rem; color:var(--text-muted);">(${createdTime})</span></td>
-              <td style="padding:10px; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${itemsStr}">${itemsStr}</td>
+              <td style="padding:10px;"><strong>Table ${session.tables.table_number}</strong></td>
+              <td style="padding:10px;">${session.customer_name || 'Walk-in'} <span style="font-size:0.72rem; color:var(--text-muted);">(${startTime})</span></td>
+              <td style="padding:10px; max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${itemsStr}">${itemsStr || 'Seated'}</td>
               <td style="padding:10px; color:var(--success); font-weight:700;">
                 ₹${finalAmt.toLocaleString('en-IN')}<br/>
                 <span style="font-size:0.7rem; color:var(--text-muted); font-weight:normal; text-transform:capitalize;">
-                  ${order.payment_method?.replace(/_/g, ' ') || 'Cash'} (<span style="color:${order.payment_status === 'paid' ? 'var(--success)' : 'var(--danger)'}; font-weight:bold; text-transform:uppercase;">${order.payment_status || 'Pending'}</span>)
+                  ${session.payment_method?.replace(/_/g, ' ') || 'Cash'} (<span style="color:${session.payment_status === 'paid' ? 'var(--success)' : 'var(--danger)'}; font-weight:bold; text-transform:uppercase;">${session.payment_status || 'Unpaid'}</span>)
                 </span>
               </td>
-              <td style="padding:10px;"><span class="order-status-badge ${badgeClass}">${order.status}</span></td>
+              <td style="padding:10px;"><span class="order-status-badge ${badgeClass}">${session.tables.status}</span></td>
               <td style="padding:10px;">${actionBtn}</td>
             </tr>
           `;
