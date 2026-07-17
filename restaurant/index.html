@@ -56,15 +56,15 @@
       </div>
     </div>
     <nav class="sidebar-nav">
-      <a class="nav-item active" href="index.html">Dashboard</a>
-      <a class="nav-item" href="live-ops.html">Live Operations</a>
-      <a class="nav-item" href="tables.html">Tables</a>
-      <a class="nav-item" href="menu.html">Menu Management</a>
-      <a class="nav-item" href="reports.html">Reports</a>
-      <a class="nav-item" href="loyalty-crm.html">Loyalty CRM</a>
-      <a class="nav-item" href="subscription.html">Subscription</a>
-      <a class="nav-item" href="qr.html">QR Code</a>
-      <a class="nav-item" href="theme.html">Settings</a>
+      <a class="nav-item active" href="/restaurant/index.html">Dashboard</a>
+      <a class="nav-item" href="/restaurant/live-ops.html">Live Operations</a>
+      <a class="nav-item" href="/restaurant/tables.html">Tables</a>
+      <a class="nav-item" href="/restaurant/menu.html">Menu Management</a>
+      <a class="nav-item" href="/restaurant/reports.html">Reports</a>
+      <a class="nav-item" href="/restaurant/loyalty-crm.html">Loyalty CRM</a>
+      <a class="nav-item" href="/restaurant/subscription.html">Subscription</a>
+      <a class="nav-item" href="/restaurant/qr.html">QR Code</a>
+      <a class="nav-item" href="/restaurant/theme.html">Settings</a>
     </nav>
     <div class="sidebar-footer">
       <div class="sidebar-user">
@@ -166,7 +166,7 @@
             <div class="card-subtitle">Live status of customer table orders</div>
           </div>
           <div style="display:flex; gap:10px;">
-            <a href="live-ops.html" class="btn btn-primary btn-sm" style="text-decoration:none;">⚡ Live Operations</a>
+            <a href="/restaurant/live-ops.html" class="btn btn-primary btn-sm" style="text-decoration:none;">⚡ Live Operations</a>
           </div>
         </div>
         <div style="margin-top: 16px; overflow-x: auto;">
@@ -471,7 +471,7 @@
           const startTime = new Date(session.start_time).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
           const finalAmt = session.running_total - session.discount_amount;
           
-          let actionBtn = `<a href="live-ops.html" class="btn btn-secondary btn-sm" style="text-decoration:none; padding:4px 8px; font-size:0.75rem;">⚡ Live Ops</a>`;
+          let actionBtn = `<a href="/restaurant/live-ops.html" class="btn btn-secondary btn-sm" style="text-decoration:none; padding:4px 8px; font-size:0.75rem;">⚡ Live Ops</a>`;
 
           let badgeClass = 'status-pending';
           if (session.tables.status === 'preparing') badgeClass = 'status-preparing';
