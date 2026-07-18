@@ -959,7 +959,12 @@ Return ONLY the raw JSON output. Do not wrap in markdown or add notes.`;
         }
         return;
       } catch (err) {
-        showToast('Browser Gemini call failed: ' + err.message, 'error');
+        const errMsg = err.message || '';
+        if (errMsg.includes('API key not valid') || errMsg.includes('API_KEY_INVALID')) {
+          showToast('❌ Invalid Gemini API Key. Please enter a valid key in the API Settings block.', 'error');
+        } else {
+          showToast('Browser Gemini call failed: ' + errMsg, 'error');
+        }
         console.error(err);
         return;
       } finally {
