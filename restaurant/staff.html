@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Staff Manager — AR Menu Platform</title>
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    .staff-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .staff-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-xl);
+      padding: var(--space-5);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+    .staff-role-badge {
+      align-self: flex-start;
+      font-size: 0.7rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+    }
+    .role-manager { background: rgba(99, 102, 241, 0.1); color: #818cf8; }
+    .role-cashier { background: rgba(16, 185, 129, 0.1); color: #34d399; }
+    .role-kitchen { background: rgba(245, 158, 11, 0.1); color: #fbbf24; }
+    .role-waiter { background: rgba(6, 182, 212, 0.1); color: #22d3ee; }
+
+    .staff-meta {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .staff-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 1.2rem;
+      color: #fff;
+    }
+    .status-active { color: #10b981; }
+    .status-inactive { color: #ef4444; }
+  </style>
+</head>
+<body class="dashboard-layout">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon"></div>
+      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item" href="/restaurant/index.html">Dashboard</a>
+      <a class="nav-item" href="/restaurant/live-ops.html">Live Operations</a>
+      <a class="nav-item" href="/restaurant/tables.html">Tables</a>
+      <a class="nav-item" href="/restaurant/menu.html">Menu Management</a>
+      <a class="nav-item" href="/restaurant/reports.html">Reports</a>
+      <a class="nav-item" href="/restaurant/loyalty-crm.html">Loyalty CRM</a>
+      <a class="nav-item active" href="/restaurant/staff.html">Staff</a>
+      <a class="nav-item" href="/restaurant/subscription.html">Subscription</a>
+      <a class="nav-item" href="/restaurant/qr.html">QR Code</a>
+      <a class="nav-item" href="/restaurant/theme.html">Settings</a>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sidebar-user">
+        <div class="user-avatar" id="avatarInitial">R</div>
+        <div style="flex:1; min-width:0;">
+          <div class="user-name" id="restaurantName">Loading...</div>
+          <div class="user-role">Restaurant Owner</div>
+        </div>
+      </div>
+      <div class="sidebar-logout">
+        <button class="btn-logout" id="logoutBtn" type="button">Sign Out</button>
+      </div>
+    </div>
+  </aside>
+  
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <div class="main-content">
+    <header class="topbar">
+      <button class="topbar-menu-btn" id="menuToggle">Menu</button>
+      <div class="topbar-breadcrumb">
+        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">Staff</span>
+      </div>
+    </header>
+
+    <div class="page-content">
+      <div class="page-header animate-in" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
+        <div class="page-header-text">
+          <h1>Staff Management</h1>
+          <p>Add and manage roles for your managers, waiters, cashiers, and kitchen team.</p>
+        </div>
+        <button class="btn btn-primary" onclick="openAddStaffModal()">➕ Add Staff Member</button>
+      </div>
+
+      <div class="staff-grid" id="staffGrid">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD STAFF MODAL -->
+  <div class="modal-backdrop" id="addStaffModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:2000; align-items:center; justify-content:center;">
+    <div class="modal-content" style="background:var(--bg-card); border:1.5px solid var(--border); padding:30px; border-radius:var(--radius-xl); width:100%; max-width:460px; box-sizing:border-box;">
+      <h3 style="margin-top:0; font-size:1.4rem; margin-bottom:12px;">Add Staff Member</h3>
+      <form id="addStaffForm" style="display:flex; flex-direction:column; gap:16px;">
+        <div class="form-group">
+          <label class="form-label">Full Name</label>
+          <input type="text" id="staffName" class="form-control" placeholder="Enter name" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Email Address</label>
+          <input type="email" id="staffEmail" class="form-control" placeholder="staff@restaurant.com" required>
+        </div>
+        <div class="form-row" style="display:flex; gap:12px;">
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Role</label>
+            <select id="staffRole" class="form-control" style="background:#12121a; color:#fff;" required>
+              <option value="manager">Manager</option>
+              <option value="cashier">Cashier</option>
+              <option value="kitchen">Kitchen</option>
+              <option value="waiter">Waiter</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label class="form-label">Phone Number</label>
+            <input type="tel" id="staffPhone" class="form-control" placeholder="10-digit mobile" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Create Password</label>
+          <input type="password" id="staffPassword" class="form-control" placeholder="Min. 8 characters" required minlength="8">
+        </div>
+        <div style="display:flex; justify-content:flex-end; gap:12px; margin-top:12px;">
+          <button type="button" class="btn btn-secondary" onclick="closeAddStaffModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveStaffBtn">Create Account</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module">
+    import { authManager } from '../js/auth.js?v=4';
+    import { showToast } from '../js/utils.js?v=4';
+
+    const SUPABASE_URL = 'https://fuezcrbfswgghawhfxrv.supabase.co';
+    let profile = null;
+
+    // Load session & check permissions
+    window.addEventListener('DOMContentLoaded', async () => {
+      profile = await authManager.requireAuth('restaurant_owner');
+      if (!profile) return;
+
+      document.getElementById('restaurantName').textContent = profile.restaurants?.name || 'My Restaurant';
+      document.getElementById('avatarInitial').textContent = (profile.restaurants?.name || 'M').charAt(0).toUpperCase();
+      document.getElementById('restNameSub').textContent = profile.restaurants?.name || 'Restaurant';
+      document.getElementById('topbarRestName').textContent = profile.restaurants?.name || 'Restaurant';
+
+      loadStaff();
+    });
+
+    async function loadStaff() {
+      const grid = document.getElementById('staffGrid');
+      grid.innerHTML = '<div style="color:var(--text-muted);">Loading staff list...</div>';
+
+      try {
+        const session = await authManager.getSession();
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/manage-staff`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-user-token': session.access_token 
+          },
+          body: JSON.stringify({ 
+            action: 'list', 
+            restaurantId: profile.restaurant_id 
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Failed to load staff list");
+
+        if (!result.staff || result.staff.length === 0) {
+          grid.innerHTML = '<div style="color:var(--text-muted); grid-column:1/-1; text-align:center; padding:40px;">No staff members added yet.</div>';
+          return;
+        }
+
+        grid.innerHTML = result.staff.map(member => {
+          const initial = member.display_name ? member.display_name.charAt(0).toUpperCase() : 'S';
+          const roleClass = `role-${member.role}`;
+          const statusText = member.is_active ? 'Active' : 'Suspended';
+          const statusClass = member.is_active ? 'status-active' : 'status-inactive';
+          
+          return `
+            <div class="staff-card animate-in">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="staff-role-badge ${roleClass}">${member.role.replace('_', ' ')}</span>
+                <span class="status-dot-badge ${statusClass}" style="font-size:0.75rem; font-weight:700;">● ${statusText}</span>
+              </div>
+              <div class="staff-meta">
+                <div class="staff-avatar">${initial}</div>
+                <div>
+                  <h4 style="margin:0; font-size:1.05rem; color:#fff;">${member.display_name || 'Staff Member'}</h4>
+                  <div style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">${member.email}</div>
+                </div>
+              </div>
+              <div style="display:flex; gap:10px; margin-top:auto;">
+                <button class="btn btn-secondary btn-sm" onclick="toggleStaffStatus('${member.id}', ${!member.is_active})" style="flex:1; font-size:0.75rem; padding:8px;">
+                  ${member.is_active ? 'Suspend' : 'Activate'}
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="removeStaff('${member.id}')" style="background:rgba(239,68,68,0.1); border-color:rgba(239,68,68,0.2); color:#ef4444; font-size:0.75rem; padding:8px;">
+                  Delete
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        grid.innerHTML = `<div style="color:var(--danger); grid-column:1/-1; text-align:center;">Failed to load staff: ${err.message}</div>`;
+      }
+    }
+
+    // Modal Operations
+    window.openAddStaffModal = () => {
+      document.getElementById('addStaffModal').style.display = 'flex';
+      document.getElementById('addStaffForm').reset();
+    };
+
+    window.closeAddStaffModal = () => {
+      document.getElementById('addStaffModal').style.display = 'none';
+    };
+
+    document.getElementById('addStaffForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const name = document.getElementById('staffName').value.trim();
+      const email = document.getElementById('staffEmail').value.trim();
+      const role = document.getElementById('staffRole').value;
+      const phone = document.getElementById('staffPhone').value.trim();
+      const password = document.getElementById('staffPassword').value;
+
+      const saveBtn = document.getElementById('saveStaffBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving...';
+
+      try {
+        const session = await authManager.getSession();
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/manage-staff`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-user-token': session.access_token 
+          },
+          body: JSON.stringify({
+            action: 'create',
+            restaurantId: profile.restaurant_id,
+            name, email, role, phone, password
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Failed to create staff member");
+
+        showToast("Staff account created successfully!", "success");
+        closeAddStaffModal();
+        loadStaff();
+
+      } catch (err) {
+        showToast(err.message, "error");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = 'Create Account';
+      }
+    });
+
+    window.toggleStaffStatus = async (staffId, status) => {
+      if (!confirm(`Are you sure you want to ${status ? 'activate' : 'suspend'} this staff member?`)) return;
+
+      try {
+        const session = await authManager.getSession();
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/manage-staff`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-user-token': session.access_token 
+          },
+          body: JSON.stringify({
+            action: 'toggle-status',
+            restaurantId: profile.restaurant_id,
+            staffId,
+            status
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Failed to update staff status");
+
+        showToast("Staff status updated successfully!", "success");
+        loadStaff();
+
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    };
+
+    window.removeStaff = async (staffId) => {
+      if (!confirm("Are you sure you want to delete this staff member? This action is permanent and cannot be undone.")) return;
+
+      try {
+        const session = await authManager.getSession();
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/manage-staff`, {
+          method: 'POST',
+          headers: { 
+            'Content-Type': 'application/json',
+            'x-user-token': session.access_token 
+          },
+          body: JSON.stringify({
+            action: 'delete',
+            restaurantId: profile.restaurant_id,
+            staffId
+          })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Failed to delete staff member");
+
+        showToast("Staff deleted successfully!", "success");
+        loadStaff();
+
+      } catch (err) {
+        showToast(err.message, "error");
+      }
+    };
+  </script>
+</body>
+</html>

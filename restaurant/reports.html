@@ -7,10 +7,60 @@
   <link rel="stylesheet" href="../css/main.css" />
   <link rel="stylesheet" href="../css/dashboard.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-  <style>
+  <style id="critical-logout-styles">
+    .sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); }
+    .btn-logout { 
+      width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; 
+      padding: 10px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); 
+      border-radius: var(--radius-md); color: #ef4444; font-size: 0.85rem; font-weight: 600; 
+      cursor: pointer; transition: all 0.2s; 
+    }
+    .btn-logout:hover { background: #ef4444; color: #fff; border-color: #ef4444; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2); }
+
+    /* Custom Theme Overrides and Sidebar polish */
+    body.theme-light .topbar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+    }
+    body.theme-light .sidebar-overlay {
+      background: rgba(0, 0, 0, 0.3);
+    }
+    .sidebar .nav-item {
+      margin: 4px 16px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border-left: none;
+    }
+    .sidebar .nav-item.active {
+      background: #5d5fef;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(93, 95, 239, 0.35);
+    }
+    .sidebar .nav-item.active::before {
+      display: none;
+    }
+    .nav-badge.badge-live {
+      background: #5d5fef;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .nav-badge.badge-new {
+      background: #10b981;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
     .reports-stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
       gap: 20px;
       margin-top: 24px;
     }
@@ -19,14 +69,15 @@
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius-xl);
-      padding: var(--space-5);
+      padding: 20px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      position: relative;
+      overflow: hidden;
     }
 
     .report-card-title {
-      font-size: 0.78rem;
+      font-size: 0.75rem;
       color: var(--text-muted);
       font-weight: 700;
       text-transform: uppercase;
@@ -34,102 +85,429 @@
     }
 
     .report-card-value {
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-weight: 800;
       color: var(--text-primary);
+      margin-top: 8px;
     }
 
     .performance-table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 20px;
+      margin-top: 16px;
       font-size: 0.85rem;
     }
 
     .performance-table th, .performance-table td {
-      border: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
       padding: 12px;
       text-align: left;
     }
 
     .performance-table th {
-      background: var(--bg-elevated);
-      color: var(--text-primary);
+      color: var(--text-muted);
       font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.05em;
+    }
+
+    /* Modal styling for Owner Guide */
+    .guide-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      animation: fadeIn 0.3s ease;
+      padding: 20px;
+    }
+    .guide-modal.open {
+      display: flex;
+    }
+    .guide-content-card {
+      width: 100%;
+      max-width: 900px;
+      height: 80vh;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .guide-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-surface);
+    }
+    .guide-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .guide-toc {
+      width: 240px;
+      border-right: 1px solid var(--border);
+      background: var(--bg-surface);
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .guide-toc-item {
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+      text-align: left;
+      border: none;
+      background: transparent;
+      width: 100%;
+    }
+    .guide-toc-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .guide-toc-item.active {
+      background: var(--primary-glow);
+      color: var(--primary-light);
+      font-weight: 600;
+    }
+    .guide-detail {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    .guide-detail h2 {
+      font-size: 1.35rem;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+    .guide-detail p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    .guide-detail ul {
+      padding-left: 20px;
+      margin-bottom: 16px;
+    }
+    .guide-detail li {
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
     }
   </style>
+
+  <style id="premium-sidebar-styles">
+    /* Custom Theme Overrides and Sidebar polish */
+    body.theme-light .topbar {
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border);
+    }
+    body.theme-light .sidebar-overlay {
+      background: rgba(0, 0, 0, 0.3);
+    }
+    .sidebar .nav-item {
+      margin: 4px 16px;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      border-left: none;
+    }
+    .sidebar .nav-item.active {
+      background: #5d5fef;
+      color: #ffffff;
+      box-shadow: 0 4px 12px rgba(93, 95, 239, 0.35);
+    }
+    .sidebar .nav-item.active::before {
+      display: none;
+    }
+    .nav-badge.badge-live {
+      background: #5d5fef;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+    .nav-badge.badge-new {
+      background: #10b981;
+      color: #fff;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    /* Modal styling for Owner Guide */
+    .guide-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(8px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      animation: fadeIn 0.3s ease;
+      padding: 20px;
+    }
+    .guide-modal.open {
+      display: flex;
+    }
+    .guide-content-card {
+      width: 100%;
+      max-width: 900px;
+      height: 80vh;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .guide-header {
+      padding: 16px 24px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-surface);
+    }
+    .guide-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+    .guide-toc {
+      width: 240px;
+      border-right: 1px solid var(--border);
+      background: var(--bg-surface);
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .guide-toc-item {
+      padding: 10px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.82rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      transition: all 0.2s ease;
+      text-align: left;
+      border: none;
+      background: transparent;
+      width: 100%;
+    }
+    .guide-toc-item:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+    .guide-toc-item.active {
+      background: var(--primary-glow);
+      color: var(--primary-light);
+      font-weight: 600;
+    }
+    .guide-detail {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      background: var(--bg-card);
+      color: var(--text-primary);
+      line-height: 1.6;
+    }
+    .guide-detail h2 {
+      font-size: 1.35rem;
+      margin-bottom: 12px;
+      color: var(--text-primary);
+    }
+    .guide-detail p {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+    .guide-detail ul {
+      padding-left: 20px;
+      margin-bottom: 16px;
+    }
+    .guide-detail li {
+      margin-bottom: 8px;
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+    }
+  </style>
+
 </head>
 <body class="dashboard-layout">
 
+  
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon"></div>
-      <div><div class="sidebar-logo-text">AR Menu</div><div class="sidebar-logo-sub" id="restNameSub">Restaurant</div></div>
+      <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-hero); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(99,102,241,0.25);">☕</div>
+      <div>
+        <div class="sidebar-logo-text" style="font-weight:800; font-size:0.95rem; color:#fff;">Brewstreet</div>
+        <div class="sidebar-logo-sub" id="restNameSub" style="font-size:0.62rem; color:var(--text-muted); font-weight:600;">Cafe & Eatery</div>
+      </div>
     </div>
     <nav class="sidebar-nav">
-      <a class="nav-item" href="/restaurant/index.html">Dashboard</a>
-      <a class="nav-item" href="/restaurant/live-ops.html">Live Operations</a>
-      <a class="nav-item" href="/restaurant/tables.html">Tables</a>
-      <a class="nav-item" href="/restaurant/menu.html">Menu Management</a>
-      <a class="nav-item active" href="/restaurant/reports.html">Reports</a>
-      <a class="nav-item" href="/restaurant/loyalty-crm.html">Loyalty CRM</a>
-      <a class="nav-item" href="/restaurant/subscription.html">Subscription</a>
-      <a class="nav-item" href="/restaurant/qr.html">QR Code</a>
-      <a class="nav-item" href="/restaurant/theme.html">Settings</a>
+      <a class="nav-item" id="nav-dashboard" href="/restaurant/index.html">Dashboard</a>
+      <a class="nav-item" id="nav-menu" href="/restaurant/menu.html">Menu Management</a>
+      <a class="nav-item" id="nav-orders" href="/restaurant/live-ops.html" style="display:flex; justify-content:space-between; align-items:center; width:calc(100% - 32px);">
+        Orders
+        <span class="nav-badge badge-live">Live</span>
+      </a>
+      <a class="nav-item" id="nav-tables" href="/restaurant/tables.html">Tables</a>
+      <a class="nav-item" id="nav-loyalty" href="/restaurant/loyalty-crm.html" style="display:flex; justify-content:space-between; align-items:center; width:calc(100% - 32px);">
+        Loyalty
+        <span class="nav-badge badge-new">New</span>
+      </a>
+      <a class="nav-item" id="nav-analytics" href="/restaurant/reports.html">Analytics</a>
+      <a class="nav-item" id="nav-subscription" href="/restaurant/subscription.html">Subscription</a>
+      <a class="nav-item" id="nav-settings" href="/restaurant/theme.html">Settings</a>
+      <a class="nav-item" id="nav-qr" href="/restaurant/qr.html">QR Code</a>
     </nav>
-    <div class="sidebar-footer">
-      <div class="sidebar-user">
-        <div class="user-avatar" id="avatarInitial">R</div>
-        <div style="flex:1; min-width:0;">
-          <div class="user-name" id="restaurantName">Loading...</div>
-          <div class="user-role">Restaurant Owner</div>
+
+    <!-- Grow your AR banner -->
+    <div style="padding: 16px; margin: 16px; background: linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(6,182,212,0.15) 100%); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; margin-top: auto; position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-weight: 700; font-size: 0.85rem; color: #fff;">Grow your cafe with</div>
+      <div style="font-weight: 800; font-size: 1rem; color: #f59e0b; margin-top: -4px;">AR Menu</div>
+      <div style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.4;">Engage customers with immersive experiences.</div>
+      <button onclick="document.getElementById('openGuideBtn').click()" class="btn btn-secondary btn-sm" style="background:#fff; color:#0f0f1a; font-weight:700; border:none; border-radius:8px; padding: 8px; font-size: 0.75rem; text-align: center; cursor: pointer; transition: all 0.2s; width: 100%;">Learn More →</button>
+    </div>
+
+    <div class="sidebar-footer" style="border-top: 1px solid var(--border); padding: 12px 16px;">
+      <div class="sidebar-user" style="display:flex; align-items:center; justify-content:space-between; width:100%;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="user-avatar" id="avatarInitial" style="width:34px; height:34px; border-radius:50%; background:var(--gradient-hero); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:0.85rem;">BC</div>
+          <div>
+            <div class="user-name" id="restaurantName" style="font-size:0.8rem; font-weight:700; color:#fff;">Brewstreet Cafe</div>
+            <div class="user-role" style="font-size:0.7rem; color:var(--text-muted); margin-top:2px;">Admin</div>
+          </div>
+        </div>
+        <div style="color:var(--text-muted); cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="7 15 12 20 17 15"></polyline><polyline points="7 9 12 4 17 9"></polyline></svg>
         </div>
       </div>
-      <div class="sidebar-logout">
-        <button class="btn-logout" id="logoutBtn" type="button">Sign Out</button>
+      <div class="sidebar-logout" style="margin-top: 8px;">
+        <button class="btn-logout" id="logoutBtn" type="button" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 8px; background: rgba(239, 68, 68, 0.05); border: 1px solid rgba(239, 68, 68, 0.1); border-radius: 8px; color: #ef4444; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+          Sign Out
+        </button>
       </div>
     </div>
   </aside>
-  
+
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="main-content">
-    <header class="topbar">
+    
+    <header class="topbar" style="display:flex; justify-content:space-between; align-items:center; padding: 0 var(--space-6); height: var(--topbar-h); background: var(--bg-surface); border-bottom: 1px solid var(--border);">
       <button class="topbar-menu-btn" id="menuToggle">Menu</button>
-      <div class="topbar-breadcrumb">
-        <span id="topbarRestName">Restaurant</span><span>/</span><span class="current">Reports</span>
+      <div class="topbar-breadcrumb" style="font-size: 0.85rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:2px; opacity:0.7;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span id="topbarRestName">Brewstreet Cafe & Eatery</span>
+        <span style="opacity: 0.5;">&gt;</span>
+        <span class="current" style="font-weight: 700; color: var(--text-primary);">REPORTS</span>
+      </div>
+      <div class="topbar-actions" style="display:flex; align-items:center; gap: 12px;">
+        <!-- Theme Toggle Button -->
+        <button id="themeToggleBtn" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-primary); cursor: pointer;" title="Toggle Light/Dark Theme">
+          <svg class="sun-icon" style="display:none;" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+          <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+        <!-- Bell Icon / Notifications -->
+        <div style="position: relative; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-primary); cursor: pointer;" title="Notifications">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+          <span style="position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; background: #5d5fef; color: white; font-size: 0.65rem; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center;">3</span>
+        </div>
+        <!-- Owner Guide Button -->
+        <button id="openGuideBtn" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight:600; font-size:0.8rem; cursor:pointer;">
+          📖 Owner Guide
+        </button>
+        <a class="btn btn-primary btn-sm" id="viewMenuBtn" href="#" target="_blank" style="display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:0.8rem; background:#5d5fef; border-color:#5d5fef; border-radius:8px;">
+          View Public Menu
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
+        </a>
       </div>
     </header>
+  
 
     <div class="page-content animate-in">
       <div class="page-header">
-        <div class="page-header-text">
-          <h1>Analytics Reports</h1>
-          <p>Historical sales performance, kitchen delays, and table occupancy metrics.</p>
+        <div class="page-header-text" style="display:flex; justify-content:space-between; align-items:center; width:100%; flex-wrap:wrap; gap:16px;">
+          <div>
+            <h1>Analytics Reports</h1>
+            <p>Historical sales performance, kitchen delays, and table occupancy metrics.</p>
+          </div>
+          
+          <!-- Period Selector Tabs -->
+          <div style="display:flex; gap:8px; background:var(--bg-elevated); padding:4px; border-radius:10px; border:1px solid var(--border);">
+            <button class="btn btn-sm btn-ghost" id="tabWeekly" style="font-weight:600; border-radius:6px; padding:6px 16px;">Weekly</button>
+            <button class="btn btn-sm btn-ghost" id="tabMonthly" style="font-weight:600; border-radius:6px; padding:6px 16px;">Monthly</button>
+            <button class="btn btn-sm btn-ghost" id="tabCustom" style="font-weight:600; border-radius:6px; padding:6px 16px;">Custom</button>
+          </div>
         </div>
+      </div>
+
+      <!-- Custom Range Controls -->
+      <div id="customRangeBox" class="card" style="margin-top: 16px; display:none; gap:16px; align-items:center; flex-wrap:wrap; background:var(--bg-card); border-color:var(--border);">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:0.82rem; color:var(--text-secondary); font-weight:600;">From:</span>
+          <input type="datetime-local" id="filterFromDate" class="form-control" style="background:var(--bg-elevated); color:var(--text-primary); border-color:var(--border); padding:8px 12px; border-radius:8px;" />
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:0.82rem; color:var(--text-secondary); font-weight:600;">To:</span>
+          <input type="datetime-local" id="filterToDate" class="form-control" style="background:var(--bg-elevated); color:var(--text-primary); border-color:var(--border); padding:8px 12px; border-radius:8px;" />
+        </div>
+        <button id="applyCustomFilter" class="btn btn-primary btn-sm" style="background:#5d5fef; border-color:#5d5fef; border-radius:8px; padding:8px 16px;">Apply Filter</button>
       </div>
 
       <div class="reports-stats-grid">
         <div class="report-card">
-          <div class="report-card-title">💵 Today's Total Sales</div>
+          <div class="report-card-title">💵 Period Total Sales</div>
           <div class="report-card-value" id="todaySales">₹0</div>
+          <svg style="position:absolute; bottom:10px; right:10px; width:60px; height:24px; pointer-events:none; color:rgba(99,102,241,0.15);" viewBox="0 0 60 24" fill="none"><path d="M0 12 C15 2, 30 22, 45 4 C50 -2, 55 10, 60 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </div>
         <div class="report-card">
-          <div class="report-card-title">📝 Total Orders Fulfilled</div>
+          <div class="report-card-title">📝 Period Orders Fulfilled</div>
           <div class="report-card-value" id="totalOrders">0</div>
+          <svg style="position:absolute; bottom:10px; right:10px; width:60px; height:24px; pointer-events:none; color:rgba(16,185,129,0.15);" viewBox="0 0 60 24" fill="none"><path d="M0 12 C15 2, 30 22, 45 4 C50 -2, 55 10, 60 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </div>
         <div class="report-card">
           <div class="report-card-title">⏱️ Avg Prep Time</div>
           <div class="report-card-value" id="avgPrepTime">12 mins</div>
+          <svg style="position:absolute; bottom:10px; right:10px; width:60px; height:24px; pointer-events:none; color:rgba(6,182,212,0.15);" viewBox="0 0 60 24" fill="none"><path d="M0 12 C15 2, 30 22, 45 4 C50 -2, 55 10, 60 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </div>
         <div class="report-card">
-          <div class="report-card-title">🍛 Average Bill Value</div>
+          <div class="report-card-title">🍛 Avg Bill Value</div>
           <div class="report-card-value" id="avgBill">₹0</div>
+          <svg style="position:absolute; bottom:10px; right:10px; width:60px; height:24px; pointer-events:none; color:rgba(99,102,241,0.15);" viewBox="0 0 60 24" fill="none"><path d="M0 12 C15 2, 30 22, 45 4 C50 -2, 55 10, 60 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
         </div>
       </div>
 
       <div style="margin-top: 32px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:24px;">
-        <h3 style="margin-bottom:12px;">Top Selling Menu Items</h3>
+        <h3 style="margin-bottom:4px; color:var(--text-primary);">Top Selling Menu Items</h3>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:16px;">Most ordered dishes during the selected period</p>
         <table class="performance-table">
           <thead>
             <tr>
@@ -145,14 +523,97 @@
           </tbody>
         </table>
       </div>
+
+      <!-- Detailed Orders Log with Time & Date -->
+      <div style="margin-top: 32px; background:var(--bg-card); border:1px solid var(--border); border-radius:var(--radius-xl); padding:24px; margin-bottom: 40px;">
+        <h3 style="margin-bottom:4px; color:var(--text-primary);">Detailed Transaction Log</h3>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:16px;">Detailed listing of orders showing exact date and times</p>
+        <div style="overflow-x:auto;">
+          <table class="performance-table">
+            <thead>
+              <tr>
+                <th>Date & Time</th>
+                <th>Table</th>
+                <th>Customer</th>
+                <th>Payment Method</th>
+                <th>Discount</th>
+                <th>Total Paid</th>
+              </tr>
+            </thead>
+            <tbody id="ordersLogBody">
+              <tr>
+                <td colspan="6" style="text-align:center; color:var(--text-muted);">No transactions recorded in this period.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Owner Guide Modal -->
+  <div id="guideModal" class="guide-modal">
+    <div class="guide-content-card">
+      <div class="guide-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:1.5rem;">📖</span>
+          <div>
+            <h2 style="font-size:1.15rem; margin:0; color:var(--text-primary);">BiteXR Restaurant Owner Guide</h2>
+            <p style="font-size:0.75rem; margin:2px 0 0 0; color:var(--text-secondary);">Quick Setup & User Manual</p>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:16px;">
+          <input type="text" id="guideSearchInput" placeholder="Search guide..." style="background:var(--bg-elevated); border:1px solid var(--border); padding:6px 12px; border-radius:8px; font-size:0.8rem; color:var(--text-primary);" />
+          <button id="guideDownloadPdf" class="btn btn-secondary btn-sm" style="display:inline-flex; align-items:center; gap:4px; font-size:0.75rem; border-radius:8px; cursor:pointer;">📥 Download Guide</button>
+          <button id="closeGuideBtn" style="background:transparent; border:none; color:var(--text-muted); font-size:1.5rem; cursor:pointer;">&times;</button>
+        </div>
+      </div>
+      <div class="guide-body">
+        <div class="guide-toc" id="guideTocList"></div>
+        <div class="guide-detail" id="guideDetailPane"></div>
+      </div>
     </div>
   </div>
 
   <script type="module">
     import "/js/logout-handler.js?v=5";
     import { supabase } from "/js/supabase-config.js?v=5";
+    import { formatDate } from '/js/utils.js?v=5';
+    import { APP_CONFIG } from '/js/supabase-config.js?v=5';
 
     let restaurantId = null;
+    let allCompletedSessions = [];
+    let currentFilterType = 'weekly'; // weekly, monthly, custom
+
+    // Theme Switcher Logic
+    const body = document.body;
+    const themeToggleBtn = document.getElementById('themeToggleBtn');
+    const sunIcon = themeToggleBtn.querySelector('.sun-icon');
+    const moonIcon = themeToggleBtn.querySelector('.moon-icon');
+
+    const savedTheme = localStorage.getItem('restaurant-dashboard-theme') || 'dark';
+    if (savedTheme === 'light') {
+      body.classList.add('theme-light');
+      sunIcon.style.display = 'block';
+      moonIcon.style.display = 'none';
+    } else {
+      body.classList.remove('theme-light');
+      sunIcon.style.display = 'none';
+      moonIcon.style.display = 'block';
+    }
+
+    themeToggleBtn.addEventListener('click', () => {
+      const isLight = body.classList.toggle('theme-light');
+      localStorage.setItem('restaurant-dashboard-theme', isLight ? 'light' : 'dark');
+      if (isLight) {
+        sunIcon.style.display = 'block';
+        moonIcon.style.display = 'none';
+      } else {
+        sunIcon.style.display = 'none';
+        moonIcon.style.display = 'block';
+      }
+    });
 
     (async function init() {
       const { data: { session } } = await supabase.auth.getSession();
@@ -167,47 +628,169 @@
       document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
       document.getElementById('topbarRestName').textContent  = restaurant.name;
       document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+      
+      const publicUrl = `${APP_CONFIG.domain}/menu.html?restaurant=${restaurant.id}`;
+      document.getElementById('viewMenuBtn').href = publicUrl;
 
+      // Sidebar Toggles
       document.getElementById('menuToggle').addEventListener('click', () => {
         document.getElementById('sidebar').classList.toggle('open');
         document.getElementById('sidebarOverlay').classList.toggle('open');
       });
+      document.getElementById('sidebarOverlay').addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('open');
+      });
 
-      loadReportAnalytics();
+      // Filter Tabs setup
+      setupFilterTabs();
+
+      // Retrieve all sessions and run weekly analysis
+      await fetchAllCompletedSessions();
+      applyPeriodFilter();
     })();
 
-    async function loadReportAnalytics() {
+    function setupFilterTabs() {
+      const tabWeekly = document.getElementById('tabWeekly');
+      const tabMonthly = document.getElementById('tabMonthly');
+      const tabCustom = document.getElementById('tabCustom');
+      const customBox = document.getElementById('customRangeBox');
+
+      const selectTab = (type) => {
+        currentFilterType = type;
+        tabWeekly.className = type === 'weekly' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost';
+        tabMonthly.className = type === 'monthly' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost';
+        tabCustom.className = type === 'custom' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost';
+        
+        if (type === 'custom') {
+          customBox.style.display = 'flex';
+        } else {
+          customBox.style.display = 'none';
+          applyPeriodFilter();
+        }
+      };
+
+      tabWeekly.addEventListener('click', () => selectTab('weekly'));
+      tabMonthly.addEventListener('click', () => selectTab('monthly'));
+      tabCustom.addEventListener('click', () => selectTab('custom'));
+
+      // Setup default Custom dates (last 7 days to now)
+      const now = new Date();
+      const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+      
+      const toStr = now.toISOString().slice(0, 16);
+      const fromStr = lastWeek.toISOString().slice(0, 16);
+
+      document.getElementById('filterFromDate').value = fromStr;
+      document.getElementById('filterToDate').value = toStr;
+
+      document.getElementById('applyCustomFilter').addEventListener('click', () => {
+        applyPeriodFilter();
+      });
+
+      selectTab('weekly');
+    }
+
+    async function fetchAllCompletedSessions() {
       try {
-        // Query completed dining sessions
         const { data: sessions, error } = await supabase
           .from('dining_sessions')
-          .select('*')
+          .select('*, tables!dining_sessions_table_id_fkey(*)')
           .eq('restaurant_id', restaurantId)
-          .eq('status', 'completed');
+          .eq('status', 'completed')
+          .order('end_time', { ascending: false });
+
+        if (error) throw error;
+        allCompletedSessions = sessions || [];
+      } catch (err) {
+        console.error('Error fetching analytics sessions:', err);
+      }
+    }
+
+    function applyPeriodFilter() {
+      let filtered = [];
+      const now = new Date();
+
+      if (currentFilterType === 'weekly') {
+        const boundary = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        filtered = allCompletedSessions.filter(s => new Date(s.end_time || s.created_at) >= boundary);
+      } else if (currentFilterType === 'monthly') {
+        const boundary = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        filtered = allCompletedSessions.filter(s => new Date(s.end_time || s.created_at) >= boundary);
+      } else if (currentFilterType === 'custom') {
+        const fromVal = document.getElementById('filterFromDate').value;
+        const toVal = document.getElementById('filterToDate').value;
+        if (!fromVal || !toVal) return;
+        const fromDate = new Date(fromVal);
+        const toDate = new Date(toVal);
+
+        filtered = allCompletedSessions.filter(s => {
+          const t = new Date(s.end_time || s.created_at);
+          return t >= fromDate && t <= toDate;
+        });
+      }
+
+      renderAnalyticsData(filtered);
+      loadTopSellingItems(filtered);
+    }
+
+    function renderAnalyticsData(sessions) {
+      let totalSales = 0;
+      sessions.forEach(s => {
+        totalSales += parseFloat(s.running_total || 0) - parseFloat(s.discount_amount || 0);
+      });
+
+      document.getElementById('todaySales').textContent = `₹${Math.round(totalSales).toLocaleString('en-IN')}`;
+      document.getElementById('totalOrders').textContent = sessions.length;
+      
+      const avg = sessions.length ? Math.round(totalSales / sessions.length) : 0;
+      document.getElementById('avgBill').textContent = `₹${avg}`;
+
+      // Detailed transaction logs showing Date & Time
+      const logBody = document.getElementById('ordersLogBody');
+      if (!sessions.length) {
+        logBody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 24px; color:var(--text-muted);">No transactions recorded in this period.</td></tr>`;
+      } else {
+        logBody.innerHTML = sessions.map(s => {
+          const timestamp = new Date(s.end_time || s.created_at);
+          const dateStr = timestamp.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+          const timeStr = timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          const finalAmt = parseFloat(s.running_total || 0) - parseFloat(s.discount_amount || 0);
+
+          return `
+            <tr>
+              <td><strong>${dateStr}</strong> <span style="font-size:0.75rem; color:var(--text-muted); margin-left:6px;">${timeStr}</span></td>
+              <td>Table ${s.tables?.table_number || 'N/A'}</td>
+              <td>${s.customer_name || 'Walk-in'}</td>
+              <td style="text-transform: capitalize;">${s.payment_method?.replace(/_/g, ' ') || 'Cash'}</td>
+              <td style="color:var(--danger);">₹${Math.round(s.discount_amount || 0)}</td>
+              <td style="font-weight:700; color:var(--success);">₹${Math.round(finalAmt).toLocaleString('en-IN')}</td>
+            </tr>
+          `;
+        }).join('');
+      }
+    }
+
+    async function loadTopSellingItems(sessions) {
+      const tbody = document.getElementById('topItemsBody');
+      if (!sessions.length) {
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding: 24px; color:var(--text-muted);">No sales data available yet.</td></tr>`;
+        return;
+      }
+
+      try {
+        const sessionIds = sessions.map(s => s.id);
+        
+        // Fetch order items that belong to these sessions
+        const { data: orderItems, error } = await supabase
+          .from('order_items')
+          .select('name, quantity, price, orders!inner(dining_session_id)')
+          .in('orders.dining_session_id', sessionIds);
+
         if (error) throw error;
 
-        // Calculate sales totals
-        let totalSales = 0;
-        sessions.forEach(s => {
-          totalSales += parseFloat(s.running_total || 0) - parseFloat(s.discount_amount || 0);
-        });
-
-        document.getElementById('todaySales').textContent = `₹${Math.round(totalSales).toLocaleString('en-IN')}`;
-        document.getElementById('totalOrders').textContent = sessions.length;
-        
-        const avg = sessions.length ? Math.round(totalSales / sessions.length) : 0;
-        document.getElementById('avgBill').textContent = `₹${avg}`;
-
-        // Top items list
-        const { data: items, error: iErr } = await supabase
-          .from('order_items')
-          .select('name, quantity, price, orders!inner(restaurant_id)')
-          .eq('orders.restaurant_id', restaurantId);
-        if (iErr) throw iErr;
-
-        // Aggregate items
         const itemAgg = {};
-        items.forEach(i => {
+        (orderItems || []).forEach(i => {
           if (!itemAgg[i.name]) {
             itemAgg[i.name] = { count: 0, sales: 0 };
           }
@@ -220,22 +803,228 @@
           .sort((a,b) => b.count - a.count)
           .slice(0, 5);
 
-        const tbody = document.getElementById('topItemsBody');
         if (!sorted.length) {
-          tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; color:var(--text-muted);">No sales data available yet.</td></tr>`;
+          tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:24px; color:var(--text-muted);">No dish details recorded.</td></tr>`;
         } else {
           tbody.innerHTML = sorted.map(i => `
             <tr>
               <td><strong>${i.name}</strong></td>
               <td>${i.count} orders</td>
-              <td style="color:#22c55e; font-weight:700;">₹${Math.round(i.sales).toLocaleString('en-IN')}</td>
+              <td style="color:var(--success); font-weight:700;">₹${Math.round(i.sales).toLocaleString('en-IN')}</td>
             </tr>
           `).join('');
         }
       } catch (err) {
-        console.error('Failed reports build:', err.message);
+        console.error('Failed to load item aggregates:', err);
+        tbody.innerHTML = `<tr><td colspan="3" style="text-align:center; padding:24px; color:var(--danger);">Error loading top items list.</td></tr>`;
       }
     }
+
+    // Owner Guide Logic
+    const ownerGuideData = [
+      {
+        title: "🚀 Getting Started",
+        keywords: "start setup restaurant create login profile manual owner",
+        content: `
+          <h2>🚀 Getting Started</h2>
+          <p>Welcome to BiteXR! This guide will help you set up and manage your digital restaurant experience in just a few minutes.</p>
+          <h3>1. Create Your Restaurant Profile</h3>
+          <ul>
+            <li>Sign up as a Restaurant Owner on the BiteXR platform.</li>
+            <li>Enter your restaurant name, contact details, and address.</li>
+            <li>Upload your brand logo and cover image banner.</li>
+            <li>Save your profile to activate your digital dashboard.</li>
+          </ul>
+        `
+      },
+      {
+        title: "🥗 Menu Management",
+        keywords: "menu dishes categories add item price ingredients calories nutrition ingredients ai",
+        content: `
+          <h2>🥗 Menu Management</h2>
+          <h3>Add Categories</h3>
+          <p>Create categories such as:</p>
+          <ul>
+            <li>Starters</li>
+            <li>Main Course</li>
+            <li>Beverages</li>
+            <li>Desserts</li>
+            <li>Combos</li>
+          </ul>
+          <h3>Add Food Items</h3>
+          <p>For every food item, you can add:</p>
+          <ul>
+            <li>Dish Name & Description</li>
+            <li>Price & Food Image</li>
+            <li>Ingredients, Protein, Carbohydrates, Fats, Calories, Health Benefits, Preparation Time (or just generate them automatically using our inbuilt AI feature!)</li>
+            <li>Availability Status & Category</li>
+          </ul>
+          <p>Save the item, and it will instantly appear on your digital menu.</p>
+        `
+      },
+      {
+        title: "📦 3D AR Food Experience",
+        keywords: "3d ar augmented reality glb gltf model scan camera virtual",
+        content: `
+          <h2>📦 3D AR Food Experience</h2>
+          <p>Upload a 3D (.glb/.gltf) model of your dish. (For now, the Admin team will handle these conversion and upload processes for you).</p>
+          <h3>How customers experience AR dining:</h3>
+          <ul>
+            <li>Scan the table QR Code.</li>
+            <li>Tap <strong>View in AR</strong> on the menu.</li>
+            <li>Place the food virtually on their table using their phone camera.</li>
+          </ul>
+          <p>This interactive experience helps customers visualize the dish before ordering.</p>
+        `
+      },
+      {
+        title: "🎨 Customize Menu Design",
+        keywords: "theme style color palette fonts branding template design customize",
+        content: `
+          <h2>🎨 Customize Your Menu Design</h2>
+          <p>Personalize your menu layout and aesthetics to match your restaurant's physical branding.</p>
+          <h3>You can customize:</h3>
+          <ul>
+            <li>Light/Dark Theme & Color Palette</li>
+            <li>Fonts & Layout Style</li>
+            <li>Card Design & Background patterns</li>
+            <li>Button Styles, Logo & Banner Images</li>
+          </ul>
+          <p>Choose from multiple premium templates or keep the default design.</p>
+        `
+      },
+      {
+        title: "㗊 QR Code Menu",
+        keywords: "qr table order scan customer dining browser mobile",
+        content: `
+          <h2>㗊 QR Code Menu Setup</h2>
+          <p>Every restaurant receives a unique table QR Code. Customers simply:</p>
+          <ol>
+            <li>Scan the QR Code.</li>
+            <li>Open your digital menu (no app installation required!).</li>
+            <li>Browse dishes & search.</li>
+            <li>View 3D AR models of dishes.</li>
+            <li>Place orders directly from the table.</li>
+          </ol>
+        `
+      },
+      {
+        title: "🎁 Loyalty Rewards & Spin",
+        keywords: "loyalty rewards cashback customer points spin wheel discount coupon lucky",
+        content: `
+          <h2>🎁 Loyalty Rewards & Lucky Spin Wheel</h2>
+          <p>Reward repeat customers automatically to build a loyal fanbase.</p>
+          <h3>What you can configure:</h3>
+          <ul>
+            <li>Set points earning rules (e.g. earn 10 points for every ₹100 spent).</li>
+            <li>Give points automatically on every table checkout.</li>
+            <li>Offer custom point-based discount vouchers.</li>
+            <li>Provide free dishes for milestone point redemptions.</li>
+            <li>Create exclusive rewards only visible to VIP diners.</li>
+            <li>Lucky Spin Wheel: customize prizes and let customers spin to win discounts, gift cards, or bonus points!</li>
+          </ul>
+        `
+      },
+      {
+        title: "📊 Analytics & Operations",
+        keywords: "analytics reports sales revenue growth charts tracking live kitchen",
+        content: `
+          <h2>📊 Analytics Dashboard & Operations</h2>
+          <p>Monitor your restaurant's performance and live dining operations with real-time insights.</p>
+          <h3>Track key business metrics:</h3>
+          <ul>
+            <li>Total Orders & Sales Revenue</li>
+            <li>Popular Dishes & Customer Visits</li>
+            <li>Loyalty Program Usage & Customer Growth</li>
+            <li>Daily & Monthly Sales Trends</li>
+          </ul>
+        `
+      }
+    ];
+
+    const guideModal = document.getElementById('guideModal');
+    const openGuideBtn = document.getElementById('openGuideBtn');
+    const closeGuideBtn = document.getElementById('closeGuideBtn');
+    const guideTocList = document.getElementById('guideTocList');
+    const guideDetailPane = document.getElementById('guideDetailPane');
+    const guideSearchInput = document.getElementById('guideSearchInput');
+    const guideDownloadPdf = document.getElementById('guideDownloadPdf');
+
+    function selectGuideTopic(index) {
+      document.querySelectorAll('.guide-toc-item').forEach((item, idx) => {
+        item.classList.toggle('active', idx === index);
+      });
+      guideDetailPane.innerHTML = ownerGuideData[index].content;
+      guideDetailPane.scrollTop = 0;
+    }
+
+    function renderGuideToc(filter = '') {
+      guideTocList.innerHTML = '';
+      let firstMatchIdx = -1;
+
+      ownerGuideData.forEach((topic, index) => {
+        const matches = topic.title.toLowerCase().includes(filter.toLowerCase()) || 
+                        topic.keywords.toLowerCase().includes(filter.toLowerCase());
+        
+        if (matches) {
+          if (firstMatchIdx === -1) firstMatchIdx = index;
+          const btn = document.createElement('button');
+          btn.className = 'guide-toc-item';
+          btn.innerHTML = topic.title;
+          btn.addEventListener('click', () => selectGuideTopic(index));
+          guideTocList.appendChild(btn);
+        }
+      });
+
+      if (firstMatchIdx !== -1) {
+        selectGuideTopic(firstMatchIdx);
+      } else {
+        guideDetailPane.innerHTML = `
+          <div style="text-align:center; padding:40px; color:var(--text-muted);">
+            <span style="font-size:2.5rem;">🔍</span>
+            <p style="margin-top:10px;">No matching topics found.</p>
+          </div>
+        `;
+      }
+    }
+
+    const toggleGuide = (show) => {
+      guideModal.classList.toggle('open', show);
+      if (show) {
+        renderGuideToc();
+        guideSearchInput.value = '';
+        guideSearchInput.focus();
+      }
+    };
+
+    openGuideBtn.addEventListener('click', () => toggleGuide(true));
+    closeGuideBtn.addEventListener('click', () => toggleGuide(false));
+    guideModal.addEventListener('click', (e) => { if (e.target === guideModal) toggleGuide(false); });
+
+    guideSearchInput.addEventListener('input', (e) => {
+      renderGuideToc(e.target.value);
+    });
+
+    guideDownloadPdf.addEventListener('click', () => {
+      const fullText = ownerGuideData.map(topic => {
+        const cleanContent = topic.content
+          .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '\n# $1\n')
+          .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '\n## $1\n')
+          .replace(/<li[^>]*>(.*?)<\/li>/gi, '* $1')
+          .replace(/<\/?[^>]+(>|$)/g, "");
+        return cleanContent;
+      }).join('\n\n' + '='.repeat(40) + '\n\n');
+
+      const blob = new Blob([fullText], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'BiteXR_Restaurant_Owner_Guide.md';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
   </script>
 </body>
 </html>
