@@ -337,6 +337,7 @@
   
   
   
+  
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-hero); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(99,102,241,0.25);">☕</div>
@@ -394,9 +395,11 @@
 
 
 
+
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="main-content">
+    
     
     
     
@@ -429,6 +432,7 @@
         </a>
       </div>
     </header>
+  
   
   
   
@@ -967,38 +971,68 @@
       document.getElementById('sidebarOverlay').classList.remove('open');
     });
 
+    
     // Theme Switcher Logic
     const body = document.body;
     const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const sunIcon = themeToggleBtn.querySelector('.sun-icon');
-    const moonIcon = themeToggleBtn.querySelector('.moon-icon');
+    const sunIcon = themeToggleBtn ? themeToggleBtn.querySelector('.sun-icon') : null;
+    const moonIcon = themeToggleBtn ? themeToggleBtn.querySelector('.moon-icon') : null;
 
     // Load initial theme
     const savedTheme = localStorage.getItem('restaurant-dashboard-theme') || 'dark';
     if (savedTheme === 'light') {
+      document.documentElement.classList.add('theme-light');
       body.classList.add('theme-light');
-      sunIcon.style.display = 'block';
-      moonIcon.style.display = 'none';
+      if (sunIcon) sunIcon.style.display = 'block';
+      if (moonIcon) moonIcon.style.display = 'none';
     } else {
+      document.documentElement.classList.remove('theme-light');
       body.classList.remove('theme-light');
-      sunIcon.style.display = 'none';
-      moonIcon.style.display = 'block';
+      if (sunIcon) sunIcon.style.display = 'none';
+      if (moonIcon) moonIcon.style.display = 'block';
     }
 
-    themeToggleBtn.addEventListener('click', () => {
-      const isLight = body.classList.toggle('theme-light');
-      localStorage.setItem('restaurant-dashboard-theme', isLight ? 'light' : 'dark');
-      if (isLight) {
-        sunIcon.style.display = 'block';
-        moonIcon.style.display = 'none';
+    if (themeToggleBtn) {
+      // remove old listeners
+      const newToggle = themeToggleBtn.cloneNode(true);
+      themeToggleBtn.parentNode.replaceChild(newToggle, themeToggleBtn);
+      
+      const newSun = newToggle.querySelector('.sun-icon');
+      const newMoon = newToggle.querySelector('.moon-icon');
+      if (savedTheme === 'light') {
+        newSun.style.display = 'block';
+        newMoon.style.display = 'none';
       } else {
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
+        newSun.style.display = 'none';
+        newMoon.style.display = 'block';
       }
-      showToast(`Switched to ${isLight ? 'Light' : 'Dark'} mode`, 'info', 2000);
+
+      newToggle.addEventListener('click', () => {
+        const isLight = body.classList.toggle('theme-light');
+        document.documentElement.classList.toggle('theme-light', isLight);
+        localStorage.setItem('restaurant-dashboard-theme', isLight ? 'light' : 'dark');
+        if (isLight) {
+          newSun.style.display = 'block';
+          newMoon.style.display = 'none';
+        } else {
+          newSun.style.display = 'none';
+          newMoon.style.display = 'block';
+        }
+      });
+    }
+
+    // Active link highlighting
+    const path = window.location.pathname;
+    document.querySelectorAll('.sidebar .nav-item').forEach(item => {
+      const href = item.getAttribute('href');
+      if (href && (path === href || path.endsWith(href) || (path === '/restaurant/' && href.endsWith('index.html')))) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
     });
 
-    // Owner Guide Logic & Data
+    // Owner Guide Logic
     const ownerGuideData = [
       {
         title: "🚀 Getting Started",
@@ -1099,9 +1133,8 @@
             <li>Offer custom point-based discount vouchers.</li>
             <li>Provide free dishes for milestone point redemptions.</li>
             <li>Create exclusive rewards only visible to VIP diners.</li>
+            <li>Lucky Spin Wheel: customize prizes and let customers spin to win discounts, gift cards, or bonus points!</li>
           </ul>
-          <h3>Lucky Spin Wheel:</h3>
-          <p>Increase customer engagement with the Spin & Win feature. Customize rewards like discounts, free food, coupons, gift vouchers, or bonus loyalty points. Customers spin the wheel and instantly win rewards!</p>
         `
       },
       {
@@ -1133,11 +1166,14 @@
       document.querySelectorAll('.guide-toc-item').forEach((item, idx) => {
         item.classList.toggle('active', idx === index);
       });
-      guideDetailPane.innerHTML = ownerGuideData[index].content;
-      guideDetailPane.scrollTop = 0;
+      if (guideDetailPane) {
+        guideDetailPane.innerHTML = ownerGuideData[index].content;
+        guideDetailPane.scrollTop = 0;
+      }
     }
 
     function renderGuideToc(filter = '') {
+      if (!guideTocList) return;
       guideTocList.innerHTML = '';
       let firstMatchIdx = -1;
 
@@ -1157,7 +1193,7 @@
 
       if (firstMatchIdx !== -1) {
         selectGuideTopic(firstMatchIdx);
-      } else {
+      } else if (guideDetailPane) {
         guideDetailPane.innerHTML = `
           <div style="text-align:center; padding:40px; color:var(--text-muted);">
             <span style="font-size:2.5rem;">🔍</span>
@@ -1168,43 +1204,51 @@
     }
 
     const toggleGuide = (show) => {
+      if (!guideModal) return;
       guideModal.classList.toggle('open', show);
       if (show) {
         renderGuideToc();
-        guideSearchInput.value = '';
-        guideSearchInput.focus();
+        if (guideSearchInput) {
+          guideSearchInput.value = '';
+          guideSearchInput.focus();
+        }
       }
     };
 
-    openGuideBtn.addEventListener('click', () => toggleGuide(true));
-    closeGuideBtn.addEventListener('click', () => toggleGuide(false));
-    guideModal.addEventListener('click', (e) => { if (e.target === guideModal) toggleGuide(false); });
+    if (openGuideBtn) openGuideBtn.addEventListener('click', () => toggleGuide(true));
+    if (closeGuideBtn) closeGuideBtn.addEventListener('click', () => toggleGuide(false));
+    if (guideModal) {
+      guideModal.addEventListener('click', (e) => { if (e.target === guideModal) toggleGuide(false); });
+    }
 
-    guideSearchInput.addEventListener('input', (e) => {
-      renderGuideToc(e.target.value);
-    });
+    if (guideSearchInput) {
+      guideSearchInput.addEventListener('input', (e) => {
+        renderGuideToc(e.target.value);
+      });
+    }
 
-    guideDownloadPdf.addEventListener('click', () => {
-      const fullText = ownerGuideData.map(topic => {
-        const cleanContent = topic.content
-          .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '\n# $1\n')
-          .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '\n## $1\n')
-          .replace(/<li[^>]*>(.*?)<\/li>/gi, '* $1')
-          .replace(/<\/?[^>]+(>|$)/g, "");
-        return cleanContent;
-      }).join('\n\n' + '='.repeat(40) + '\n\n');
+    if (guideDownloadPdf) {
+      guideDownloadPdf.addEventListener('click', () => {
+        const fullText = ownerGuideData.map(topic => {
+          const cleanContent = topic.content
+            .replace(/<h2[^>]*>(.*?)</h2>/gi, '\n# $1\n')
+            .replace(/<h3[^>]*>(.*?)</h3>/gi, '\n## $1\n')
+            .replace(/<li[^>]*>(.*?)</li>/gi, '* $1')
+            .replace(/</?[^>]+(>|$)/g, "");
+          return cleanContent;
+        }).join('\n\n' + '='.repeat(40) + '\n\n');
 
-      const blob = new Blob([fullText], { type: 'text/markdown' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'BiteXR_Restaurant_Owner_Guide.md';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      showToast('📥 Owner Guide Markdown downloaded successfully!', 'success');
-    });
+        const blob = new Blob([fullText], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'BiteXR_Restaurant_Owner_Guide.md';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    }
 
     initDashboard();
   </script>

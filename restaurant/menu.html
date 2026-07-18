@@ -209,6 +209,7 @@
   
   
   
+  
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-hero); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(99,102,241,0.25);">☕</div>
@@ -266,9 +267,11 @@
 
 
 
+
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="main-content">
+    
     
     
     
@@ -301,6 +304,7 @@
         </a>
       </div>
     </header>
+  
   
   
   
@@ -429,6 +433,18 @@
             <textarea id="pasteText" class="form-control" rows="6" placeholder="Paste menu text here (e.g. Soup - 120, Pizza Margherita - 399 with mozzarella...)"></textarea>
           </div>
         </div>
+
+        <!-- Collapsible API Settings -->
+        <details style="margin-top:12px; margin-bottom:12px; background:var(--bg-elevated); border:1px solid var(--border); padding:10px; border-radius:8px;">
+          <summary style="font-size:0.8rem; font-weight:600; cursor:pointer; color:var(--text-secondary);">⚙️ API Settings (Optional Fallback)</summary>
+          <div style="margin-top:8px;">
+            <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Gemini API Key</label>
+            <input type="password" id="userGeminiKey" class="form-control form-control-sm" placeholder="Paste your Gemini API key here..." style="background:var(--bg-card); color:var(--text-primary); border-color:var(--border);" onchange="localStorage.setItem('user-gemini-key', this.value)" />
+            <div style="font-size:0.68rem; color:var(--text-muted); margin-top:4px;">
+              If your Supabase secrets are not set, enter your own Gemini API key to run parsing directly from your browser. Key is saved locally in your browser.
+            </div>
+          </div>
+        </details>
 
         <button type="button" id="parseMenuBtn" class="btn btn-primary" style="width: 100%; margin-top: 16px;" onclick="parseMenuData()">
           🤖 Parse Menu with Gemini AI
@@ -807,6 +823,15 @@
     return items;
   }
 
+  // Load local gemini key on page load
+  setTimeout(() => {
+    const keyVal = localStorage.getItem('user-gemini-key') || '';
+    const keyInput = document.getElementById('userGeminiKey');
+    if (keyInput) {
+      keyInput.value = keyVal;
+    }
+  }, 300);
+
   window.parseMenuData = async () => {
     const parseBtn = document.getElementById('parseMenuBtn');
     const loader = document.getElementById('importLoader');
@@ -819,25 +844,27 @@
     document.getElementById('approveImportBtn').classList.add('hidden');
 
     let payload = {};
-
     let uploadedFileText = '';
 
+    const file = fileInput.files[0];
+    if (importActiveTab === 'upload' && !file) {
+      showToast('Please choose or drop a menu file first!', 'warning');
+      return;
+    }
+
+    const text = document.getElementById('pasteText').value.trim();
+    if (importActiveTab === 'text' && !text) {
+      showToast('Please paste some menu text first!', 'warning');
+      return;
+    }
+
+    parseBtn.disabled = true;
+    loader.classList.remove('hidden');
+
+    // Pre-read text file or docx if uploaded
     if (importActiveTab === 'upload') {
-      const file = fileInput.files[0];
-      if (!file) { showToast('Please choose or drop a menu file first!', 'warning'); return; }
-      
-      parseBtn.disabled = true;
-      loader.classList.remove('hidden');
-      
-      // If it is a text-based file, read it client-side as well in case the edge function is offline
       if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
-        if (!uploadedFileText) {
-          showToast('Word document text extraction empty. Try pasting text.', 'warning');
-          parseBtn.disabled = false;
-          loader.classList.add('hidden');
-          return;
-        }
-        payload = { rawText: uploadedFileText };
+        // Text is already extracted in handleSelectedFile
       } else if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
         try {
           uploadedFileText = await new Promise((resolve, reject) => {
@@ -849,6 +876,103 @@
         } catch (e) {
           console.warn('Failed to pre-read text file client-side:', e);
         }
+      }
+    }
+
+    const localKey = localStorage.getItem('user-gemini-key') || window.GEMINI_KEY;
+    const systemPrompt = `You are an expert restaurant consultant and menu data parser. 
+Analyze the provided menu data (which could be an image, PDF, or raw text transcript).
+Extract all menu categories, dishes, prices, descriptions, ingredients, and estimated calories.
+Clean up typographical errors, expand shorthand terms, and translate if needed.
+Format the output as a strict JSON object with a single key "items", containing a list of parsed dishes.
+
+JSON Schema:
+{
+  "items": [
+    {
+      "name": "String (Name of the dish)",
+      "price": Number (Price in INR, e.g. 299 or 450.50. If price is missing, estimate a reasonable default based on similar items, or use 150)",
+      "category": "String (E.g. Starters, Mains, Desserts, Beverages. Clean up and unify categories)",
+      "description": "String (Engaging 1-2 sentence description. If missing, write a mouth-watering description)",
+      "ingredients": "String (Comma-separated key ingredients, e.g. 'Wheat flour, Paneer, Butter, Green chilies')",
+      "calories": Number (Estimated calorie count as integer, e.g. 350. Estimate logically if not specified)"
+    }
+  ]
+}
+
+Return ONLY the raw JSON output. Do not wrap in markdown or add notes.`;
+
+    // Direct Browser Fallback Path (if Local Key is set)
+    if (localKey) {
+      try {
+        let parts = [{ text: systemPrompt }];
+        if (importActiveTab === 'upload') {
+          if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+            parts.push({ text: `Here is the menu text data:\n\n${uploadedFileText}` });
+          } else if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
+            parts.push({ text: `Here is the menu text data:\n\n${uploadedFileText}` });
+          } else {
+            const base64Str = await getBase64(file);
+            parts.push({
+              inlineData: {
+                mimeType: file.type || 'image/jpeg',
+                data: base64Str
+              }
+            });
+          }
+        } else {
+          parts.push({ text: `Here is the menu text data:\n\n${text}` });
+        }
+
+        const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${localKey}`;
+        const res = await fetch(geminiUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ role: "user", parts: parts }],
+            generationConfig: {
+              responseMimeType: "application/json",
+              temperature: 0.2
+            }
+          })
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          throw new Error(errText);
+        }
+
+        const result = await res.json();
+        const responseText = result.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+        
+        let parsedData = JSON.parse(responseText);
+        parsedMenuDataList = parsedData.items || [];
+
+        if (!parsedMenuDataList.length) {
+          showToast('AI could not find any dishes. Try pasting raw text or uploading a clearer file.', 'warning');
+        } else {
+          renderParsedItems();
+          extractedSection.classList.remove('hidden');
+          document.getElementById('approveImportBtn').classList.remove('hidden');
+          updateApproveButtonCount();
+          showToast(`🎉 Successfully parsed ${parsedMenuDataList.length} items directly from browser!`, 'success');
+        }
+        return;
+      } catch (err) {
+        showToast('Browser Gemini call failed: ' + err.message, 'error');
+        console.error(err);
+        return;
+      } finally {
+        parseBtn.disabled = false;
+        loader.classList.add('hidden');
+      }
+    }
+
+    // Standard Supabase Edge Function Path
+    if (importActiveTab === 'upload') {
+      if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+        payload = { rawText: uploadedFileText };
+      } else if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
         payload = { rawText: uploadedFileText };
       } else {
         try {
@@ -865,11 +989,6 @@
         }
       }
     } else {
-      const text = document.getElementById('pasteText').value.trim();
-      if (!text) { showToast('Please paste some menu text first!', 'warning'); return; }
-      
-      parseBtn.disabled = true;
-      loader.classList.remove('hidden');
       payload = { rawText: text };
     }
 
@@ -911,7 +1030,7 @@
       console.warn('AI Edge Function failed, falling back to local text parser...', err.message);
       let fallbackText = '';
       if (importActiveTab === 'text') {
-        fallbackText = document.getElementById('pasteText').value.trim();
+        fallbackText = text;
       } else {
         fallbackText = uploadedFileText;
       }
@@ -927,7 +1046,7 @@
         updateApproveButtonCount();
         showToast(`🎉 Parsed ${parsedMenuDataList.length} items locally!`, 'success');
       } else {
-        showToast('AI Parsing failed. If you uploaded an image or PDF, please copy & paste the menu text in the "Paste Menu Text" tab instead to parse locally.', 'error');
+        showToast('AI parsing failed. GEMINI_API_KEY secret is not set in Supabase project. Enter a Gemini Key in API Settings below to run parsing locally from browser.', 'error');
       }
     } finally {
       parseBtn.disabled = false;
