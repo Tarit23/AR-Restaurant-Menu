@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="../css/main.css" />
   <link rel="stylesheet" href="../css/dashboard.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
   <style id="critical-logout-styles">
     .sidebar-footer { margin-top: auto; padding: 12px; border-top: 1px solid var(--border); }
@@ -206,6 +207,8 @@
 <body class="dashboard-layout">
 
   
+  
+  
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-hero); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(99,102,241,0.25);">☕</div>
@@ -261,9 +264,13 @@
     </div>
   </aside>
 
+
+
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="main-content">
+    
+    
     
     <header class="topbar" style="display:flex; justify-content:space-between; align-items:center; padding: 0 var(--space-6); height: var(--topbar-h); background: var(--bg-surface); border-bottom: 1px solid var(--border);">
       <button class="topbar-menu-btn" id="menuToggle">Menu</button>
@@ -295,6 +302,8 @@
       </div>
     </header>
   
+  
+  
 
     <div class="page-content">
       <div class="page-header animate-in" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px;">
@@ -303,6 +312,9 @@
           <p>Edit dish details, descriptions, and availability</p>
         </div>
         <div style="display:flex; gap:12px;">
+          <button class="btn btn-secondary" onclick="openAddDish()" style="display:inline-flex; align-items:center; gap:8px;">
+            ➕ Add Dish Manually
+          </button>
           <button class="btn btn-primary" onclick="document.getElementById('aiImportModal').classList.add('open')" style="display:inline-flex; align-items:center; gap:8px;">
             🤖 Import via AI
           </button>
@@ -403,9 +415,9 @@
           <div style="border: 2px dashed var(--border); border-radius: var(--radius-xl); padding: 32px 16px; text-align: center; cursor: pointer; transition: 0.2s;" 
                id="dropzone" onclick="document.getElementById('menuFile').click()">
             <span style="font-size: 32px; display: block; margin-bottom: 12px;">📁</span>
-            <span style="font-size: 0.875rem; font-weight: 600;">Drag & drop menu image or PDF here</span>
-            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;">PNG, JPG, JPEG, PDF up to 10MB</span>
-            <input type="file" id="menuFile" accept="image/*,application/pdf" style="display: none;" />
+            <span style="font-size: 0.875rem; font-weight: 600;">Drag & drop menu file here</span>
+            <span style="font-size: 0.75rem; color: var(--text-muted); display: block; margin-top: 4px;">PNG, JPG, JPEG, PDF, Word (.doc, .docx) up to 10MB</span>
+            <input type="file" id="menuFile" accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display: none;" />
           </div>
           <div id="fileInfo" style="margin-top: 10px; font-size: 0.8rem; text-align: center; color: var(--success);" class="hidden"></div>
         </div>
@@ -622,7 +634,21 @@
     document.getElementById('editCategory').value = item.category || '';
     document.getElementById('editDescription').value = item.description || '';
     document.getElementById('editAvailable').checked = item.is_available;
+    document.querySelector('#editModal .modal-title').textContent = 'Edit Dish';
     document.getElementById('editGenBtnText').textContent = item.description ? 'Regenerate AI Description' : 'Generate AI Description';
+    updateEditCharCount();
+    document.getElementById('editModal').classList.add('open');
+  };
+
+  window.openAddDish = () => {
+    document.getElementById('editId').value = '';
+    document.getElementById('editName').value = '';
+    document.getElementById('editPrice').value = '';
+    document.getElementById('editCategory').value = '';
+    document.getElementById('editDescription').value = '';
+    document.getElementById('editAvailable').checked = true;
+    document.querySelector('#editModal .modal-title').textContent = 'Add New Dish';
+    document.getElementById('editGenBtnText').textContent = 'Generate AI Description';
     updateEditCharCount();
     document.getElementById('editModal').classList.add('open');
   };
@@ -649,8 +675,13 @@
     const btn = document.getElementById('saveEditBtn');
     btn.classList.add('loading');
     try {
-      await menuAPI.update(id, { name, price, category, description: description || null, is_available: avail });
-      showToast('Dish updated!', 'success');
+      if (id) {
+        await menuAPI.update(id, { name, price, category, description: description || null, is_available: avail });
+        showToast('Dish updated!', 'success');
+      } else {
+        await menuAPI.create({ restaurant_id: restaurant.id, name, price, category: category || 'Mains', description: description || null, is_available: avail });
+        showToast('Dish added successfully!', 'success');
+      }
       document.getElementById('editModal').classList.remove('open');
       loadMenu();
     } catch (e) { showToast('Error: ' + e.message, 'error'); }
@@ -692,13 +723,27 @@
       }
     });
 
-    function handleSelectedFile(file) {
+    async function handleSelectedFile(file) {
       if (file.size > 10 * 1024 * 1024) {
         showToast('File is too large! Maximum limit is 10MB.', 'warning');
         return;
       }
       fileInfo.textContent = `Selected: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
       fileInfo.classList.remove('hidden');
+
+      // DOCX Parsing using Mammoth
+      if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const result = await window.mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+          uploadedFileText = result.value;
+          console.log('Extracted DOCX text:', uploadedFileText);
+          showToast('📝 Word document text extracted successfully!', 'success');
+        } catch (e) {
+          showToast('Could not extract text from Word document. Try pasting text instead.', 'warning');
+          console.error(e);
+        }
+      }
     }
   }, 100);
 
@@ -785,7 +830,15 @@
       loader.classList.remove('hidden');
       
       // If it is a text-based file, read it client-side as well in case the edge function is offline
-      if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
+      if (file.name.endsWith('.docx') || file.name.endsWith('.doc')) {
+        if (!uploadedFileText) {
+          showToast('Word document text extraction empty. Try pasting text.', 'warning');
+          parseBtn.disabled = false;
+          loader.classList.add('hidden');
+          return;
+        }
+        payload = { rawText: uploadedFileText };
+      } else if (file.type === 'text/plain' || file.name.endsWith('.txt') || file.name.endsWith('.csv')) {
         try {
           uploadedFileText = await new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -796,19 +849,20 @@
         } catch (e) {
           console.warn('Failed to pre-read text file client-side:', e);
         }
-      }
-
-      try {
-        const base64Str = await getBase64(file);
-        payload = {
-          fileBase64: base64Str,
-          mimeType: file.type
-        };
-      } catch (err) {
-        showToast('Error reading file: ' + err.message, 'error');
-        parseBtn.disabled = false;
-        loader.classList.add('hidden');
-        return;
+        payload = { rawText: uploadedFileText };
+      } else {
+        try {
+          const base64Str = await getBase64(file);
+          payload = {
+            fileBase64: base64Str,
+            mimeType: file.type
+          };
+        } catch (err) {
+          showToast('Error reading file: ' + err.message, 'error');
+          parseBtn.disabled = false;
+          loader.classList.add('hidden');
+          return;
+        }
       }
     } else {
       const text = document.getElementById('pasteText').value.trim();

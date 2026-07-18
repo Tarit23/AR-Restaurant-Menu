@@ -70,7 +70,7 @@
 }
 
 /* --- Light Mode & Sidebar Theme Overrides --- */
-body.theme-light {
+:root.theme-light, body.theme-light {
   --bg-base:        #f8f9fc;
   --bg-surface:     #ffffff;
   --bg-card:        #ffffff;
@@ -83,6 +83,9 @@ body.theme-light {
   --text-primary:   #0f172a;
   --text-secondary: #475569;
   --text-muted:     #94a3b8;
+
+  --primary-light:  #4f46e5;
+  --accent:         #0891b2;
 
   --gradient-card:  linear-gradient(145deg, #ffffff 0%, #f8f9fc 100%);
   --glass-bg:       rgba(255, 255, 255, 0.7);

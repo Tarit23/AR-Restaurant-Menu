@@ -169,6 +169,8 @@
 <body class="dashboard-layout">
 
   
+  
+  
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-hero); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(99,102,241,0.25);">☕</div>
@@ -225,7 +227,11 @@
   </aside>
 
 
+
+
   <div class="main-content">
+    
+    
     
     <header class="topbar" style="display:flex; justify-content:space-between; align-items:center; padding: 0 var(--space-6); height: var(--topbar-h); background: var(--bg-surface); border-bottom: 1px solid var(--border);">
       <button class="topbar-menu-btn" id="menuToggle">Menu</button>
@@ -256,6 +262,8 @@
         </a>
       </div>
     </header>
+  
+  
   
 
     <div class="page-content">
@@ -497,34 +505,57 @@
     };
 
     
+    
+
+    
+    
+
+    
     // Theme Switcher Logic
     const body = document.body;
     const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const sunIcon = themeToggleBtn.querySelector('.sun-icon');
-    const moonIcon = themeToggleBtn.querySelector('.moon-icon');
+    const sunIcon = themeToggleBtn ? themeToggleBtn.querySelector('.sun-icon') : null;
+    const moonIcon = themeToggleBtn ? themeToggleBtn.querySelector('.moon-icon') : null;
 
     // Load initial theme
     const savedTheme = localStorage.getItem('restaurant-dashboard-theme') || 'dark';
     if (savedTheme === 'light') {
+      document.documentElement.classList.add('theme-light');
       body.classList.add('theme-light');
       if (sunIcon) sunIcon.style.display = 'block';
       if (moonIcon) moonIcon.style.display = 'none';
     } else {
+      document.documentElement.classList.remove('theme-light');
       body.classList.remove('theme-light');
       if (sunIcon) sunIcon.style.display = 'none';
       if (moonIcon) moonIcon.style.display = 'block';
     }
 
     if (themeToggleBtn) {
-      themeToggleBtn.addEventListener('click', () => {
+      // remove old listeners
+      const newToggle = themeToggleBtn.cloneNode(true);
+      themeToggleBtn.parentNode.replaceChild(newToggle, themeToggleBtn);
+      
+      const newSun = newToggle.querySelector('.sun-icon');
+      const newMoon = newToggle.querySelector('.moon-icon');
+      if (savedTheme === 'light') {
+        newSun.style.display = 'block';
+        newMoon.style.display = 'none';
+      } else {
+        newSun.style.display = 'none';
+        newMoon.style.display = 'block';
+      }
+
+      newToggle.addEventListener('click', () => {
         const isLight = body.classList.toggle('theme-light');
+        document.documentElement.classList.toggle('theme-light', isLight);
         localStorage.setItem('restaurant-dashboard-theme', isLight ? 'light' : 'dark');
         if (isLight) {
-          if (sunIcon) sunIcon.style.display = 'block';
-          if (moonIcon) moonIcon.style.display = 'none';
+          newSun.style.display = 'block';
+          newMoon.style.display = 'none';
         } else {
-          if (sunIcon) sunIcon.style.display = 'none';
-          if (moonIcon) moonIcon.style.display = 'block';
+          newSun.style.display = 'none';
+          newMoon.style.display = 'block';
         }
       });
     }
@@ -533,7 +564,6 @@
     const path = window.location.pathname;
     document.querySelectorAll('.sidebar .nav-item').forEach(item => {
       const href = item.getAttribute('href');
-      // match exact filename
       if (href && (path === href || path.endsWith(href) || (path === '/restaurant/' && href.endsWith('index.html')))) {
         item.classList.add('active');
       } else {

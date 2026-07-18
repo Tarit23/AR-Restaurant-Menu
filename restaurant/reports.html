@@ -362,6 +362,8 @@
 <body class="dashboard-layout">
 
   
+  
+  
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-hero); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(99,102,241,0.25);">☕</div>
@@ -417,9 +419,13 @@
     </div>
   </aside>
 
+
+
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="main-content">
+    
+    
     
     <header class="topbar" style="display:flex; justify-content:space-between; align-items:center; padding: 0 var(--space-6); height: var(--topbar-h); background: var(--bg-surface); border-bottom: 1px solid var(--border);">
       <button class="topbar-menu-btn" id="menuToggle">Menu</button>
@@ -450,6 +456,8 @@
         </a>
       </div>
     </header>
+  
+  
   
 
     <div class="page-content animate-in">
@@ -586,151 +594,7 @@
     let allCompletedSessions = [];
     let currentFilterType = 'weekly'; // weekly, monthly, custom
 
-    // Theme Switcher Logic
-    const body = document.body;
-    const themeToggleBtn = document.getElementById('themeToggleBtn');
-    const sunIcon = themeToggleBtn.querySelector('.sun-icon');
-    const moonIcon = themeToggleBtn.querySelector('.moon-icon');
-
-    const savedTheme = localStorage.getItem('restaurant-dashboard-theme') || 'dark';
-    if (savedTheme === 'light') {
-      body.classList.add('theme-light');
-      sunIcon.style.display = 'block';
-      moonIcon.style.display = 'none';
-    } else {
-      body.classList.remove('theme-light');
-      sunIcon.style.display = 'none';
-      moonIcon.style.display = 'block';
-    }
-
-    themeToggleBtn.addEventListener('click', () => {
-      const isLight = body.classList.toggle('theme-light');
-      localStorage.setItem('restaurant-dashboard-theme', isLight ? 'light' : 'dark');
-      if (isLight) {
-        sunIcon.style.display = 'block';
-        moonIcon.style.display = 'none';
-      } else {
-        sunIcon.style.display = 'none';
-        moonIcon.style.display = 'block';
-      }
-    });
-
-    (async function init() {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) return window.location.href = '../login.html';
-      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
-      if (!profile) return window.location.href = '../login.html';
-
-      const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
-      restaurantId = restaurant.id;
-
-      document.getElementById('restaurantName').textContent = restaurant.name;
-      document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
-      document.getElementById('topbarRestName').textContent  = restaurant.name;
-      document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
-      
-      const publicUrl = `${APP_CONFIG.domain}/menu.html?restaurant=${restaurant.id}`;
-      document.getElementById('viewMenuBtn').href = publicUrl;
-
-      // Sidebar Toggles
-      document.getElementById('menuToggle').addEventListener('click', () => {
-        document.getElementById('sidebar').classList.toggle('open');
-        document.getElementById('sidebarOverlay').classList.toggle('open');
-      });
-      document.getElementById('sidebarOverlay').addEventListener('click', () => {
-        document.getElementById('sidebar').classList.remove('open');
-        document.getElementById('sidebarOverlay').classList.remove('open');
-      });
-
-      // Filter Tabs setup
-      setupFilterTabs();
-
-      // Retrieve all sessions and run weekly analysis
-      await fetchAllCompletedSessions();
-      applyPeriodFilter();
-    })();
-
-    function setupFilterTabs() {
-      const tabWeekly = document.getElementById('tabWeekly');
-      const tabMonthly = document.getElementById('tabMonthly');
-      const tabCustom = document.getElementById('tabCustom');
-      const customBox = document.getElementById('customRangeBox');
-
-      const selectTab = (type) => {
-        currentFilterType = type;
-        tabWeekly.className = type === 'weekly' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost';
-        tabMonthly.className = type === 'monthly' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost';
-        tabCustom.className = type === 'custom' ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-ghost';
-        
-        if (type === 'custom') {
-          customBox.style.display = 'flex';
-        } else {
-          customBox.style.display = 'none';
-          applyPeriodFilter();
-        }
-      };
-
-      tabWeekly.addEventListener('click', () => selectTab('weekly'));
-      tabMonthly.addEventListener('click', () => selectTab('monthly'));
-      tabCustom.addEventListener('click', () => selectTab('custom'));
-
-      // Setup default Custom dates (last 7 days to now)
-      const now = new Date();
-      const lastWeek = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      
-      const toStr = now.toISOString().slice(0, 16);
-      const fromStr = lastWeek.toISOString().slice(0, 16);
-
-      document.getElementById('filterFromDate').value = fromStr;
-      document.getElementById('filterToDate').value = toStr;
-
-      document.getElementById('applyCustomFilter').addEventListener('click', () => {
-        applyPeriodFilter();
-      });
-
-      selectTab('weekly');
-    }
-
-    async function fetchAllCompletedSessions() {
-      try {
-        const { data: sessions, error } = await supabase
-          .from('dining_sessions')
-          .select('*, tables!dining_sessions_table_id_fkey(*)')
-          .eq('restaurant_id', restaurantId)
-          .eq('status', 'completed')
-          .order('end_time', { ascending: false });
-
-        if (error) throw error;
-        allCompletedSessions = sessions || [];
-      } catch (err) {
-        console.error('Error fetching analytics sessions:', err);
-      }
-    }
-
-    function applyPeriodFilter() {
-      let filtered = [];
-      const now = new Date();
-
-      if (currentFilterType === 'weekly') {
-        const boundary = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-        filtered = allCompletedSessions.filter(s => new Date(s.end_time || s.created_at) >= boundary);
-      } else if (currentFilterType === 'monthly') {
-        const boundary = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-        filtered = allCompletedSessions.filter(s => new Date(s.end_time || s.created_at) >= boundary);
-      } else if (currentFilterType === 'custom') {
-        const fromVal = document.getElementById('filterFromDate').value;
-        const toVal = document.getElementById('filterToDate').value;
-        if (!fromVal || !toVal) return;
-        const fromDate = new Date(fromVal);
-        const toDate = new Date(toVal);
-
-        filtered = allCompletedSessions.filter(s => {
-          const t = new Date(s.end_time || s.created_at);
-          return t >= fromDate && t <= toDate;
-        });
-      }
-
-      renderAnalyticsData(filtered);
+          renderAnalyticsData(filtered);
       loadTopSellingItems(filtered);
     }
 

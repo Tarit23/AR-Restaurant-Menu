@@ -335,6 +335,8 @@
 <body class="dashboard-layout">
 
   
+  
+  
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-logo">
       <div style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-hero); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 1.1rem; flex-shrink: 0; box-shadow: 0 4px 10px rgba(99,102,241,0.25);">☕</div>
@@ -390,9 +392,13 @@
     </div>
   </aside>
 
+
+
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
   <div class="main-content">
+    
+    
     
     <header class="topbar" style="display:flex; justify-content:space-between; align-items:center; padding: 0 var(--space-6); height: var(--topbar-h); background: var(--bg-surface); border-bottom: 1px solid var(--border);">
       <button class="topbar-menu-btn" id="menuToggle">Menu</button>
@@ -423,6 +429,8 @@
         </a>
       </div>
     </header>
+  
+  
   
 
     <div class="page-content">
@@ -571,7 +579,7 @@
           <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
             <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px;">
               <div style="font-size:0.75rem; text-transform:uppercase; color:var(--text-muted); margin-bottom:6px;">Active Plan</div>
-              <div id="subPlanName" style="font-size:1.15rem; font-weight:700; color:#fff;">Checking...</div>
+              <div id="subPlanName" style="font-size:1.15rem; font-weight:700; color:var(--text-primary);">Checking...</div>
               <div id="subPlanStatusBadge" style="display:inline-block; margin-top:8px; font-size:0.7rem; font-weight:700; text-transform:uppercase; padding:3px 8px; border-radius:6px;">-</div>
             </div>
             <div style="background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px;">
@@ -705,7 +713,7 @@
         } else {
           // Pending or no plan
           banner.innerHTML = `<div class="card glass" style="border-left:4px solid var(--primary); padding:var(--space-4); margin-bottom:var(--space-6); display:flex; justify-content:space-between; align-items:center;">
-            <div><div style="font-weight:700; color:#fff;">Activate your AR Menu</div><div style="font-size:0.85rem; color:var(--text-muted);">Your status is ${status.toUpperCase()}. Choose a plan to enable all features.</div></div>
+            <div><div style="font-weight:700; color:var(--text-primary);">Activate your AR Menu</div><div style="font-size:0.85rem; color:var(--text-muted);">Your status is ${status.toUpperCase()}. Choose a plan to enable all features.</div></div>
             <a href="subscription.html" class="btn btn-primary btn-sm">Get Started</a>
           </div>`;
           banner.style.display = 'flex';
@@ -904,7 +912,7 @@
           const joinedDate = c.created_at ? formatDate(c.created_at) : 'N/A';
           return `
             <tr style="border-bottom: 1px solid var(--border);">
-              <td style="padding: 12px; font-weight:600; color:#fff;">${c.name}</td>
+              <td style="padding: 12px; font-weight:600; color:var(--text-primary);">${c.name}</td>
               <td style="padding: 12px; color:var(--text-secondary);">${c.email}</td>
               <td style="padding: 12px; color:var(--text-secondary);">${c.phone || 'N/A'}</td>
               <td style="padding: 12px; font-weight:700; color:var(--gold);">${c.points || 0} pts</td>
