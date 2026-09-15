@@ -699,12 +699,16 @@
 
         // Auto-link user profile to restaurant in database
         if (restaurant && restaurant.id) {
-          await supabase.from('users').upsert({
-            id: session.user.id,
-            email: session.user.email,
-            role: profile?.role || 'restaurant',
-            restaurant_id: restaurant.id
-          }).catch(console.error);
+          try {
+            await supabase.from('users').upsert({
+              id: session.user.id,
+              email: session.user.email,
+              role: profile?.role || 'restaurant',
+              restaurant_id: restaurant.id
+            });
+          } catch (upsertErr) {
+            console.warn('Auto-link profile upsert warning:', upsertErr);
+          }
         }
 
         if (!restaurant || !restaurant.id) {
