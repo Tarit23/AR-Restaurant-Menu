@@ -201,16 +201,24 @@
     (async function init() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return window.location.href = '../login.html';
-      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
-      if (!profile) return window.location.href = '../login.html';
-
-      restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
-      restaurantId = restaurant.id;
-
-      document.getElementById('restaurantName').textContent = restaurant.name;
-      document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
-      document.getElementById('topbarRestName').textContent    = restaurant.name;
-      document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).maybeSingle();
+      let r = Array.isArray(profile?.restaurants) ? profile.restaurants[0] : profile?.restaurants;
+      if (!r || !r.id) {
+        const { data: rByEmail } = await supabase.from('restaurants').select('*').ilike('owner_email', session.user.email).maybeSingle();
+        r = rByEmail;
+      }
+      if (!r || !r.id) {
+        const { data: fb } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
+        r = fb;
+      }
+      restaurant = r;
+      if (restaurant) {
+        restaurantId = restaurant.id;
+        document.getElementById('restaurantName').textContent = restaurant.name;
+        document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
+        document.getElementById('topbarRestName').textContent  = restaurant.name;
+        document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+      }
 
       document.getElementById('menuToggle').addEventListener('click', () => {
         document.getElementById('sidebar').classList.toggle('open');

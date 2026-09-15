@@ -357,5 +357,79 @@ export const EMAIL_TEMPLATES = {
     </body>
     </html>
     `
-  }
+  },
+
+  verificationOtp: (data: { ownerName: string, otp: string }) => `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #09090f; color: #f1f5f9; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #111118; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; }
+        .header { padding: 40px 20px; text-align: center; background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.05em; }
+        .content { padding: 40px; text-align: center; }
+        .content h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #ffffff; }
+        .content p { line-height: 1.6; color: #94a3b8; margin-bottom: 20px; }
+        .otp-box { background-color: #18181f; border: 1.5px dashed #10b981; border-radius: 12px; padding: 20px; font-size: 32px; font-weight: 800; color: #10b981; letter-spacing: 10px; display: inline-block; margin: 20px auto; font-family: monospace; }
+        .footer { padding: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: #475569; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Verify Your Account</h1>
+        </div>
+        <div class="content">
+          <h2>Hello ${data.ownerName},</h2>
+          <p>Welcome to AR Menu Platform! To complete your registration and activate your restaurant account, please use the following one-time verification code:</p>
+          <div class="otp-box">${data.otp}</div>
+          <p style="color: #64748b; font-size: 13px; margin-top: 20px;">This OTP will expire in 10 minutes. If you did not request this, please ignore this email.</p>
+        </div>
+        <div class="footer">
+          &copy; 2026 AR Menu Platform. All rights reserved.
+        </div>
+      </div>
+    </body>
+    </html>
+  `,
+
+  resetPasswordOtp: (data: { ownerName: string, otp: string }) => `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #09090f; color: #f1f5f9; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 40px auto; background-color: #111118; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; overflow: hidden; }
+        .header { padding: 40px 20px; text-align: center; background: linear-gradient(135deg, #6366f1 0%, #3b82f6 100%); }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; color: #ffffff; text-transform: uppercase; letter-spacing: 0.05em; }
+        .content { padding: 40px; text-align: center; }
+        .content h2 { font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #ffffff; }
+        .content p { line-height: 1.6; color: #94a3b8; margin-bottom: 20px; }
+        .otp-box { background-color: #18181f; border: 1.5px dashed #6366f1; border-radius: 12px; padding: 20px; font-size: 32px; font-weight: 800; color: #6366f1; letter-spacing: 10px; display: inline-block; margin: 20px auto; font-family: monospace; }
+        .footer { padding: 30px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); font-size: 12px; color: #475569; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>Password Reset Request</h1>
+        </div>
+        <div class="content">
+          <h2>Hello ${data.ownerName || 'User'},</h2>
+          <p>We received a request to reset the password for your AR Menu account. Use the following verification code to proceed:</p>
+          <div class="otp-box">${data.otp}</div>
+          <p style="color: #64748b; font-size: 13px; margin-top: 20px;">This OTP will expire in 10 minutes. If you did not request a password reset, please secure your account.</p>
+        </div>
+        <div class="footer">
+          &copy; 2026 AR Menu Platform. All rights reserved.
+        </div>
+      </div>
+    </body>
+    </html>
+  `
 };

@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Email — AR Menu Platform</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/login.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    .otp-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 24px 0;
+    }
+    .otp-input {
+      width: 50px;
+      height: 56px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.03);
+      border-radius: var(--radius-md);
+      font-size: 1.5rem;
+      font-weight: 800;
+      text-align: center;
+      color: var(--text-primary);
+      transition: all 0.2s;
+    }
+    .otp-input:focus {
+      border-color: var(--primary-light);
+      background: rgba(99, 102, 241, 0.05);
+      outline: none;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.2);
+    }
+    .timer-container {
+      display: flex;
+      justify-content: space-between;
+      align-items:center;
+      font-size: 0.85rem;
+      margin: var(--space-4) 0;
+      color: var(--text-muted);
+    }
+    .timer-val {
+      font-weight: 700;
+      color: var(--primary-light);
+    }
+    .resend-btn {
+      background: none;
+      border: none;
+      color: var(--primary-light);
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.85rem;
+      padding: 0;
+      transition: opacity 0.2s;
+    }
+    .resend-btn:disabled {
+      color: var(--text-muted);
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+  </style>
+</head>
+<body class="login-body">
+  <div class="login-bg">
+    <div class="login-orb orb-1"></div>
+    <div class="login-orb orb-2"></div>
+  </div>
+
+  <div class="login-wrapper">
+    <div class="login-left">
+      <div class="login-brand">
+        <div class="login-brand-icon"></div>
+        <div>
+          <div class="login-brand-name">AR Menu Platform</div>
+          <div class="login-brand-tagline">Empower your dining experience</div>
+        </div>
+      </div>
+      <div class="login-hero">
+        <h1 class="login-headline">Confirm your<br><span class="gradient-text">Identity</span></h1>
+        <p class="login-subtext">A 6-digit verification code has been sent to your business email address. Verify to activate your dashboard.</p>
+      </div>
+    </div>
+
+    <div class="login-right">
+      <div class="login-card">
+        <div class="login-card-header">
+          <h2>Verify Email</h2>
+          <p>Please enter the 6-digit OTP sent to <strong id="userEmailSpan">your email</strong></p>
+        </div>
+
+        <form id="verifyForm" class="login-form">
+          <div id="verifyError" class="alert-banner alert-error hidden">
+            <span class="alert-icon"></span>
+            <span id="verifyErrorText"></span>
+          </div>
+
+          <div class="otp-container">
+            <input type="text" maxlength="1" class="otp-input" required pattern="[0-9]" inputmode="numeric">
+            <input type="text" maxlength="1" class="otp-input" required pattern="[0-9]" inputmode="numeric">
+            <input type="text" maxlength="1" class="otp-input" required pattern="[0-9]" inputmode="numeric">
+            <input type="text" maxlength="1" class="otp-input" required pattern="[0-9]" inputmode="numeric">
+            <input type="text" maxlength="1" class="otp-input" required pattern="[0-9]" inputmode="numeric">
+            <input type="text" maxlength="1" class="otp-input" required pattern="[0-9]" inputmode="numeric">
+          </div>
+
+          <div class="timer-container">
+            <div>Expires in: <span class="timer-val" id="countdown">10:00</span></div>
+            <button type="button" class="resend-btn" id="resendBtn" disabled>Resend OTP (<span id="resendTimer">60</span>s)</button>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full btn-lg" id="verifyBtn" style="margin-top: 16px;">
+            <span>Verify & Activate</span>
+          </button>
+        </form>
+
+        <div class="login-card-footer">
+          <p><a href="signup.html">← Back to Signup</a></p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { authManager } from './js/auth.js?v=4';
+    import { showToast } from './js/utils.js?v=4';
+
+    const SUPABASE_URL = 'https://fuezcrbfswgghawhfxrv.supabase.co';
+
+    const form = document.getElementById('verifyForm');
+    const verifyBtn = document.getElementById('verifyBtn');
+    const resendBtn = document.getElementById('resendBtn');
+    const errorBanner = document.getElementById('verifyError');
+    const errorText = document.getElementById('verifyErrorText');
+    const userEmailSpan = document.getElementById('userEmailSpan');
+    const countdownSpan = document.getElementById('countdown');
+    const resendTimerSpan = document.getElementById('resendTimer');
+    const inputs = document.querySelectorAll('.otp-input');
+
+    // Get email from query param or localStorage
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get('email') || localStorage.getItem('pending_signup_email');
+    if (!email) {
+      window.location.href = 'signup.html';
+    }
+    userEmailSpan.textContent = email;
+
+    // Autocomplete focus shifting
+    inputs.forEach((input, index) => {
+      input.addEventListener('keyup', (e) => {
+        if (e.key >= 0 && e.key <= 9) {
+          if (index < inputs.length - 1) inputs[index + 1].focus();
+        } else if (e.key === 'Backspace') {
+          if (index > 0) inputs[index - 1].focus();
+        }
+      });
+      input.addEventListener('input', () => {
+        if (input.value && index < inputs.length - 1) {
+          inputs[index + 1].focus();
+        }
+      });
+    });
+
+    // Countdown timers
+    let expirySecs = 10 * 60; // 10 minutes
+    let resendSecs = 60;
+
+    const timer = setInterval(() => {
+      if (expirySecs <= 0) {
+        clearInterval(timer);
+        countdownSpan.textContent = "Expired";
+        countdownSpan.style.color = "var(--danger)";
+        showError("The verification code has expired. Please request a new one.");
+        verifyBtn.disabled = true;
+      } else {
+        expirySecs--;
+        const mins = Math.floor(expirySecs / 60);
+        const secs = expirySecs % 60;
+        countdownSpan.textContent = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      }
+    }, 1000);
+
+    const resendTimer = setInterval(() => {
+      if (resendSecs <= 0) {
+        clearInterval(resendTimer);
+        resendBtn.disabled = false;
+        resendBtn.innerHTML = "Resend OTP";
+      } else {
+        resendSecs--;
+        resendTimerSpan.textContent = resendSecs;
+      }
+    }, 1000);
+
+    // Form Submit verification
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      let otpVal = '';
+      inputs.forEach(input => otpVal += input.value.trim());
+
+      if (otpVal.length !== 6) {
+        showError("Please enter all 6 digits of the OTP.");
+        return;
+      }
+
+      verifyBtn.disabled = true;
+      verifyBtn.querySelector('span').textContent = 'Verifying...';
+      errorBanner.classList.add('hidden');
+
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/verify-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, otp: otpVal, purpose: 'signup' })
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Verification failed");
+
+        showToast("Account activated successfully! Redirecting...", "success");
+
+        // Automatically log user in
+        const { password } = JSON.parse(localStorage.getItem('pending_signup_credentials') || '{}');
+        if (password) {
+          await authManager.signIn(email, password);
+          localStorage.removeItem('pending_signup_credentials');
+          localStorage.removeItem('pending_signup_email');
+        }
+
+        setTimeout(() => {
+          window.location.href = '/restaurant/index.html';
+        }, 1500);
+
+      } catch (err) {
+        showError(err.message);
+        verifyBtn.disabled = false;
+        verifyBtn.querySelector('span').textContent = 'Verify & Activate';
+      }
+    });
+
+    // Resend OTP trigger
+    resendBtn.addEventListener('click', async () => {
+      resendBtn.disabled = true;
+      errorBanner.classList.add('hidden');
+      try {
+        const response = await fetch(`${SUPABASE_URL}/functions/v1/register-restaurant`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.parse(localStorage.getItem('pending_signup_credentials') || '{}')
+        });
+
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.error || "Resend failed");
+
+        showToast("A new verification code has been sent.", "success");
+        
+        // Reset timers
+        expirySecs = 10 * 60;
+        resendSecs = 60;
+        verifyBtn.disabled = false;
+        
+      } catch (err) {
+        showError(err.message);
+        resendBtn.disabled = false;
+      }
+    });
+
+    function showError(msg) {
+      errorText.textContent = msg;
+      errorBanner.classList.remove('hidden');
+    }
+  </script>
+</body>
+</html>

@@ -1245,14 +1245,14 @@
     (async function initAuth() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return window.location.href = '../login.html';
-      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).maybeSingle();
       if (!profile) return window.location.href = '../login.html';
 
-      const isSuperAdmin = profile.role === 'super_admin';
+      const isSuperAdmin = profile?.role === 'super_admin';
 
       if (isSuperAdmin && queryRestId) {
         restaurantId = queryRestId;
-        const { data: rest } = await supabase.from('restaurants').select('*').eq('id', restaurantId).single();
+        const { data: rest } = await supabase.from('restaurants').select('*').eq('id', restaurantId).maybeSingle();
         restaurant = rest;
         
         // Adjust sidebar nav to link back to Admin Panel
@@ -1267,7 +1267,16 @@
         document.getElementById('restNameSub').textContent    = 'Platform Admin';
         document.getElementById('avatarInitial').textContent  = 'A';
       } else {
-        restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
+        let r = Array.isArray(profile?.restaurants) ? profile.restaurants[0] : profile?.restaurants;
+        if (!r || !r.id) {
+          const { data: rByEmail } = await supabase.from('restaurants').select('*').ilike('owner_email', session.user.email).maybeSingle();
+          r = rByEmail;
+        }
+        if (!r || !r.id) {
+          const { data: fb } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
+          r = fb;
+        }
+        restaurant = r;
         restaurantId = restaurant.id;
         document.getElementById('restaurantName').textContent = restaurant.name;
         document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);

@@ -3,6 +3,8 @@
     { "source": "/menu",          "destination": "/menu.html" },
     { "source": "/ar",            "destination": "/ar.html" },
     { "source": "/login",         "destination": "/login.html" },
+    { "source": "/verify-email",  "destination": "/verify-email.html" },
+    { "source": "/forgot-password","destination": "/forgot-password.html" },
     { "source": "/home",          "destination": "/home.html" },
     { "source": "/admin",         "destination": "/admin/index.html" },
     { "source": "/admin/restaurants", "destination": "/admin/restaurants.html" },
@@ -15,6 +17,7 @@
     { "source": "/restaurant/live-ops",      "destination": "/restaurant/live-ops.html" },
     { "source": "/restaurant/tables",        "destination": "/restaurant/tables.html" },
     { "source": "/restaurant/reports",       "destination": "/restaurant/reports.html" },
+    { "source": "/restaurant/staff",         "destination": "/restaurant/staff.html" },
     { "source": "/restaurant/subscription", "destination": "/restaurant/subscription.html" },
     { "source": "/restaurant/qr",           "destination": "/restaurant/qr.html" },
     { "source": "/loyalty",                 "destination": "/loyalty/index.html" },
@@ -34,7 +37,9 @@
         { "key": "X-Frame-Options",         "value": "SAMEORIGIN" },
         { "key": "X-XSS-Protection",        "value": "1; mode=block" },
         { "key": "Referrer-Policy",         "value": "strict-origin-when-cross-origin" },
-        { "key": "Permissions-Policy",      "value": "camera=*, xr-spatial-tracking=*" }
+        { "key": "Permissions-Policy",      "value": "camera=*, xr-spatial-tracking=*" },
+        { "key": "Strict-Transport-Security", "value": "max-age=31536000; includeSubDomains; preload" },
+        { "key": "Content-Security-Policy", "value": "default-src 'self' https: data: 'unsafe-inline' 'unsafe-eval'; img-src 'self' https: data: blob:; media-src 'self' https: data: blob:;" }
       ]
     },
     {

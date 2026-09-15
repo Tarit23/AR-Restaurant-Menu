@@ -76,7 +76,10 @@
           </div>
 
           <div class="form-group">
-            <label class="form-label" for="password">Password</label>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--space-2);">
+              <label class="form-label" for="password" style="margin:0;">Password</label>
+              <a href="forgot-password.html" style="font-size:0.8rem; color:var(--primary-light); font-weight:600;">Forgot Password?</a>
+            </div>
             <div class="password-wrapper">
               <input
                 type="password"
@@ -88,6 +91,12 @@
               />
               <button type="button" class="password-toggle" id="togglePassword" aria-label="Toggle password">Show</button>
             </div>
+          </div>
+
+          <div id="unconfirmedEmailContainer" class="hidden" style="margin-bottom:12px;">
+            <button type="button" id="verifyEmailFirstBtn" class="btn btn-secondary btn-full" style="border:1px solid #10b981; color:#10b981;">
+              Verify Email First (Resend OTP)
+            </button>
           </div>
 
           <button type="submit" class="btn btn-primary btn-full btn-lg" id="loginBtn">
@@ -135,13 +144,11 @@
         }
 
         // Handle redirection based on profile/role
-        if (profile?.role === 'super_admin') {
-          window.location.href = '/admin/index.html';
-        } else if (profile?.restaurant_id) {
-          window.location.href = '/restaurant/index.html';
-        } else {
-          window.location.href = '/pending.html';
-        }
+          if (profile?.role === 'super_admin') {
+            window.location.href = '/admin/index.html';
+          } else {
+            window.location.href = '/restaurant/index.html';
+          }
       }
     });
 
@@ -192,14 +199,28 @@
         setTimeout(() => {
           if (profile?.role === 'super_admin') {
             window.location.href = '/admin/index.html';
-          } else if (profile?.restaurant_id) {
-            window.location.href = '/restaurant/index.html';
           } else {
-            window.location.href = '/pending.html';
+            window.location.href = '/restaurant/index.html';
           }
         }, 800);
       } catch (err) {
-        showError(err.message || 'Sign in failed. Please try again.');
+        const errMsg = err.message || 'Sign in failed. Please try again.';
+        showError(errMsg);
+
+        // Detect unconfirmed email error
+        if (errMsg.toLowerCase().includes('confirm') || errMsg.toLowerCase().includes('verified') || errMsg.toLowerCase().includes('not confirmed')) {
+          const container = document.getElementById('unconfirmedEmailContainer');
+          const btn = document.getElementById('verifyEmailFirstBtn');
+          if (container && btn) {
+            container.classList.remove('hidden');
+            btn.onclick = () => {
+              // Save email to localStorage so verification page knows who to verify
+              localStorage.setItem('pending_signup_email', email);
+              localStorage.setItem('pending_signup_credentials', JSON.stringify({ email, password }));
+              window.location.href = `verify-email.html?email=${encodeURIComponent(email)}`;
+            };
+          }
+        }
       } finally {
         loginBtn.classList.remove('loading');
         loginBtn.querySelector('span').textContent = 'Sign In';

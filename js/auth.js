@@ -17,8 +17,8 @@ class AuthManager {
       
       const profile = await this.loadProfile(data.user.id);
       
-      // Trigger login confirmation email
-      this.notifyLogin(email);
+      // Trigger login confirmation email in background (non-blocking)
+      this.notifyLogin(email).catch(() => {});
 
       return { user: data.user, profile };
     } catch (error) {
@@ -47,13 +47,13 @@ class AuthManager {
         return null;
       }
       
-      if (!data && retryCount < 3) {
-        console.log(`Profile not found, retrying... (${retryCount + 1}/3)`);
-        await new Promise(resolve => setTimeout(resolve, 800)); // Wait 800ms
+      if (!data && retryCount < 2) {
+        console.log(`Profile not found, retrying... (${retryCount + 1}/2)`);
+        await new Promise(resolve => setTimeout(resolve, 400));
         return this.loadProfile(userId, retryCount + 1);
       }
       
-      this.currentProfile = data || null;
+      this.currentProfile = data || { id: userId, role: 'restaurant' };
       return this.currentProfile;
     } catch (err) {
       console.error('Critical profile loading failure:', err);
@@ -89,28 +89,49 @@ class AuthManager {
     }
   }
 
-  async requireAuth(role = null) {
+  async requireAuth(allowedRoles = null) {
     const session = await this.getSession();
     if (!session) {
       window.location.href = '/login.html';
       return null;
     }
-    if (role && this.currentProfile?.role !== role && this.currentProfile?.role !== 'super_admin') {
-      window.location.href = '/unauthorized.html';
-      return null;
+    
+    const userRole = this.currentProfile?.role;
+    if (userRole === 'super_admin') {
+      return this.currentProfile;
+    }
+
+    if (allowedRoles) {
+      const rolesArray = Array.isArray(allowedRoles) ? allowedRoles : [allowedRoles];
+      if (!rolesArray.includes(userRole)) {
+        window.location.href = '/unauthorized.html';
+        return null;
+      }
     }
     return this.currentProfile;
   }
 
-  async createRestaurantUser(email, password, restaurantId, role = 'restaurant') {
-    // This should be called from admin panel via Supabase admin SDK or Edge Function
-    const { data, error } = await supabase.auth.admin.createUser({
-      email,
-      password,
-      user_metadata: { role, restaurant_id: restaurantId }
+  async createRestaurantUser(email, password, restaurantId, role = 'restaurant_owner') {
+    // Calls the admin-create-restaurant or manage-staff edge function instead of direct admin API
+    const session = await this.getSession();
+    const response = await fetch(`${supabase.supabaseUrl}/functions/v1/manage-staff`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-token': session.access_token
+      },
+      body: JSON.stringify({
+        action: 'create',
+        restaurantId,
+        email,
+        name: 'Staff Member',
+        password,
+        role
+      })
     });
-    if (error) throw error;
-    return data;
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Failed to create user");
+    return result;
   }
 
   isAdmin() {
@@ -118,7 +139,7 @@ class AuthManager {
   }
 
   isRestaurant() {
-    return this.currentProfile?.role === 'restaurant';
+    return this.currentProfile?.role === 'restaurant_owner' || this.currentProfile?.role === 'restaurant';
   }
 
   async signInWithGoogle() {

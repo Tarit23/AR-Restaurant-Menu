@@ -289,7 +289,9 @@ function showAlert(msg, type = 'error') {
   box.style.display = 'block';
 }
 
-document.getElementById('loyaltyForm').addEventListener('submit', async (e) => {
+const loyaltyForm = document.getElementById('loyaltyForm');
+if (loyaltyForm) {
+  loyaltyForm.addEventListener('submit', async (e) => {
   e.preventDefault();
   const email   = document.getElementById('custEmail').value.trim();
   const name    = document.getElementById('custName').value.trim();
@@ -355,6 +357,7 @@ document.getElementById('loyaltyForm').addEventListener('submit', async (e) => {
     btn.textContent = 'Join & Earn Points →';
   }
 });
+}
 
 init();
 </script>

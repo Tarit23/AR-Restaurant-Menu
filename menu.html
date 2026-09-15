@@ -2316,21 +2316,51 @@
     }
 
 
-    if (!restaurantId) {
+    let finalRestaurantId = restaurantId;
+    let finalTableNumber = params.get('table');
+    const tableToken = params.get('token') || params.get('tableToken');
+
+    if (tableToken) {
+      try {
+        // Resolve table details from token
+        const { data: tableData, error: tableErr } = await supabase
+          .from('tables')
+          .select('restaurant_id, table_number')
+          .eq('secure_token', tableToken)
+          .maybeSingle();
+
+        if (tableErr) throw tableErr;
+
+        if (tableData) {
+          finalRestaurantId = tableData.restaurant_id;
+          finalTableNumber = tableData.table_number;
+          
+          // Store solved details
+          localStorage.setItem('ar_table_num', finalTableNumber.toString());
+          console.log(`Resolved secure table token: Restaurant: ${finalRestaurantId}, Table: ${finalTableNumber}`);
+        } else {
+          showToast("Invalid secure table token.", "error");
+        }
+      } catch (err) {
+        console.error("Error resolving table token:", err);
+      }
+    }
+
+    if (!finalRestaurantId) {
       document.getElementById('heroTitle').textContent = 'Restaurant not found';
       document.getElementById('menuGrid').innerHTML = `<div class="empty-state"><div class="empty-title">No restaurant specified</div><div class="empty-text">Please scan the QR code provided by the restaurant.</div></div>`;
     } else {
-      await loadMenu(restaurantId);
+      await loadMenu(finalRestaurantId, finalTableNumber);
     }
 
-    async function loadMenu(id) {
+    async function loadMenu(id, resolvedTableNumber = null) {
       try {
         const { data: restaurant, error: rErr } = await supabase
           .from('restaurants').select('*').eq('id', id).single();
 
         window._restaurantInfo = restaurant;
-        // Pre-fill drawer table details from URL/local storage
-        const qTable = new URLSearchParams(window.location.search).get('table');
+        // Pre-fill drawer table details from URL/local storage/resolved token
+        const qTable = resolvedTableNumber || new URLSearchParams(window.location.search).get('table');
         const tableInput = document.getElementById('checkoutTable');
         if (tableInput) tableInput.value = qTable || localStorage.getItem('ar_table_num') || '';
         

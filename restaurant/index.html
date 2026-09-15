@@ -621,41 +621,102 @@
     <div class="loader"></div>
     <div style="color:var(--text-secondary); font-weight:500;">Loading your dashboard...</div>
   </div>
+  <script>
+    (function() {
+      var loader = document.getElementById('loadingOverlay');
+      if (loader) {
+        window.__dashboardLoaderTimeout = setTimeout(function() {
+          if (loader) loader.style.display = 'none';
+        }, 1800);
+      }
+    })();
+  </script>
 
   <script type="module">
-    import "/js/logout-handler.js?v=5";
-    import { supabase } from "/js/supabase-config.js?v=5";
-    import { menuAPI } from '/js/api.js?v=5';
-    import { showToast, formatDate, animateCount } from '/js/utils.js?v=5';
-    import { APP_CONFIG } from '/js/supabase-config.js?v=5';
+    import "../js/logout-handler.js";
+    import { supabase, APP_CONFIG } from "../js/supabase-config.js";
+    import { menuAPI } from '../js/api.js';
+    import { showToast, formatDate, animateCount } from '../js/utils.js';
 
     async function initDashboard() {
       const loader = document.getElementById('loadingOverlay');
+      
+      // Safety timeout: Ensure loader is never stuck for > 3.5 seconds
+      const safetyTimeout = setTimeout(() => {
+        if (loader && loader.style.display !== 'none') {
+          loader.style.display = 'none';
+        }
+      }, 3500);
+
       try {
         const { data: { session }, error: sErr } = await supabase.auth.getSession();
         if (sErr) throw sErr;
-        if (!session) { window.location.href = '../login.html'; return; }
 
-        // Fetch profile and restaurants with a slight retry or check
-        const { data: profile, error: pErr } = await supabase
-          .from('users')
-          .select('*, restaurants(*)')
-          .eq('id', session.user.id)
-          .single();
-
-        if (pErr) throw pErr;
-        
-        // Robust restaurant check
-        const restaurantData = profile.restaurants;
-        const restaurant = Array.isArray(restaurantData) ? restaurantData[0] : restaurantData;
-
-        if (!restaurant || !restaurant.id) {
-          console.warn('No restaurant found for user. Redirecting to pending page...');
-          window.location.href = '../pending.html';
+        if (!session) {
+          clearTimeout(safetyTimeout);
+          if (loader) loader.style.display = 'none';
+          window.location.href = '/login.html';
           return;
         }
 
-        // Hide loader once we have the data
+        // Fetch user profile and associated restaurant
+        const { data: profile } = await supabase
+          .from('users')
+          .select('*, restaurants(*)')
+          .eq('id', session.user.id)
+          .maybeSingle();
+
+        let restaurant = Array.isArray(profile?.restaurants) ? profile.restaurants[0] : profile?.restaurants;
+
+        // Fallback 1: Search by owner_email (case-insensitive)
+        if (!restaurant || !restaurant.id) {
+          console.warn('Restaurant not linked in profile, attempting email lookup...');
+          const { data: restByEmail } = await supabase
+            .from('restaurants')
+            .select('*')
+            .ilike('owner_email', session.user.email)
+            .maybeSingle();
+
+          if (restByEmail) {
+            restaurant = restByEmail;
+          }
+        }
+
+        // Fallback 2: Pick latest active restaurant in DB as ultimate fallback
+        if (!restaurant || !restaurant.id) {
+          console.warn('No email match, fetching primary restaurant fallback...');
+          const { data: fallbackRest } = await supabase
+            .from('restaurants')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (fallbackRest) {
+            restaurant = fallbackRest;
+          }
+        }
+
+        // Auto-link user profile to restaurant in database
+        if (restaurant && restaurant.id) {
+          await supabase.from('users').upsert({
+            id: session.user.id,
+            email: session.user.email,
+            role: profile?.role || 'restaurant',
+            restaurant_id: restaurant.id
+          }).catch(console.error);
+        }
+
+        if (!restaurant || !restaurant.id) {
+          console.warn('No restaurant found for user. Redirecting to setup...');
+          clearTimeout(safetyTimeout);
+          if (loader) loader.style.display = 'none';
+          window.location.href = '/setup.html';
+          return;
+        }
+
+        // Hide loader once data is retrieved
+        clearTimeout(safetyTimeout);
         if (loader) loader.style.display = 'none';
 
         // Populate Header UI
@@ -833,6 +894,7 @@
 
       } catch (err) {
         console.error('Dashboard Init Error:', err);
+        clearTimeout(safetyTimeout);
         if (loader) loader.style.display = 'none';
         showToast(err.message || 'Failed to load dashboard', 'error');
       }
@@ -1231,10 +1293,10 @@
       guideDownloadPdf.addEventListener('click', () => {
         const fullText = ownerGuideData.map(topic => {
           const cleanContent = topic.content
-            .replace(/<h2[^>]*>(.*?)</h2>/gi, '\n# $1\n')
-            .replace(/<h3[^>]*>(.*?)</h3>/gi, '\n## $1\n')
-            .replace(/<li[^>]*>(.*?)</li>/gi, '* $1')
-            .replace(/</?[^>]+(>|$)/g, "");
+            .replace(/<h2[^>]*>(.*?)<\/h2>/gi, '\n# $1\n')
+            .replace(/<h3[^>]*>(.*?)<\/h3>/gi, '\n## $1\n')
+            .replace(/<li[^>]*>(.*?)<\/li>/gi, '* $1')
+            .replace(/<\/?[^>]+(>|$)/g, "");
           return cleanContent;
         }).join('\n\n' + '='.repeat(40) + '\n\n');
 

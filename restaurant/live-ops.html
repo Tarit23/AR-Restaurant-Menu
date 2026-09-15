@@ -496,9 +496,19 @@
           <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
         </button>
         <!-- Bell Icon / Notifications -->
-        <div style="position: relative; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-primary); cursor: pointer;" title="Notifications">
+        <div id="notifBell" onclick="toggleNotifications()" style="position: relative; display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text-primary); cursor: pointer;" title="Notifications">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-          <span style="position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; background: #5d5fef; color: white; font-size: 0.65rem; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center;">3</span>
+          <span id="notifBadge" style="position: absolute; top: -2px; right: -2px; width: 14px; height: 14px; background: #5d5fef; color: white; font-size: 0.65rem; font-weight: bold; border-radius: 50%; display: flex; align-items: center; justify-content: center; display: none;">0</span>
+          
+          <div class="notif-dropdown" id="notifDropdown">
+            <div class="notif-header">
+              <span>Alerts & Notifications</span>
+              <button onclick="clearAllNotifications()" style="background:none; border:none; color:var(--primary-light); font-size:0.75rem; cursor:pointer; font-weight:700;">Clear All</button>
+            </div>
+            <div class="notif-body" id="notifItems">
+              <div style="text-align:center; padding:24px; color:var(--text-muted); font-size:0.8rem;">No active alerts.</div>
+            </div>
+          </div>
         </div>
         <!-- Owner Guide Button -->
         <button id="openGuideBtn" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 6px; font-weight:600; font-size:0.8rem; cursor:pointer;">
@@ -518,7 +528,7 @@
     <div class="page-content">
       <div class="page-header animate-in" style="margin-bottom: 20px;">
         <div class="page-header-text">
-          <h1>Live Operations Center</h1>
+          <h1>Live Operations Center <span id="userRoleBadge" style="font-size:0.75rem; padding:3px 10px; border-radius:12px; background:var(--primary); color:#fff; vertical-align:middle; margin-left:8px; font-weight:800;">OWNER</span></h1>
           <p style="color: var(--text-muted); margin-top: 4px;">Real-time dining session tracker, order lifecycle manager, and POS settle panel.</p>
         </div>
       </div>
@@ -585,19 +595,25 @@
     (async function init() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return window.location.href = '../login.html';
-      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).single();
-      if (!profile) return window.location.href = '../login.html';
-
-      const restaurant = Array.isArray(profile.restaurants) ? profile.restaurants[0] : profile.restaurants;
-      restaurantId = restaurant.id;
-
-      // Initialize notifications bell UI
-      notificationsController.init(restaurantId);
-
-      document.getElementById('restaurantName').textContent = restaurant.name;
-      document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
-      document.getElementById('topbarRestName').textContent  = restaurant.name;
-      document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+      const { data: profile } = await supabase.from('users').select('*, restaurants(*)').eq('id', session.user.id).maybeSingle();
+      let r = Array.isArray(profile?.restaurants) ? profile.restaurants[0] : profile?.restaurants;
+      if (!r || !r.id) {
+        const { data: rByEmail } = await supabase.from('restaurants').select('*').ilike('owner_email', session.user.email).maybeSingle();
+        r = rByEmail;
+      }
+      if (!r || !r.id) {
+        const { data: fb } = await supabase.from('restaurants').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
+        r = fb;
+      }
+      const restaurant = r;
+      if (restaurant) {
+        restaurantId = restaurant.id;
+        notificationsController.init(restaurantId);
+        document.getElementById('restaurantName').textContent = restaurant.name;
+        document.getElementById('restNameSub').textContent    = restaurant.name.substring(0,16);
+        document.getElementById('topbarRestName').textContent  = restaurant.name;
+        document.getElementById('avatarInitial').textContent  = restaurant.name[0].toUpperCase();
+      }
 
       document.getElementById('menuToggle').addEventListener('click', () => {
         document.getElementById('sidebar').classList.toggle('open');

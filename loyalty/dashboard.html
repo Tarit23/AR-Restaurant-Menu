@@ -704,7 +704,10 @@ const params       = new URLSearchParams(location.search);
 const restaurantId = params.get('restaurant');
 const sess         = loyaltySession.is(restaurantId);
 
-if (!sess) { location.href = `/loyalty?restaurant=${restaurantId}`; }
+if (!sess) {
+  location.href = `/loyalty?restaurant=${restaurantId}`;
+  // Stop executing script
+}
 
 let customer  = null;
 let settings  = null;
@@ -911,6 +914,7 @@ window.logout = function() {
 
 /* ── Load all data ── */
 async function loadData() {
+  if (!sess || !sess.customer_id) return;
   [settings, customer, vouchers] = await Promise.all([
     loyaltySettingsAPI.get(restaurantId),
     loyaltyCustomersAPI.getById(sess.customer_id),
