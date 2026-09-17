@@ -7,18 +7,9 @@
   <meta name="description" content="Transform your restaurant with premium 3D & AR menus, tableside ordering, customer analytics, and automated loyalty rewards. No app required." />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   
-  <!-- Prevent Theme Flash on Page Load -->
-  <script>
-    (function() {
-      const storedTheme = localStorage.getItem('bite-theme');
-      if (storedTheme) {
-        document.documentElement.setAttribute('data-theme', storedTheme);
-      } else {
-        const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-        document.documentElement.setAttribute('data-theme', systemPrefersDark ? 'dark' : 'light');
-      }
-    })();
-  </script>
+  <!-- Theme initialization & Toggle Script -->
+  <script src="/js/theme-init.js"></script>
+
 
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800&display=swap');
